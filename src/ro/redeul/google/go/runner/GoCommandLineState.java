@@ -8,7 +8,6 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
-import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -21,7 +20,6 @@ import java.io.File;
 import java.util.Map;
 
 import static com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil.createAndAttachConsole;
-import static ro.redeul.google.go.sdk.GoSdkUtil.prependToGoPath;
 
 class GoCommandLineState extends CommandLineState {
     private final GoTestConsoleProperties consoleProperties;
