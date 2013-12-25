@@ -135,6 +135,10 @@ public class GoSdkUtil {
     public static VirtualFile getSdkSourcesRoot(Sdk sdk) {
         final VirtualFile homeDirectory = sdk.getHomeDirectory();
 
+        if (homeDirectory == null) {
+            return null;
+        }
+
         if (checkFolderExists(homeDirectory.getPath(), "src")) {
             return homeDirectory.findFileByRelativePath("src/pkg");
         } else if (checkFolderExists(homeDirectory.getPath(), "libexec", "src")) {
@@ -178,7 +182,7 @@ public class GoSdkUtil {
     private static GoSdkData findHostOsAndArch(final String path, String goCommand, GoSdkData data) {
 
         if (data == null)
-            return data;
+            return null;
 
         try {
             GeneralCommandLine command = new GeneralCommandLine();
@@ -595,14 +599,25 @@ public class GoSdkUtil {
         return goSdks;
     }
 
-    public static String prependToGoPath(String prependedPath) {
-        return format("%s%s%s", prependedPath, File.pathSeparator,
-                      System.getenv("GOPATH"));
+    public static String getGoPath(GoSdkData sdkData) {
+        if (!sdkData.GO_GOROOT_PATH.isEmpty()) {
+            return sdkData.GO_GOROOT_PATH;
+
+        }
+
+        return getSysGoPathPath();
     }
 
-    public static String appendToGoPath(String prependedPath) {
-        return format("%s%s%s", System.getenv("GOPATH"), File.pathSeparator,
-                prependedPath);
+    public static String prependToGoPath(GoSdkData sdkData, String prependedPath) {
+        String goPath = getGoPath(sdkData);
+
+        return format("%s%s%s", prependedPath, File.pathSeparator, goPath);
+    }
+
+    public static String appendToGoPath(GoSdkData sdkData, String prependedPath) {
+        String goPath = getGoPath(sdkData);
+
+        return format("%s%s%s", goPath, File.pathSeparator, prependedPath);
     }
 
     public static String getSysGoRootPath() {
@@ -648,7 +663,7 @@ public class GoSdkUtil {
     public static Map<String, String> getExtendedSysEnv(GoSdkData sdkData, String projectDir, String envVars) {
         Map<String,String> sysEnv = new HashMap<String, String>(System.getenv());
         sysEnv.put("GOROOT", getSdkRootPath(sdkData));
-        sysEnv.put("GOPATH", GoSdkUtil.appendToGoPath(projectDir));
+        sysEnv.put("GOPATH", GoSdkUtil.appendToGoPath(sdkData, projectDir));
 
         if (envVars.length() > 0) {
             String[] envVarsArray = envVars.split(";");
@@ -686,22 +701,28 @@ public class GoSdkUtil {
     }
 
     public static String getSdkRootPath(GoSdkData sdkData) {
-        if (sdkData.GO_GOROOT_PATH.isEmpty()) {
-            File possibleRoot = new File(sdkData.GO_BIN_PATH).getParentFile();
-            try {
-                if (new File(possibleRoot.getCanonicalPath().concat("/src")).exists()) {
-                    return possibleRoot.getCanonicalPath();
-                }
-            } catch (IOException ignored) {
-                return "";
+        if (!sdkData.GO_GOROOT_PATH.isEmpty()) {
+            return sdkData.GO_GOROOT_PATH;
+        }
+
+        File possibleRoot = new File(sdkData.GO_BIN_PATH).getParentFile();
+        try {
+            if (new File(possibleRoot.getCanonicalPath().concat("/src")).exists()) {
+                return possibleRoot.getCanonicalPath();
             }
 
-            try {
-                return possibleRoot.getParentFile().getCanonicalPath();
-            } catch (IOException e) {
-                return "";
+            if (new File(possibleRoot.getCanonicalPath().concat("/libexec/src")).exists()) {
+                return possibleRoot.getCanonicalPath();
             }
+        } catch (IOException ignored) {
         }
-        return sdkData.GO_GOROOT_PATH;
+
+        try {
+            return possibleRoot.getParentFile().getCanonicalPath();
+        } catch (IOException ignored) {
+        }
+
+        // If anything else failed try to get it from the system
+        return getSysGoRootPath();
     }
 }
