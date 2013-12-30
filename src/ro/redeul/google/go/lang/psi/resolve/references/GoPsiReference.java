@@ -59,13 +59,17 @@ public abstract class GoPsiReference<
     @Override
     public PsiElement resolve() {
         if (resolver != null) {
-            GoResolveResult result = ResolveCache
-                .getInstance(getElement().getProject())
-                .resolveWithCaching(self(), resolver, true, false);
+            try {
+                GoResolveResult result = ResolveCache
+                    .getInstance(getElement().getProject())
+                    .resolveWithCaching(self(), resolver, true, false);
 
-            return result != null && result.isValidResult()
-                ? result.getElement()
-                : null;
+                return result != null && result.isValidResult()
+                    ? result.getElement()
+                    : null;
+            } catch (Exception ignored) {
+                return null;
+            }
         }
 
         return null;
