@@ -685,6 +685,10 @@
             <className>ro.redeul.google.go.intentions.statements.ConvertStatementToForRangeIntention</className>
         </intentionAction>
 
+        <configurationType implementation="uk.co.cwspencer.ideagdb.run.GdbRunConfigurationType"/>
+        <programRunner implementation="uk.co.cwspencer.ideagdb.run.GdbRunner" order="last"/>
+        <xdebugger.breakpointType implementation="uk.co.cwspencer.ideagdb.debug.breakpoints.GdbBreakpointType"/>
+
     </extensions>
 
 </idea-plugin>
