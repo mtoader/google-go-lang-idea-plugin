@@ -82,7 +82,7 @@ public class GoSdkParsingHelper implements ApplicationComponent {
         Sdk ownerSdk = null;
 
         VirtualFile ownerSdkRoot = null;
-        if (projectFileIndex.isInLibrarySource(virtualFile)) {
+        if (projectFileIndex.isInLibraryClasses(virtualFile)) {
             VirtualFile classPathRoot = projectFileIndex.getClassRootForFile(virtualFile);
 
             for (Sdk sdk : sdkList) {
