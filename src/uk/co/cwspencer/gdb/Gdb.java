@@ -1,8 +1,11 @@
 package uk.co.cwspencer.gdb;
 
+import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
+import org.apache.commons.lang.StringUtils;
 import uk.co.cwspencer.gdb.gdbmi.*;
 import uk.co.cwspencer.gdb.messages.*;
+import uk.co.cwspencer.ideagdb.debug.GdbDebugProcess;
 
 import java.io.File;
 import java.io.InputStream;
@@ -246,7 +249,11 @@ public class Gdb {
             // Launch the process
             final String[] commandLine = {
                     gdbPath,
-                    "--interpreter=mi2"};
+                    "--interpreter=mi2"
+            };
+
+            GdbDebugProcess.m_console.print(StringUtils.join(commandLine, " "), ConsoleViewContentType.NORMAL_OUTPUT);
+
             File workingDirectoryFile = null;
             if (workingDirectory != null) {
                 workingDirectoryFile = new File(workingDirectory);
