@@ -42,7 +42,7 @@ public class GdbRunner extends DefaultProgramRunner {
     }
 
     @Nullable
-    protected RunContentDescriptor createContentDescriptor(Project project,
+    protected RunContentDescriptor createContentDescriptor(final Project project,
                                                            final Executor executor,
                                                            final RunProfileState state,
                                                            RunContentDescriptor contentToReuse,
@@ -53,7 +53,7 @@ public class GdbRunner extends DefaultProgramRunner {
             @Override
             public XDebugProcess start(@NotNull XDebugSession session) throws ExecutionException {
                 final ExecutionResult result = state.execute(executor, GdbRunner.this);
-                return new GdbDebugProcess(session, (GdbExecutionResult) result);
+                return new GdbDebugProcess(project, session, (GdbExecutionResult) result);
             }
         });
         return debugSession.getRunContentDescriptor();

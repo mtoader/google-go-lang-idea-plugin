@@ -10,6 +10,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.content.Content;
 import com.intellij.xdebugger.XDebugProcess;
 import com.intellij.xdebugger.XDebugSession;
@@ -42,10 +43,13 @@ public class GdbDebugProcess extends XDebugProcess implements GdbListener {
     public static ConsoleView m_console;
 
     // The run configuration
-    private GdbRunConfiguration m_configuration;
+    public static GdbRunConfiguration m_configuration;
 
     // The GDB console
     public static GdbConsoleView m_gdbConsole;
+
+    // The project
+    public static Project m_project;
 
     // The GDB instance
     private Gdb m_gdb;
@@ -59,10 +63,11 @@ public class GdbDebugProcess extends XDebugProcess implements GdbListener {
     /**
      * Constructor; launches GDB.
      */
-    public GdbDebugProcess(XDebugSession session, GdbExecutionResult executionResult) {
+    public GdbDebugProcess(Project project, XDebugSession session, GdbExecutionResult executionResult) {
         super(session);
         m_configuration = executionResult.getConfiguration();
         m_console = (ConsoleView) executionResult.getExecutionConsole();
+        m_project = project;
 
         // Get the working directory
         // TODO: Make this an option on the run configuration
