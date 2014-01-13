@@ -2,7 +2,11 @@ package uk.co.cwspencer.gdb;
 
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
 import org.apache.commons.lang.StringUtils;
+import ro.redeul.google.go.config.sdk.GoSdkData;
+import ro.redeul.google.go.sdk.GoSdkUtil;
 import uk.co.cwspencer.gdb.gdbmi.*;
 import uk.co.cwspencer.gdb.messages.*;
 import uk.co.cwspencer.ideagdb.debug.GdbDebugProcess;
@@ -249,7 +253,7 @@ public class Gdb {
             // Launch the process
             final String[] commandLine = {
                     gdbPath,
-                    "--interpreter=mi2"
+                    "--interpreter=mi",
             };
 
             GdbDebugProcess.m_console.print(StringUtils.join(commandLine, " "), ConsoleViewContentType.NORMAL_OUTPUT);
@@ -258,11 +262,48 @@ public class Gdb {
             if (workingDirectory != null) {
                 workingDirectoryFile = new File(workingDirectory);
             }
-            Process process = Runtime.getRuntime().exec(commandLine, null, workingDirectoryFile);
+
+            Project project = GdbDebugProcess.m_project;
+
+            Sdk sdk = GoSdkUtil.getGoogleGoSdkForProject(project);
+            if ( sdk == null ) {
+                return;
+            }
+
+            final GoSdkData sdkData = (GoSdkData)sdk.getSdkAdditionalData();
+            if ( sdkData == null ) {
+                return;
+            }
+
+            String projectDir = project.getBasePath();
+
+            if (projectDir == null) {
+                return;
+            }
+
+            String[] goEnv = GoSdkUtil.getExtendedGoEnv(sdkData, projectDir, "");
+
+            Process process = Runtime.getRuntime().exec(commandLine, goEnv, workingDirectoryFile);
             InputStream stream = process.getInputStream();
 
+            String goRootPath = sdkData.GO_GOROOT_PATH + "/src/pkg/runtime/runtime-gdb.py";
+
             // Queue startup commands
-            sendCommand("-list-features", new GdbEventCallback() {
+            sendCommand("add-auto-load-safe-path " + (new File(sdkData.GO_GOROOT_PATH)).getAbsolutePath(), new GdbEventCallback() {
+                @Override
+                public void onGdbCommandCompleted(GdbEvent event) {
+                    onGdbCapabilitiesReady(event);
+                }
+            });
+
+            sendCommand("python \"" + goRootPath + "\"", new GdbEventCallback() {
+                @Override
+                public void onGdbCommandCompleted(GdbEvent event) {
+                    onGdbCapabilitiesReady(event);
+                }
+            });
+
+            sendCommand("file " + GdbDebugProcess.m_configuration.APP_PATH, new GdbEventCallback() {
                 @Override
                 public void onGdbCommandCompleted(GdbEvent event) {
                     onGdbCapabilitiesReady(event);
