@@ -51,11 +51,11 @@ public class GdbBreakpointHandler extends
         } else {
             // Set the breakpoint
             XSourcePosition sourcePosition = breakpoint.getSourcePosition();
-            String command = null;
-            if (sourcePosition != null) {
-                command = "-break-insert -f " + sourcePosition.getFile().getPath() + ":" +
-                        (sourcePosition.getLine() + 1);
+            if (sourcePosition == null) {
+                return;
             }
+
+            String command = "-break-insert -f " + sourcePosition.getFile().getPath() + ":" + (sourcePosition.getLine() + 1);
             m_gdb.sendCommand(command, new Gdb.GdbEventCallback() {
                 @Override
                 public void onGdbCommandCompleted(GdbEvent event) {

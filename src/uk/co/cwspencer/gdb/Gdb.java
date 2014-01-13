@@ -289,14 +289,7 @@ public class Gdb {
             String goRootPath = sdkData.GO_GOROOT_PATH + "/src/pkg/runtime/runtime-gdb.py";
 
             // Queue startup commands
-            sendCommand("add-auto-load-safe-path " + (new File(sdkData.GO_GOROOT_PATH)).getAbsolutePath(), new GdbEventCallback() {
-                @Override
-                public void onGdbCommandCompleted(GdbEvent event) {
-                    onGdbCapabilitiesReady(event);
-                }
-            });
-
-            sendCommand("python \"" + goRootPath + "\"", new GdbEventCallback() {
+            sendCommand("add-auto-load-safe-path " + (new File(sdkData.GO_GOROOT_PATH)).getCanonicalPath(), new GdbEventCallback() {
                 @Override
                 public void onGdbCommandCompleted(GdbEvent event) {
                     onGdbCapabilitiesReady(event);
