@@ -256,14 +256,14 @@ public class Gdb {
                     "--interpreter=mi",
             };
 
-            GdbDebugProcess.m_console.print(StringUtils.join(commandLine, " "), ConsoleViewContentType.NORMAL_OUTPUT);
+            ((GdbDebugProcess) m_listener).m_console.print(StringUtils.join(commandLine, " "), ConsoleViewContentType.NORMAL_OUTPUT);
 
             File workingDirectoryFile = null;
             if (workingDirectory != null) {
                 workingDirectoryFile = new File(workingDirectory);
             }
 
-            Project project = GdbDebugProcess.m_project;
+            Project project = ((GdbDebugProcess) m_listener).m_project;
 
             Sdk sdk = GoSdkUtil.getGoogleGoSdkForProject(project);
             if ( sdk == null ) {
@@ -285,23 +285,6 @@ public class Gdb {
 
             Process process = Runtime.getRuntime().exec(commandLine, goEnv, workingDirectoryFile);
             InputStream stream = process.getInputStream();
-
-            String goRootPath = sdkData.GO_GOROOT_PATH + "/src/pkg/runtime/runtime-gdb.py";
-
-            // Queue startup commands
-            sendCommand("add-auto-load-safe-path " + (new File(sdkData.GO_GOROOT_PATH)).getCanonicalPath(), new GdbEventCallback() {
-                @Override
-                public void onGdbCommandCompleted(GdbEvent event) {
-                    onGdbCapabilitiesReady(event);
-                }
-            });
-
-            sendCommand("file " + GdbDebugProcess.m_configuration.APP_PATH, new GdbEventCallback() {
-                @Override
-                public void onGdbCommandCompleted(GdbEvent event) {
-                    onGdbCapabilitiesReady(event);
-                }
-            });
 
             // Save a reference to the process and launch the writer thread
             synchronized (this) {

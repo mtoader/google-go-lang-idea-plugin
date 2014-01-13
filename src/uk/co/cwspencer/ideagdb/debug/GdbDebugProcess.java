@@ -40,19 +40,19 @@ public class GdbDebugProcess extends XDebugProcess implements GdbListener {
             Logger.getInstance("#uk.co.cwspencer.ideagdb.debug.GdbDebugProcess");
 
     private GdbDebuggerEditorsProvider m_editorsProvider = new GdbDebuggerEditorsProvider();
-    public static ConsoleView m_console;
+    public ConsoleView m_console;
 
     // The run configuration
-    public static GdbRunConfiguration m_configuration;
+    public GdbRunConfiguration m_configuration;
 
     // The GDB console
-    public static GdbConsoleView m_gdbConsole;
+    public GdbConsoleView m_gdbConsole;
 
     // The project
-    public static Project m_project;
+    public Project m_project;
 
     // The GDB instance
-    private Gdb m_gdb;
+    public Gdb m_gdb;
 
     // The breakpoint handler
     private GdbBreakpointHandler m_breakpointHandler;
