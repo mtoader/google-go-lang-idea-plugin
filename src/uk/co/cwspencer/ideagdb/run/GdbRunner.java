@@ -11,13 +11,19 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.xdebugger.XDebugProcess;
 import com.intellij.xdebugger.XDebugProcessStarter;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.XDebuggerManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import ro.redeul.google.go.config.sdk.GoSdkData;
+import ro.redeul.google.go.sdk.GoSdkUtil;
 import uk.co.cwspencer.ideagdb.debug.GdbDebugProcess;
+
+import java.io.File;
+import java.io.IOException;
 
 public class GdbRunner extends DefaultProgramRunner {
     @NotNull
@@ -47,17 +53,49 @@ public class GdbRunner extends DefaultProgramRunner {
                                                            final RunProfileState state,
                                                            RunContentDescriptor contentToReuse,
                                                            ExecutionEnvironment env) throws ExecutionException {
+
+        final ExecutionResult result = state.execute(executor, GdbRunner.this);
         final XDebugSession debugSession = XDebuggerManager.getInstance(project).startSession(this,
                 env, contentToReuse, new XDebugProcessStarter() {
             @NotNull
             @Override
             public XDebugProcess start(@NotNull XDebugSession session) throws ExecutionException {
                 session.setAutoInitBreakpoints(false);
-                final ExecutionResult result = state.execute(executor, GdbRunner.this);
                 return new GdbDebugProcess(project, session, (GdbExecutionResult) result);
             }
         });
+
+        Sdk sdk = GoSdkUtil.getGoogleGoSdkForProject(project);
+        if ( sdk == null ) {
+            debugSession.stop();
+            return null;
+        }
+
+        final GoSdkData sdkData = (GoSdkData)sdk.getSdkAdditionalData();
+        if ( sdkData == null ) {
+            debugSession.stop();
+            return null;
+        }
+
+        GdbDebugProcess debugProcess = ((GdbDebugProcess) debugSession.getDebugProcess());
+
+        String goRootPath;
+        try {
+            goRootPath = (new File(sdkData.GO_GOROOT_PATH)).getCanonicalPath();
+        } catch (IOException ignored) {
+            debugSession.stop();
+            return null;
+        }
+
+        // Queue startup commands
+        debugProcess.m_gdb.sendCommand("add-auto-load-safe-path " + goRootPath);
+
+        debugProcess.m_gdb.sendCommand("file " + ((GdbExecutionResult) result).m_configuration.APP_PATH);
+
         debugSession.initBreakpoints();
+
+        debugProcess.m_gdb.sendCommand("run");
+
         return debugSession.getRunContentDescriptor();
     }
 }
