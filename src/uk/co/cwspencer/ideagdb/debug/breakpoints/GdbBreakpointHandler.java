@@ -40,7 +40,7 @@ public class GdbBreakpointHandler extends
      */
     @Override
     public void registerBreakpoint(
-            @NotNull final XLineBreakpoint<GdbBreakpointProperties> breakpoint) {
+        @NotNull final XLineBreakpoint<GdbBreakpointProperties> breakpoint) {
         // TODO: I think we can use tracepoints here if the suspend policy isn't to stop the process
 
         // Check if the breakpoint already exists
