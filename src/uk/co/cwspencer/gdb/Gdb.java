@@ -256,7 +256,7 @@ public class Gdb {
                     "--interpreter=mi",
             };
 
-            ((GdbDebugProcess) m_listener).m_console.print(StringUtils.join(commandLine, " "), ConsoleViewContentType.NORMAL_OUTPUT);
+            ((GdbDebugProcess) m_listener).m_console.print(StringUtils.join(commandLine, " ") + "\n", ConsoleViewContentType.NORMAL_OUTPUT);
 
             File workingDirectoryFile = null;
             if (workingDirectory != null) {
