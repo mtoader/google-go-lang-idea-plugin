@@ -30,6 +30,7 @@ public class GdbRunConfiguration extends ModuleBasedConfiguration<GdbRunConfigur
 
     public String GDB_PATH = "gdb";
     public String STARTUP_COMMANDS = "";
+    public Boolean autoStartGdb = true;
     public String scriptName = "";
     public String scriptArguments = "";
     public String builderArguments = "";

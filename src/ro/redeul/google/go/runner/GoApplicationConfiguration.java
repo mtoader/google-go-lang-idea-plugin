@@ -19,6 +19,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
@@ -26,7 +27,6 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.xmlb.XmlSerializer;
-import com.yourkit.util.Strings;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import ro.redeul.google.go.config.sdk.GoSdkData;
@@ -263,7 +263,7 @@ public class GoApplicationConfiguration extends ModuleBasedConfiguration<GoAppli
                     Process proc = rt.exec(command, goEnv);
                     OSProcessHandler handler = new OSProcessHandler(proc, null);
                     consoleView.attachToProcess(handler);
-                    consoleView.print(String.format("%s%n", Strings.join(command, " ")), ConsoleViewContentType.NORMAL_OUTPUT);
+                    consoleView.print(String.format("%s%n", StringUtil.join(command, " ")), ConsoleViewContentType.NORMAL_OUTPUT);
                     handler.startNotify();
 
                     if (proc.waitFor() == 0) {

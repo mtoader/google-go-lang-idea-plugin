@@ -35,6 +35,7 @@ public class GdbRunConfigurationEditor<T extends GdbRunConfiguration> extends Se
     private TextFieldWithBrowseButton workingDirectoryBrowser;
     private RawCommandLineEditor envVars;
     private JCheckBox runGoVetBeforeCheckBox;
+    private JCheckBox autoStartGdb;
 
     public GdbRunConfigurationEditor(final Project project) {
         applicationName.getButton().addActionListener(
@@ -78,6 +79,7 @@ public class GdbRunConfigurationEditor<T extends GdbRunConfiguration> extends Se
     protected void resetEditorFrom(T configuration) {
         m_gdbPath.setText(configuration.GDB_PATH);
         m_startupCommands.setText(configuration.STARTUP_COMMANDS);
+        autoStartGdb.setSelected(configuration.autoStartGdb);
 
         applicationName.setText(configuration.scriptName);
         appArguments.setText(configuration.scriptArguments);
@@ -112,6 +114,7 @@ public class GdbRunConfigurationEditor<T extends GdbRunConfiguration> extends Se
 
         configuration.GDB_PATH = m_gdbPath.getText();
         configuration.STARTUP_COMMANDS = m_startupCommands.getText();
+        configuration.autoStartGdb = autoStartGdb.isSelected();
 
         configuration.scriptName = applicationName.getText();
         configuration.scriptArguments = appArguments.getText();
