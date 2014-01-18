@@ -28,6 +28,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
+import com.yourkit.util.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ro.redeul.google.go.GoIcons;
@@ -165,23 +166,13 @@ public class GdbRunProfileState implements RunProfileState {
             window.show(EmptyRunnable.getInstance());
 
             String[] goEnv = GoSdkUtil.convertEnvMapToArray(sysEnv);
-
-            // TODO FIX ME ASAP!
-            String[] command = new String[]{
-                    goExecName,
-                    "build",
-                    "-gcflags",
-                    "-N -l",
-                    "-o",
-                    execName,
-                    m_configuration.scriptName
-            };
+            String[] command = GoSdkUtil.computeGoBuildCommand(goExecName, m_configuration.builderArguments, execName, m_configuration.scriptName);
 
             Runtime rt = Runtime.getRuntime();
             Process proc = rt.exec(command, goEnv);
             OSProcessHandler handler = new OSProcessHandler(proc, null);
             consoleView.attachToProcess(handler);
-            consoleView.print(String.format("%s%n", command), ConsoleViewContentType.NORMAL_OUTPUT);
+            consoleView.print(String.format("%s%n", Strings.join(command, " ")), ConsoleViewContentType.NORMAL_OUTPUT);
             handler.startNotify();
 
             if (proc.waitFor() == 0) {

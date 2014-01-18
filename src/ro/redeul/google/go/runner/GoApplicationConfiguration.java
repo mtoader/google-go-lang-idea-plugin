@@ -26,6 +26,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.xmlb.XmlSerializer;
+import com.yourkit.util.Strings;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import ro.redeul.google.go.config.sdk.GoSdkData;
@@ -256,20 +257,13 @@ public class GoApplicationConfiguration extends ModuleBasedConfiguration<GoAppli
                     window.show(EmptyRunnable.getInstance());
 
                     String[] goEnv = GoSdkUtil.convertEnvMapToArray(sysEnv);
-
-                    String command = String.format(
-                            "%s build %s -o %s %s",
-                            goExecName,
-                            builderArguments,
-                            execName,
-                            scriptName
-                    );
+                    String[] command = GoSdkUtil.computeGoBuildCommand(goExecName, builderArguments, execName, scriptName);
 
                     Runtime rt = Runtime.getRuntime();
                     Process proc = rt.exec(command, goEnv);
                     OSProcessHandler handler = new OSProcessHandler(proc, null);
                     consoleView.attachToProcess(handler);
-                    consoleView.print(String.format("%s%n", command), ConsoleViewContentType.NORMAL_OUTPUT);
+                    consoleView.print(String.format("%s%n", Strings.join(command, " ")), ConsoleViewContentType.NORMAL_OUTPUT);
                     handler.startNotify();
 
                     if (proc.waitFor() == 0) {
