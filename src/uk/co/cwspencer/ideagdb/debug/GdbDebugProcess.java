@@ -69,12 +69,8 @@ public class GdbDebugProcess extends XDebugProcess implements GdbListener {
         m_console = (ConsoleView) executionResult.getExecutionConsole();
         m_project = project;
 
-        // Get the working directory
-        // TODO: Make this an option on the run configuration
-        String workingDirectory = new File(m_configuration.APP_PATH).getParent();
-
         // Prepare GDB
-        m_gdb = new Gdb(m_configuration.GDB_PATH, workingDirectory, this);
+        m_gdb = new Gdb(m_configuration.GDB_PATH, m_configuration.workingDir, this);
 
         // Create the GDB console
         m_gdbConsole = new GdbConsoleView(m_gdb, session.getProject());
