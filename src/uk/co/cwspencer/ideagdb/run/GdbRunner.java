@@ -90,7 +90,13 @@ public class GdbRunner extends DefaultProgramRunner {
         // Queue startup commands
         debugProcess.m_gdb.sendCommand("add-auto-load-safe-path " + goRootPath);
 
-        debugProcess.m_gdb.sendCommand("file " + ((GdbExecutionResult) result).m_configuration.APP_PATH);
+        String execName = ((GdbExecutionResult) result).m_configuration.goOutputDir.concat("/").concat(project.getName());
+
+        if (GoSdkUtil.isHostOsWindows()) {
+            execName = execName.concat(".exe");
+        }
+
+        debugProcess.m_gdb.sendCommand("file " + execName);
 
         debugSession.initBreakpoints();
 
