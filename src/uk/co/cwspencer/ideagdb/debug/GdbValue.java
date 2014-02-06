@@ -167,11 +167,9 @@ public class GdbValue extends XValue {
 
         if (value.equals("0x0")) {
             value = "\"\"";
-        } else {
-            value = value.substring(value.indexOf(" "));
         }
 
-        node.setPresentation(getGdbVarIcon(), "string (" + (value.length() - 2) + ")", value, false);
+        node.setPresentation(getGdbVarIcon(), "string (" + value.length() + ")", value, false);
     }
 
     private javax.swing.Icon getGdbVarIcon() {
