@@ -298,145 +298,104 @@ public class GdbMiParser2 {
         GdbMiValue bkptVal = new GdbMiValue(GdbMiValue.Type.Tuple);
 
         Pattern p = Pattern.compile(
-                "(?:number=\"(\\d+)\")|" +
-                        "(?:type=\"([^\"]+)\")|" +
-                        "(?:disp=\"([^\"]+)\")|" +
-                        "(?:enabled=\"([^\"]+)\")|" +
-                        "(?:addr=\"([^\"]+)\")|" +
-                        "(?:func=\"([^\"]+)\")|" +
-                        "(?:file=\"([^\"]+)\")|" +
-                        "(?:fullname=\"([^\"]+)\")|" +
-                        "(?:line=\"([^\"]+)\")|" +
-                        "(?:thread-groups=\\[\"([^\"]+)\"\\])|" +
-                        "(?:times=\"(\\d+)\")|" +
+                "(?:number=\"(\\d+)\")," +
+                        "(?:type=\"([^\"]+)\")," +
+                        "(?:disp=\"([^\"]+)\")," +
+                        "(?:enabled=\"([^\"]+)\")," +
+                        "(?:addr=\"([^\"]+)\")," +
+                        "(?:func=\"([^\"]+)\")," +
+                        "(?:file=\"([^\"]+)\")," +
+                        "(?:fullname=\"([^\"]+)\")," +
+                        "(?:line=\"([^\"]+)\")," +
+                        "(?:thread-groups=\\[\"([^\"]+)\"\\])," +
+                        "(?:times=\"(\\d+)\")," +
                         "(?:original-location=\"([^\"]+)\")"
         );
         Matcher m = p.matcher(line);
 
+        if (!m.find()) {
+            return subRes;
+        }
+
         // number="1"
         GdbMiResult numVal = new GdbMiResult("number");
         numVal.value.type = GdbMiValue.Type.String;
-        if (m.find()) {
-            numVal.value.string = m.group(1);
-        } else {
-            numVal.value.string = "";
-        }
+        numVal.value.string = m.group(1);
         bkptVal.tuple.add(numVal);
 
         // type="breakpoint"
         GdbMiResult typeVal = new GdbMiResult("type");
         typeVal.value.type = GdbMiValue.Type.String;
-        if (m.find()) {
-            typeVal.value.string = m.group(2);
-        } else {
-            typeVal.value.string = "";
-        }
+        typeVal.value.string = m.group(2);
         bkptVal.tuple.add(typeVal);
 
         // disp="keep"
         GdbMiResult dispVal = new GdbMiResult("disp");
         dispVal.value.type = GdbMiValue.Type.String;
-        if (m.find()) {
-            dispVal.value.string = m.group(3);
-        } else {
-            dispVal.value.string = "";
-        }
+        dispVal.value.string = m.group(3);
         bkptVal.tuple.add(dispVal);
 
         // enabled="y"
         GdbMiResult enabledVal = new GdbMiResult("enabled");
         enabledVal.value.type = GdbMiValue.Type.String;
-        if (m.find()) {
-            enabledVal.value.string = m.group(4);
-        } else {
-            enabledVal.value.string = "";
-        }
+        enabledVal.value.string = m.group(4);
         bkptVal.tuple.add(enabledVal);
 
         // addr="0x0000000000400c57"
         GdbMiResult addrVal = new GdbMiResult("addr");
         addrVal.value.type = GdbMiValue.Type.String;
-        if (m.find()) {
-            addrVal.value.string = m.group(5);
-        } else {
-            addrVal.value.string = "";
-        }
+        addrVal.value.string = m.group(5);
         bkptVal.tuple.add(addrVal);
 
         // func="main.main"
         GdbMiResult funcVal = new GdbMiResult("func");
         funcVal.value.type = GdbMiValue.Type.String;
-        if (m.find()) {
-            funcVal.value.string = m.group(6);
-        } else {
-            funcVal.value.string = "";
-        }
+        funcVal.value.string = m.group(6);
         bkptVal.tuple.add(funcVal);
 
         // file="/var/www/personal/untitled4/src/untitled4.go"
         GdbMiResult fileVal = new GdbMiResult("file");
         fileVal.value.type = GdbMiValue.Type.String;
-        if (m.find()) {
-            fileVal.value.string = m.group(7);
-        } else {
-            fileVal.value.string = "";
-        }
+        fileVal.value.string = m.group(7);
         bkptVal.tuple.add(fileVal);
 
         // fullname="/var/www/personal/untitled4/src/untitled4.go"
         GdbMiResult fullnameVal = new GdbMiResult("fullname");
         fullnameVal.value.type = GdbMiValue.Type.String;
-        if (m.find()) {
-            fullnameVal.value.string = m.group(8);
-        } else {
-            fullnameVal.value.string = "";
-        }
+        fullnameVal.value.string = m.group(8);
         bkptVal.tuple.add(fullnameVal);
 
         // line="17"
         GdbMiResult lineVal = new GdbMiResult("line");
         lineVal.value.type = GdbMiValue.Type.String;
-        if (m.find()) {
-            lineVal.value.string = m.group(9);
-        } else {
-            lineVal.value.string = "";
-        }
+        lineVal.value.string = m.group(9);
         bkptVal.tuple.add(lineVal);
 
         // thread-groups=["i1"]
         GdbMiResult threadGroupVal = new GdbMiResult("thread-groups");
         threadGroupVal.value.type = GdbMiValue.Type.List;
         threadGroupVal.value.list = new GdbMiList();
+        threadGroupVal.value.list.type = GdbMiList.Type.Values;
         threadGroupVal.value.list.values = new ArrayList<GdbMiValue>();
 
-        if (m.find()) {
-            String[] threadGroupIds = m.group(10).split(",");
-            for (String threadGroupId : threadGroupIds) {
-                GdbMiValue tgiVal = new GdbMiValue(GdbMiValue.Type.String);
-                tgiVal.string = threadGroupId;
-                threadGroupVal.value.list.values.add(tgiVal);
-            }
+        String[] threadGroupIds = m.group(10).split(",");
+        for (String threadGroupId : threadGroupIds) {
+            GdbMiValue tgiVal = new GdbMiValue(GdbMiValue.Type.String);
+            tgiVal.string = threadGroupId;
+            threadGroupVal.value.list.values.add(tgiVal);
         }
         bkptVal.tuple.add(threadGroupVal);
 
         // times="0"
         GdbMiResult timesVal = new GdbMiResult("times");
         timesVal.value.type = GdbMiValue.Type.String;
-        if (m.find()) {
-            timesVal.value.string = m.group(11);
-        } else {
-            timesVal.value.string = "";
-        }
+        timesVal.value.string = m.group(11);
         bkptVal.tuple.add(timesVal);
 
         // original-location="/var/www/personal/untitled4/src/untitled4.go:17"
         GdbMiResult originalLocationVal = new GdbMiResult("original-location");
         originalLocationVal.value.type = GdbMiValue.Type.String;
-        if (m.find()) {
-            originalLocationVal.value.string = m.group(12);
-        } else {
-            originalLocationVal.value.string = "";
-        }
+        originalLocationVal.value.string = m.group(12);
         bkptVal.tuple.add(originalLocationVal);
 
         subRes.value = bkptVal;
