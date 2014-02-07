@@ -103,7 +103,7 @@ public class GdbDebugProcess extends XDebugProcess implements GdbListener {
      */
     @Override
     public void startStepOver() {
-        m_gdb.sendCommand("-exec-continue");
+        m_gdb.sendCommand("-exec-next");
     }
 
     @Override

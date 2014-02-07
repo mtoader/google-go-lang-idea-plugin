@@ -155,7 +155,6 @@ public class GdbValue extends XValue {
                 value = "Unexpected data received from GDB";
                 String stringSubVar = GdbMiUtil.formatGdbString(m_variableObject.name, false) + ".str";
 
-                XValueChildrenList children = new XValueChildrenList(variables.objects.size());
                 for (GdbVariableObject variable : variables.objects) {
                     if (variable.name.equals(stringSubVar)) {
                         value = variable.value;

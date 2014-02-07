@@ -879,17 +879,28 @@ public class GdbMiParser2 {
         result.value.list.type = GdbMiList.Type.Results;
         result.value.list.results = new ArrayList<GdbMiResult>();
 
-        Pattern p = Pattern.compile(
-                "(?:child=\\{" +
-                        "(?:name=\"([^\"]+)\")," +
-                        "(?:exp=\"([^\"]+)\")," +
-                        "(?:numchild=\"(\\d+)\")," +
-                        "(?:value=\"([^\"].*?)\")," +
-                        "(?:type=\"([^\"]+)\")," +
-                        "(?:thread-id=\"([^\"]+)\")" +
-                        "\\})+"
-        );
+        Pattern p = Pattern.compile("thread-id");
         Matcher m = p.matcher(line);
+        Boolean hasThreadId = false;
+        if (m.find()) {
+            hasThreadId = true;
+        }
+
+        String pattern = "(?:child=\\{" +
+                "(?:name=\"([^\"]+)\")," +
+                "(?:exp=\"([^\"]+)\")," +
+                "(?:numchild=\"(\\d+)\")," +
+                "(?:value=\"([^\"].*?)\")," +
+                "(?:type=\"([^\"]+)\")";
+
+        if (hasThreadId) {
+            pattern +=  ",(?:thread-id=\"([^\"]+)\")";
+        }
+
+        pattern += "\\})+";
+
+        p = Pattern.compile(pattern);
+        m = p.matcher(line);
 
         Pattern stringP = Pattern.compile("0x\\w+\\s(?:<(?:[^>].+?)>\\s)?\\\\\"(.*)");
         Matcher stringM;
@@ -930,7 +941,11 @@ public class GdbMiParser2 {
 
             GdbMiResult threadIdVal = new GdbMiResult("thread-id");
             threadIdVal.value.type = GdbMiValue.Type.String;
-            threadIdVal.value.string = m.group(6);
+            if (hasThreadId) {
+                threadIdVal.value.string = m.group(6);
+            } else {
+                threadIdVal.value.string = "1";
+            }
             childVal.value.tuple.add(threadIdVal);
 
             result.value.list.results.add(childVal);
