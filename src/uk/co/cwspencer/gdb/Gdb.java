@@ -254,7 +254,7 @@ public class Gdb {
             // Launch the process
             final String[] commandLine = {
                     gdbPath,
-                    "--interpreter=mi",
+                    "--interpreter=mi2",
             };
 
             File workingDirectoryFile = null;

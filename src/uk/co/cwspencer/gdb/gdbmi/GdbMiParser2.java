@@ -276,20 +276,31 @@ public class GdbMiParser2 {
         // Check for breakpoint
         if (line.startsWith("bkpt=")) {
             result.results.add(parseBreakpointLine(line));
+            return result;
         } else if (line.startsWith("stack=")) {
             result.results.add(parseStackListLine(line));
+            return result;
         } else if (line.startsWith("variables=")) {
             result.results.add(parseStackListVariablesLine(line));
+            return result;
         } else if (line.startsWith("name=\"var")) {
             result.results.addAll(parseVarCreateLine(line));
+            return result;
         } else if (line.startsWith("changelist=")) {
             result.results.add(parseChangelistLine(line));
+            return result;
         } else if (line.startsWith("msg=")) {
             result.results.add(parseMsgLine(line));
+            return result;
         } else if (line.startsWith("numchild=")) {
             result.results.addAll(parseNumChildLine(line));
+            return result;
+        } else if (line.startsWith("features=")) {
+            result.results.add(parseFeaturesLine(line));
+            return result;
         }
 
+        console.print("[[[ go.gdb.internal ]]] " + line + "\n", ConsoleViewContentType.ERROR_OUTPUT);
         return result;
     }
 
@@ -1127,6 +1138,26 @@ public class GdbMiParser2 {
         exitCodeVal.value.type = GdbMiValue.Type.String;
         exitCodeVal.value.string = m.group(2);
         result.add(exitCodeVal);
+
+        return result;
+    }
+
+    private static GdbMiResult parseFeaturesLine(String line) {
+        GdbMiResult result = new GdbMiResult("features");
+        result.value.type = GdbMiValue.Type.List;
+        result.value.list = new GdbMiList();
+        result.value.list.type = GdbMiList.Type.Values;
+        result.value.list.values = new ArrayList<GdbMiValue>();
+
+        // features=["frozen-varobjs","pending-breakpoints","thread-info","data-read-memory-bytes","breakpoint-notifications","ada-task-info","python"]
+        Pattern p = Pattern.compile("(?:\"([^\"]+)\")");
+        Matcher m = p.matcher(line);
+
+        while (m.find()) {
+            GdbMiValue varVal = new GdbMiValue(GdbMiValue.Type.String);
+            varVal.string = m.group(0);
+            result.value.list.values.add(varVal);
+        }
 
         return result;
     }

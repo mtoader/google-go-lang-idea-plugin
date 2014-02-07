@@ -78,7 +78,7 @@ public class GdbDebugProcess extends XDebugProcess implements GdbListener {
         m_gdbConsole = new GdbConsoleView(m_gdb, session.getProject());
 
         m_gdbConsole.getConsole().print(m_timeFormat.format(new Date()) + " 0> " +
-                m_configuration.GDB_PATH + " --interpreter=mi\n", ConsoleViewContentType.USER_INPUT);
+                m_configuration.GDB_PATH + " --interpreter=mi2\n", ConsoleViewContentType.USER_INPUT);
 
         // Create the breakpoint handler
         m_breakpointHandler = new GdbBreakpointHandler(m_gdb, this);
@@ -103,7 +103,7 @@ public class GdbDebugProcess extends XDebugProcess implements GdbListener {
      */
     @Override
     public void startStepOver() {
-        m_gdb.sendCommand("-exec-next");
+        m_gdb.sendCommand("-exec-continue");
     }
 
     @Override
