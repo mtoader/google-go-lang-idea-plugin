@@ -119,7 +119,7 @@ public class GoApplicationConfigurationProducer extends RunConfigurationProducer
 
             ((GoApplicationConfiguration) configuration).autoStartGdb = true;
             ((GoApplicationConfiguration) configuration).GDB_PATH = "gdb";
-            ((GoApplicationConfiguration) configuration).debugBuilderArguments = "-gcflags \"-N -I\"";
+            ((GoApplicationConfiguration) configuration).debugBuilderArguments = "-gcflags \"-N -l\"";
 
 
             ((GoApplicationConfiguration) configuration).setModule(module);
