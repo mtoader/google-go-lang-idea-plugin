@@ -11,9 +11,9 @@
       <sourceFolder url="file://$MODULE_DIR$/testdata" type="java-test-resource" />
       <excludeFolder url="file://$MODULE_DIR$/idea-home" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="IDEA IC-133.SNAPSHOT" jdkType="IDEA JDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="guava-18.0" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="guava-18.0" level="application" />
   </component>
 </module>
 
