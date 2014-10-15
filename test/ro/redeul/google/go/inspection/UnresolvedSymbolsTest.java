@@ -47,6 +47,9 @@ public class UnresolvedSymbolsTest extends GoInspectionTestCase {
         doTest();
     }
 
+    public void testClosuresResultParameterUnsolveBug2() throws Exception {
+        doTest();
+    }
 /*    @Ignore("not ready yet")
     public void testStructField() throws Exception {
         doTest();
