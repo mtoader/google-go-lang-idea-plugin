@@ -85,7 +85,7 @@ public abstract class GoInspectionTestCase
 //        removeContentRoots();
         super.tearDown();
     }
-    private void doTestWithOneFile(PsiFile file) throws Exception {
+    protected void doTestWithOneFile(PsiFile file) throws Exception {
         Document document = myFixture.getDocument(file);
         List<String> data = readInput(document.getText());
 
