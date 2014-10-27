@@ -7,4 +7,8 @@ public class ConstantExpressionsInConstDeclarationsInspectionTest
 //    public void testLessExpressionsThanIdentifiers() throws Exception { doTest(); }
     public void testConstantExpressions() throws Exception { doTest(); }
     public void testNonConstantExpressions() throws Exception { doTest(); }
+
+    /* TODO FIX ME
+    public void testIssue874() throws Exception { doTest(); }
+    */
 }

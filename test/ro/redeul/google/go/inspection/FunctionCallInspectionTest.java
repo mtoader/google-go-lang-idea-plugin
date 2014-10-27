@@ -36,4 +36,10 @@ public class FunctionCallInspectionTest extends GoInspectionTestCase {
     public void testIssue812() throws Exception{ doTest(); }
 
     public void testIssue856() throws Exception{ doTest(); }
+
+    /* TODO FIX ME
+    public void testInterface() throws Exception{ doTest(); }
+
+    public void testIssue875() throws Exception{ doTestWithDirectory(); }
+    */
 }
