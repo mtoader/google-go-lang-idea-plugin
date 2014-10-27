@@ -18,4 +18,8 @@ public class RedeclareInspectionTest extends GoInspectionTestCase {
     public void testInit() throws Exception{ doTest(); }
 
     public void testMulitFiles() throws Exception{ doTestWithDirectory(); }
+
+    /* TODO FIX ME
+    public void testBuildTags() throws Exception{ doTestWithDirectory(); }
+    */
 }
