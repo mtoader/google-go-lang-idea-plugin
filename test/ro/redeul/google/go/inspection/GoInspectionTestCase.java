@@ -93,7 +93,7 @@ public abstract class GoInspectionTestCase
         List<String> data = readInput(file.getText());
 
         String expected = data.get(1).trim();
-        Assert.assertEquals("fail at " + file.getVirtualFile().getPath(), expected, processFile(data.get(0).trim()));
+        Assert.assertEquals("fail at " + file.getVirtualFile().getPath(), expected, processFile(data.get(0).trim(),(GoFile)file));
     }
 
     private List<String> readInput(String content) throws IOException {
@@ -118,10 +118,10 @@ public abstract class GoInspectionTestCase
         return data;
     }
 
-    protected String processFile(String fileText)
+    protected String processFile(String fileText,GoFile file)
             throws InstantiationException, IllegalAccessException, IOException {
 
-        GoFile file = (GoFile) myFixture.configureByText(GoFileType.INSTANCE, fileText);
+        //GoFile file = (GoFile) myFixture.configureByText(GoFileType.INSTANCE, fileText);
         Document document = myFixture.getDocument(file);
         InspectionResult result = new InspectionResult(getProject());
         detectProblems(file, result);
