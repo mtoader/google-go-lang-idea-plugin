@@ -175,6 +175,9 @@ public class GoUtil {
     }
 
     public static boolean isFunctionNameIdentifier(PsiElement e) {
+        if (e instanceof GoLiteralIdentifier){
+            e = e.getParent();
+        }
         if (!psiIsA(e, GoLiteralExpression.class))
             return false;
 
