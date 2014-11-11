@@ -68,4 +68,8 @@ public class UnresolvedSymbolsTest extends GoInspectionTestCase {
     public void testIssue858() throws Exception {
         doTestWithDirectory();
     }
+
+    public void testMethodFromAnotherPackage() throws Exception{
+        doTestWithDirectory();
+    }
 }

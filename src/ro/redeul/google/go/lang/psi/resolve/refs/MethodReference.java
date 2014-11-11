@@ -3,7 +3,6 @@ package ro.redeul.google.go.lang.psi.resolve.refs;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import ro.redeul.google.go.lang.packages.GoPackages;
-import ro.redeul.google.go.lang.psi.GoFile;
 import ro.redeul.google.go.lang.psi.GoPackage;
 import ro.redeul.google.go.lang.psi.expressions.literals.GoLiteralIdentifier;
 import ro.redeul.google.go.lang.psi.processors.ResolveStates;
@@ -13,6 +12,7 @@ import ro.redeul.google.go.lang.psi.types.GoPsiTypePointer;
 import ro.redeul.google.go.lang.psi.types.struct.GoTypeStructAnonymousField;
 import ro.redeul.google.go.lang.psi.typing.GoType;
 import ro.redeul.google.go.lang.psi.typing.GoTypeName;
+import ro.redeul.google.go.lang.psi.typing.GoTypePsiBacked;
 import ro.redeul.google.go.lang.psi.typing.GoTypeStruct;
 import ro.redeul.google.go.lang.psi.typing.GoTypes;
 import ro.redeul.google.go.lang.psi.utils.GoPsiScopesUtil;
@@ -45,8 +45,8 @@ public class MethodReference extends ReferenceWithSolver<GoLiteralIdentifier, Me
     @Override
     public void walkSolver(MethodSolver solver) {
         PsiElement toFindPackagePsi;
-        if (type.getDefinition() instanceof GoTypeName){
-            toFindPackagePsi = ((GoTypeName) type.getDefinition()).getPsiType();
+        if (type.getDefinition() instanceof GoTypePsiBacked){
+            toFindPackagePsi = ((GoTypePsiBacked) type.getDefinition()).getPsiType();
         }else{
             toFindPackagePsi = type.getPsiType();
         }
