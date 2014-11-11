@@ -124,17 +124,6 @@ class PrimaryExpression implements GoElementTypes {
         mark.rollbackTo();
         mark = builder.mark();
 
-        if (ParserUtils.getToken(builder, pLPAREN)) {
-            if (ParserUtils.getToken(builder, oMUL)) {
-                if (parseLiteralIdentifier(builder, parser)) {
-                    if (ParserUtils.lookAhead(builder, pRPAREN, oDOT)) {
-                        mark.rollbackTo();
-                        return parseMethodExpression(builder, parser);
-                    }
-                }
-            }
-        }
-
         mark.rollbackTo();
         mark = builder.mark();
         if (ParserUtils.getToken(builder, pLPAREN)) {
@@ -169,25 +158,6 @@ class PrimaryExpression implements GoElementTypes {
 
         mark.drop();
         return false;
-    }
-
-    private static boolean parseMethodExpression(PsiBuilder builder,
-                                                 GoParser parser) {
-        PsiBuilder.Marker mark = builder.mark();
-
-        if (ParserUtils.getToken(builder, pLPAREN)) {
-            ParserUtils.getToken(builder, oMUL);
-            parser.parseTypeName(builder);
-            ParserUtils.getToken(builder, pRPAREN);
-        }
-
-        ParserUtils.getToken(builder, oDOT);
-
-        ParserUtils.getToken(builder, mIDENT,
-                             GoBundle.message("error.method.name.expected"));
-        mark.done(GoElementTypes.METHOD_EXPRESSION);
-
-        return true;
     }
 
     private static void parseLiteralFunction(PsiBuilder builder,
