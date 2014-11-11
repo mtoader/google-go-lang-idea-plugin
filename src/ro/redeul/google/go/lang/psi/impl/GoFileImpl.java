@@ -244,6 +244,9 @@ public class GoFileImpl extends PsiFileBase implements GoFile {
                 return false;
 
             GoPackage builtinPackage = packages.getBuiltinPackage();
+            if (builtinPackage == null) {
+                return false;
+            }
             return builtinPackage.processDeclarations(processor, ResolveStates.builtins(), lastParent, place);
         }
 
