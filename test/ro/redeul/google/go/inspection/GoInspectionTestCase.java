@@ -56,12 +56,14 @@ public abstract class GoInspectionTestCase
 
     protected void doTest() throws Exception {
         addPackageBuiltin();
-        doTestWithOneFile((GoFile)myFixture.configureByFile(getTestName(true) + ".go"));
+        doTestWithOneFile((GoFile) myFixture.configureByFile(getTestName(true) + ".go"));
     }
 
-    protected void doTestWithDirectory() throws Exception {
+    protected void doTestWithDirectory(boolean isAddBuiltinPackage) throws Exception {
         final File folder = new File(getTestDataPath(), getTestName(true));
-        addPackageBuiltin();
+        if (isAddBuiltinPackage) {
+            addPackageBuiltin();
+        }
         List<File> files = new ArrayList<File>();
         FileUtil.collectMatchedFiles(folder, Pattern.compile(".*\\.go$"), files);
         List<String> fileNames = ContainerUtil.map(files, new Function<File, String>() {
@@ -74,6 +76,10 @@ public abstract class GoInspectionTestCase
         for (PsiFile psi : psiFiles) {
             doTestWithOneFile((GoFile)psi);
         }
+    }
+
+    protected void doTestWithDirectory() throws Exception {
+        doTestWithDirectory(true);
     }
 
     private void doTestWithOneFile(GoFile file) throws Exception {
