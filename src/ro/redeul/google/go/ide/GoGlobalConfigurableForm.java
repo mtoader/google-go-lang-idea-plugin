@@ -52,7 +52,7 @@ public class GoGlobalConfigurableForm {
         });
     }
 
-    private void populateFromSDKs() {
+    public void refreshSdks() {
         ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
         List<Sdk> sdkList = new ArrayList<Sdk>();
         sdkList.addAll(GoSdkUtil.getSdkOfType(GoSdkType.getInstance(), jdkTable));
@@ -105,7 +105,7 @@ public class GoGlobalConfigurableForm {
             enableOnTheFlyImportOptimization.setSelected(goSettings.getState().OPTIMIZE_IMPORTS_ON_THE_FLY);
         }
 
-        populateFromSDKs();
+        refreshSdks();
     }
 
     public boolean isModified() {
