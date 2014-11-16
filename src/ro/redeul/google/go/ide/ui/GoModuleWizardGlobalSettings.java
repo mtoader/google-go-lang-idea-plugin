@@ -16,6 +16,13 @@ public class GoModuleWizardGlobalSettings extends ModuleWizardStep {
     }
 
     @Override
+    public void updateStep() {
+        form.refreshSdks();
+
+        super.updateStep();
+    }
+
+    @Override
     public JComponent getComponent() {
         return form.componentPanel;
     }
