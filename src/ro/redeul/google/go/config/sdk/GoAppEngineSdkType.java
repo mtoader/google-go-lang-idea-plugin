@@ -104,7 +104,7 @@ public class GoAppEngineSdkType extends SdkType {
         if ( sdkData == null )
             return;
 
-        final VirtualFile sourcesRoot = homeDirectory.findFileByRelativePath("goroot/src/pkg/");
+        final VirtualFile sourcesRoot = GoSdkUtil.getSdkSourcesRoot(sdk);
         if (sourcesRoot != null) {
             sourcesRoot.refresh(false, false);
         }

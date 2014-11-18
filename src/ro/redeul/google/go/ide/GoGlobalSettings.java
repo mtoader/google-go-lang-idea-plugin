@@ -93,7 +93,7 @@ public class GoGlobalSettings implements PersistentStateComponent<GoGlobalSettin
 
     private void updateSDK(Sdk sdk, String goRoot, String goPath) {
         final SdkModificator sdkModificator = sdk.getSdkModificator();
-        final VirtualFile finalGoRoot = StandardFileSystems.local().findFileByPath(goRoot + "/src/pkg");
+        final VirtualFile finalGoRoot = GoSdkUtil.getSdkSourcesRoot(sdk);
         final VirtualFile finalGoPath = StandardFileSystems.local().findFileByPath(goPath + "/src");
 
         ApplicationManager.getApplication().runWriteAction(new Runnable() {

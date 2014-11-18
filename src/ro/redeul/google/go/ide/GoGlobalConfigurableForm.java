@@ -179,9 +179,8 @@ public class GoGlobalConfigurableForm {
             return "";
         }
 
-        if (!(new File(goRootStr.concat("/src")).exists()) ||
-                !(new File(goRootStr.concat("/src/pkg")).exists())) {
-            Messages.showErrorDialog("Error while saving your settings. \nGOROOT/src/pkg doesn't exists.", "Error on Google Go Plugin");
+        if (!(new File(goRootStr.concat("/src")).exists())) {
+            Messages.showErrorDialog("Error while saving your settings. \nGOROOT/src doesn't exists.", "Error on Google Go Plugin");
             return "";
         }
 
@@ -219,8 +218,8 @@ public class GoGlobalConfigurableForm {
             return "";
         }
 
-        if (!(new File(goAppEngineRootStr.concat("/goroot/src/pkg")).exists())) {
-            Messages.showErrorDialog("Error while saving your settings. \nGOAPPENGINEROOT/src/pkg doesn't exists.", "Error on Google Go Plugin");
+        if (!(new File(goAppEngineRootStr.concat("/goroot/src")).exists())) {
+            Messages.showErrorDialog("Error while saving your settings. \nGOAPPENGINEROOT/src doesn't exists.", "Error on Google Go Plugin");
             return "";
         }
 

@@ -44,7 +44,6 @@ import static java.lang.String.format;
 
 public class GoSdkUtil {
 
-    public static final String PACKAGES = "src/pkg";
 
     private static final Logger LOG = Logger.getInstance(
             "ro.redeul.google.go.sdk.GoSdkUtil");
@@ -142,6 +141,7 @@ public class GoSdkUtil {
         return "";
     }
 
+    @Nullable
     public static VirtualFile getSdkSourcesRoot(Sdk sdk) {
         final VirtualFile homeDirectory = sdk.getHomeDirectory();
 
@@ -149,13 +149,22 @@ public class GoSdkUtil {
             return null;
         }
 
-        if (checkFolderExists(homeDirectory.getPath(), "src")) {
+        // It is not reliable to find weather to use ./src/pkg or ./src base on
+        // golang version, develop version looks like "devel +d8a3cc1714e4 Fri Nov 14 17:03:17 2014 +1100"
+        //for golang version < 1.4
+        if (checkFolderExists(homeDirectory.getPath(), "src","pkg")) {
             return homeDirectory.findFileByRelativePath("src/pkg");
         }
-        LOG.warn("Could not find GO SDK sources root (src/pkg)");
+
+        //for golang version >= 1.4
+        if (checkFolderExists(homeDirectory.getPath(), "src")) {
+            return homeDirectory.findFileByRelativePath("src");
+        }
+        LOG.warn("Could not find GO SDK sources root (src/pkg or src)");
         return null;
     }
 
+    @Nullable
     private static GoSdkData findVersion(final String path, String goCommand, GoSdkData data) {
 
         if (data == null)

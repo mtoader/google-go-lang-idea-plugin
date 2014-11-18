@@ -13,11 +13,13 @@ import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.xdebugger.XDebugProcess;
 import com.intellij.xdebugger.XDebugProcessStarter;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.XDebuggerManager;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ro.redeul.google.go.config.sdk.GoSdkData;
 import ro.redeul.google.go.sdk.GoSdkUtil;
 import uk.co.cwspencer.gdb.Gdb;
@@ -57,6 +59,7 @@ public class GoApplicationRunner extends DefaultProgramRunner {
         return DefaultRunExecutor.EXECUTOR_ID.equals(executorId);
     }
 
+    @Nullable
     protected RunContentDescriptor doExecute(@NotNull RunProfileState state, @NotNull ExecutionEnvironment env) throws ExecutionException {
         FileDocumentManager.getInstance().saveAllDocuments();
 
@@ -129,7 +132,13 @@ public class GoApplicationRunner extends DefaultProgramRunner {
             });
             gdbProcess.sendCommand("add-auto-load-safe-path " + goRootPath);
 
-            String pythonRuntime = goRootPath + "/src/pkg/runtime/runtime-gdb.py";
+            VirtualFile goSourceRoot = GoSdkUtil.getSdkSourcesRoot(sdk);
+            if (goSourceRoot==null){
+                debugSession.stop();
+                return null;
+            }
+
+            String pythonRuntime = goSourceRoot.getCanonicalPath() + "/runtime/runtime-gdb.py";
             if (GoSdkUtil.checkFileExists(pythonRuntime)) {
                 gdbProcess.sendCommand("source " + pythonRuntime);
             }
