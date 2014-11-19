@@ -59,7 +59,6 @@ public class UnresolvedSymbolsTest extends GoInspectionTestCase {
         doTest();
     }
 
-    @Ignore("failing test")
     public void testIssue865() throws Exception {
         doTest();
     }

@@ -5,10 +5,13 @@ type Foo struct {
 }
 
 func main() {
-	foo := doSomething()  // foo marked as Unused
-	for _, v := range (*foo).Things { // foo marked as Unresolved
+	good1 := doSomething()  // foo marked as Unused
+	for _, v := range (*good1).Things { // foo marked as Unresolved
 		_ = v
 	}
+
+	good2 := doSomething()
+	_=(*good2).Things
 }
 
 func doSomething() *Foo {
