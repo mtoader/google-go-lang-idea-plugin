@@ -90,6 +90,7 @@ public class GoSdkUtil {
         }
 
         if (!checkFolderExists(path, "src")) {
+            new Exception().printStackTrace();
             LOG.warn("GO SDK: Could not find src directory @ "+path+"/src");
             return null;
         }
@@ -144,15 +145,58 @@ public class GoSdkUtil {
     @Nullable
     public static VirtualFile getSdkSourcesRoot(Sdk sdk) {
         final VirtualFile homeDirectory = sdk.getHomeDirectory();
-
         if (homeDirectory == null) {
+            LOG.warn("getSdkSourcesRoot homeDirectory == null");
             return null;
         }
 
-        // It is not reliable to find weather to use ./src/pkg or ./src base on
-        // golang version, develop version looks like "devel +d8a3cc1714e4 Fri Nov 14 17:03:17 2014 +1100"
+        // gae support
+        if (sdk.getSdkType() instanceof GoAppEngineSdkType){
+            if (checkFolderExists(homeDirectory.getPath(), "goroot")) {
+                // Do not know which version of gae go sdk will use /goroot/src as source root right now.
+                System.out.println("getSdkSourcesRoot"+sdk.getVersionString());
+                return getSdkSourcesRootOnDevelopVersion(homeDirectory.findFileByRelativePath("goroot"));
+            }else{
+                LOG.warn("Could not find GO SDK root (goroot) in gae");
+                return null;
+            }
+        }
+
+        String version = sdk.getVersionString();
+        if (version==null){
+            version = "";
+        }
+
+        Matcher m = Pattern.compile("go(\\d+)\\.(\\d+).*").matcher(version);
+        if (!m.find()){
+            LOG.warn("can not parse go version " + sdk.getVersionString());
+            return getSdkSourcesRootOnDevelopVersion(homeDirectory);
+        }
+        int major_version = Integer.parseInt(m.group(1));
+        int minor_version = Integer.parseInt(m.group(2));
+
+
+        if (major_version<=1 && minor_version<4){
+            if (checkFolderExists(homeDirectory.getPath(), "src", "pkg")) {
+                return homeDirectory.findFileByRelativePath("src/pkg");
+            }else {
+                LOG.warn("Could not find GO SDK sources root (src/pkg) when go version < go1.4");
+                return null;
+            }
+        }else{
+            if (checkFolderExists(homeDirectory.getPath(), "src")) {
+                return homeDirectory.findFileByRelativePath("src");
+            }else {
+                LOG.warn("Could not find GO SDK sources root (src) when go version >= go1.4" );
+                return null;
+            }
+        }
+    }
+
+    private static VirtualFile getSdkSourcesRootOnDevelopVersion(VirtualFile homeDirectory){
+        // develop version may looks like "devel +d8a3cc1714e4 Fri Nov 14 17:03:17 2014 +1100"
         //for golang version < 1.4
-        if (checkFolderExists(homeDirectory.getPath(), "src","pkg")) {
+        if (checkFolderExists(homeDirectory.getPath(), "src", "pkg")) {
             return homeDirectory.findFileByRelativePath("src/pkg");
         }
 
@@ -160,7 +204,8 @@ public class GoSdkUtil {
         if (checkFolderExists(homeDirectory.getPath(), "src")) {
             return homeDirectory.findFileByRelativePath("src");
         }
-        LOG.warn("Could not find GO SDK sources root (src/pkg or src)");
+
+        LOG.warn("Could not find GO SDK sources root (src/pkg or src) with develop version");
         return null;
     }
 
@@ -251,11 +296,15 @@ public class GoSdkUtil {
                 || !checkFileExists(path, "dev_appserver.py")
                 || !(checkFileExists(path, "goapp") || checkFileExists(path, "goapp.bat"))
                 || !checkFolderExists(path, "goroot")
-                || !checkFolderExists(path, "goroot", "pkg"))
+                || !checkFolderExists(path, "goroot", "pkg")) {
+            LOG.error("GoAppEngineSdkData: some paths not exist");
             return null;
+        }
 
-        if (!checkFileExists(path, "VERSION"))
+        if (!checkFileExists(path, "VERSION")) {
+            LOG.error("GoAppEngineSdkData: file VERSION not exist");
             return null;
+        }
 
 
         GoAppEngineSdkData sdkData = new GoAppEngineSdkData();
@@ -279,6 +328,7 @@ public class GoSdkUtil {
             homePath = sdkData.GO_HOME_PATH + "/..";
 
             if (!checkFileExists(execName)) {
+                LOG.error("GoAppEngineSdkData: file "+execName+" not exist");
                 return null;
             }
         }
@@ -320,6 +370,7 @@ public class GoSdkUtil {
         try {
             VirtualFile filePath = VfsUtil.findFileByIoFile(new File(format("%s/VERSION", path)), true);
             if (filePath == null) {
+                LOG.error("GoAppEngineSdkData: file "+format("%s/VERSION", path)+" not exist");
                 return null;
             }
             String fileContent = VfsUtil.loadText(filePath);
@@ -327,24 +378,31 @@ public class GoSdkUtil {
             Matcher matcher = RE_APP_ENGINE_VERSION_MATCHER.matcher(
                     fileContent);
 
-            if (!matcher.find())
+            if (!matcher.find()) {
+                LOG.error("GoAppEngineSdkData: can not find version in "+fileContent);
                 return null;
+            }
             sdkData.VERSION_MAJOR = matcher.group(1);
 
             matcher = RE_APP_ENGINE_TIMESTAMP_MATCHER.matcher(fileContent);
-            if (!matcher.find())
+            if (!matcher.find()) {
+                LOG.error("GoAppEngineSdkData: can not find timestamp in "+fileContent);
                 return null;
+            }
             sdkData.VERSION_MINOR = matcher.group(1);
 
             matcher = RE_APP_ENGINE_API_VERSIONS_MATCHER.matcher(fileContent);
-            if (!matcher.find())
+            if (!matcher.find()) {
+                LOG.error("GoAppEngineSdkData: can not find api version in "+fileContent);
                 return null;
+            }
 
             sdkData.API_VERSIONS = matcher.group(1);
 
             sdkData.version = GoAppEngineSdkData.LATEST_VERSION;
 
         } catch (IOException e) {
+            e.printStackTrace();
             return null;
         }
 
