@@ -69,4 +69,17 @@ public class InspectionResult {
                             new TextRange(start, end),
                             msg, type, true, fixes));
     }
+
+    public void removeNonCompileError(){
+        List<ProblemDescriptor> toBeRemoved = new ArrayList<ProblemDescriptor>();
+        for(ProblemDescriptor pd: problems){
+            ProblemHighlightType type = pd.getHighlightType();
+            if (type!=ProblemHighlightType.ERROR && type!=ProblemHighlightType.GENERIC_ERROR){
+                toBeRemoved.add(pd);
+            }
+        }
+        for(ProblemDescriptor pd: toBeRemoved){
+            problems.remove(pd);
+        }
+    }
 }
