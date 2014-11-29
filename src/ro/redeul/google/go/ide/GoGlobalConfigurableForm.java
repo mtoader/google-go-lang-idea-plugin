@@ -32,8 +32,9 @@ public class GoGlobalConfigurableForm {
     private TextFieldWithBrowseButton goAppEngineRoot;
     private final GoGlobalSettings goGlobalSettings = GoGlobalSettings.getInstance();
     private final GoSettings goSettings = GoSettings.getInstance();
+    private boolean wasFocused = false;
 
-    GoGlobalConfigurableForm() {
+    public GoGlobalConfigurableForm() {
         goRoot.addBrowseFolderListener("GOROOT directory", "Select the GOROOT directory of your GO setup",
                 null, new FileChooserDescriptor(false, true, false, false, false, false));
         goAppEngineRoot.addBrowseFolderListener("GOAPPENGINEROOT directory", "Select the GOAPPENGINEROOT directory of your GO setup",
@@ -49,11 +50,9 @@ public class GoGlobalConfigurableForm {
                 goPath.setText(GoSdkUtil.getSysGoPathPath().split(File.pathSeparator)[0]);
             }
         });
-
-        populateFromSDKs();
     }
 
-    private void populateFromSDKs() {
+    public void refreshSdks() {
         ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
         List<Sdk> sdkList = new ArrayList<Sdk>();
         sdkList.addAll(GoSdkUtil.getSdkOfType(GoSdkType.getInstance(), jdkTable));
@@ -106,7 +105,7 @@ public class GoGlobalConfigurableForm {
             enableOnTheFlyImportOptimization.setSelected(goSettings.getState().OPTIMIZE_IMPORTS_ON_THE_FLY);
         }
 
-        populateFromSDKs();
+        refreshSdks();
     }
 
     public boolean isModified() {
