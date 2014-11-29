@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import ro.redeul.google.go.GoBundle;
 import ro.redeul.google.go.GoIcons;
 import ro.redeul.google.go.config.sdk.GoSdkType;
+import ro.redeul.google.go.ide.ui.GoModuleWizardGlobalSettings;
 import ro.redeul.google.go.ide.ui.GoModuleWizardProjectSettings;
 import ro.redeul.google.go.ide.ui.GoModuleWizardStepPackageConfig;
 
@@ -80,8 +81,9 @@ public class GoModuleType extends ModuleType<GoModuleBuilder> {
         ProjectWizardStepFactory factory = ProjectWizardStepFactory.getInstance();
 
         steps.add(new GoModuleWizardStepPackageConfig(moduleBuilder));
-        steps.add(new GoModuleWizardProjectSettings(moduleBuilder));
         steps.add(factory.createProjectJdkStep(wizardContext, SdkType.findInstance(GoSdkType.class), moduleBuilder, new Computable.PredefinedValueComputable<Boolean>(true), null, ""));
+        steps.add(new GoModuleWizardProjectSettings(moduleBuilder));
+        steps.add(new GoModuleWizardGlobalSettings(moduleBuilder));
         return steps.toArray(new ModuleWizardStep[steps.size()]);
     }
 }

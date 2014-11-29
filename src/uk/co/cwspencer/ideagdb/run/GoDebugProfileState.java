@@ -75,7 +75,7 @@ public class GoDebugProfileState implements RunProfileState {
         }
 
         GoProjectSettings.GoProjectSettingsBean settings = GoProjectSettings.getInstance(project).getState();
-        Map<String,String> sysEnv = GoSdkUtil.getExtendedSysEnv(sdkData, projectDir, m_configuration.envVars, settings.prependGoPath, settings.useGoPath);
+        Map<String,String> sysEnv = GoSdkUtil.getExtendedSysEnv(sdkData, projectDir, m_configuration.envVars, settings.useGOPATH, settings.prependToGOPATH);
 
         GoToolWindow toolWindow = GoToolWindow.getInstance(project);
         toolWindow.setTitle(TITLE);
