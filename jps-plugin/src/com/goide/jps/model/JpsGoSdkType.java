@@ -15,10 +15,12 @@ import java.io.File;
 public class JpsGoSdkType extends JpsSdkType<JpsDummyElement> implements JpsElementTypeWithDefaultProperties<JpsDummyElement> {
   public static final JpsGoSdkType INSTANCE = new JpsGoSdkType();
 
+  private static final String goExecName = SystemInfo.isWindows ? "go.exe" : "go";
+
   @NotNull
   public static File getGoExecutableFile(@NotNull String sdkHome) {
-    File fromSdkPath = getExecutable(new File(sdkHome, "bin").getAbsolutePath(), "go");
-    File fromEnvironment = PathEnvironmentVariableUtil.findInPath("go");
+    File fromSdkPath = getExecutable(new File(sdkHome, "bin").getAbsolutePath(), goExecName);
+    File fromEnvironment = PathEnvironmentVariableUtil.findInPath(goExecName);
     return fromSdkPath.canExecute() || fromEnvironment == null ? fromSdkPath : fromEnvironment;
   }
 
