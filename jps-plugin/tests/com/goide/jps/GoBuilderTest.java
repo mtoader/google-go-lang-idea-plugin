@@ -17,7 +17,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class GoBuilderTest extends JpsBuildTestCase {
-  public static final String GO_LINUX_SDK_PATH = "/usr/lib/go";
+  public static final String GO_LINUX_SDK_PATH = "/usr/local/go";
+  public static final String GO_LINUX_SDK_PATH_ALTERNATIVE = "/usr/lib/go";
   public static final String GO_MAC_SDK_PATH = "/usr/local/go";
 
   public void testSimple() throws Exception {
@@ -72,7 +73,12 @@ public class GoBuilderTest extends JpsBuildTestCase {
 
   @NotNull
   private static String getGoSdkPath() {
-    if (SystemInfo.isLinux) return GO_LINUX_SDK_PATH;
+    if (SystemInfo.isLinux) {
+      if ((new File(GO_LINUX_SDK_PATH)).exists()) {
+        return GO_LINUX_SDK_PATH;
+      }
+      return GO_LINUX_SDK_PATH_ALTERNATIVE;
+    }
     if (SystemInfo.isMac) return GO_MAC_SDK_PATH;
     throw new RuntimeException("Only mac & linux supported");
   }
