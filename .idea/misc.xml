@@ -3,10 +3,8 @@
   <component name="EntryPointsManager">
     <entry_points version="2.0" />
   </component>
-  <component name="ProjectKey">
-    <option name="state" value="git@github.com:go-lang-plugin-org/go-lang-idea-plugin.git" />
-  </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" assert-keyword="true" jdk-15="true" project-jdk-name="IDEA sdk" project-jdk-type="IDEA JDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>
+
