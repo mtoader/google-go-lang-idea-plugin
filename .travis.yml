@@ -3,8 +3,8 @@ env:
    - secure: "JyvGwUQQn56FZ+zl5vLPXuL9809KOqTJeWwl8P434tBlfzTq7yKv/5ZmwRJ/HJy8LfrndBcKM5rmhCtAgpqoX9HnA0Zjga1EU/tDJRrYLNsYiuNS39X0qY09mv2NE8Xj2Q9dnm6fHM9dyQBpROTv8/sXwuioyyG406vSBmLZc8k="
 language: java
 jdk:
-- openjdk7
-- oraclejdk7
+  - openjdk7
+  - oraclejdk7
 script: ./travis.sh
 notifications:
   webhooks:
@@ -14,6 +14,8 @@ notifications:
     on_failure: always
   slack:
     secure: "bzzFEINdBZ3+p+5+Z7Rz5o7VvO91D0SWmzrGCEaXpOYp6iK1iDNIl8tb7b9XvT4j2J/8Mvu05dAyFg9VeQzdX9/Z+HG7dSIFmi7KcZFDtKOOhU01nhFwKLi4uos+tKD2nauhdTi1ui33MwnL0wgXSDoXlYUKlKF4eUmAFEP5IXg="
+after_success:
+  - coveralls
 addons:
   coverity_scan:
     project:

@@ -5,6 +5,7 @@ Google go language plugin is an attempt to build an outstanding IDE for
 
 [![Build Status](https://travis-ci.org/go-lang-plugin-org/go-lang-idea-plugin.png?branch=master)](https://travis-ci.org/go-lang-plugin-org/go-lang-idea-plugin)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/3280/badge.svg)](https://scan.coverity.com/projects/3280)
+[![Coverage Status](https://coveralls.io/repos/go-lang-plugin-org/go-lang-idea-plugin/badge.png)](https://coveralls.io/r/go-lang-plugin-org/go-lang-idea-plugin)
 
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/go-lang-plugin-org/go-lang-idea-plugin?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
