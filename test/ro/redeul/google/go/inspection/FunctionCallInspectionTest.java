@@ -1,5 +1,7 @@
 package ro.redeul.google.go.inspection;
 
+import org.junit.Ignore;
+
 public class FunctionCallInspectionTest extends GoInspectionTestCase {
 
     public void testSimple() throws Exception { doTest(); }
@@ -40,4 +42,7 @@ public class FunctionCallInspectionTest extends GoInspectionTestCase {
     public void testTypeCast() throws Exception { doTest(); }
 
     public void testConstFromPackage() throws Exception { doTest(); }
+
+    @Ignore("failing test")
+    public void testRecover() throws Exception { doTest();}
 }
