@@ -1,5 +1,6 @@
+
 /*
- * Copyright 2013-2014 Sergey Ignatov, Alexander Zolotov
+ * Copyright 2013-2014 Sergey Ignatov, Alexander Zolotov, Mihai Toader, Florin Patan
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,9 +38,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Hashtable;
 import java.util.List;
 
 public class GoImportReferenceHelper extends FileReferenceHelper {
+  private static Hashtable<String, List<VirtualFile>> fileCache = new Hashtable<String, List<VirtualFile>>();
+
   @NotNull
   @Override
   public List<? extends LocalQuickFix> registerFixes(FileReference reference) {
@@ -99,10 +103,19 @@ public class GoImportReferenceHelper extends FileReferenceHelper {
 
   @NotNull
   private static List<VirtualFile> getPathsToLookup(@NotNull PsiElement element) {
-    List<VirtualFile> result = ContainerUtil.newArrayList();
+    List<VirtualFile> result;
+    String fileName = ((GoFile) element).getName();
+    result = fileCache.get(fileName);
+    if (result != null) {
+      return result;
+    }
+
+    result = ContainerUtil.newArrayList();
     VirtualFile sdkHome = GoSdkUtil.getSdkHome(element);
     ContainerUtil.addIfNotNull(result, sdkHome);
     result.addAll(GoSdkUtil.getGoPathsSources());
+
+    fileCache.put(fileName, result);
     return result;
   }
 }

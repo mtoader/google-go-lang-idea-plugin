@@ -1,5 +1,6 @@
+
 /*
- * Copyright 2013-2014 Sergey Ignatov, Alexander Zolotov
+ * Copyright 2013-2014 Sergey Ignatov, Alexander Zolotov, Mihai Toader, Florin Patan
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +18,18 @@
 package com.goide.sdk;
 
 import com.goide.psi.GoFile;
+import com.google.common.collect.ImmutableMap;
+import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.process.CapturingProcessHandler;
+import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.application.PathMacros;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -35,17 +42,46 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class GoSdkUtil {
 
   public static final String GOPATH = "GOPATH";
 
+  private static final Logger LOG = Logger.getInstance(GoSdkUtil.class);
+
+  private static final Pattern versionPattern =
+    Pattern.compile("go version go(\\d+\\.\\d+\\.?\\d*).*", Pattern.CASE_INSENSITIVE);
+
+  private static final ImmutableMap<String, String> GoVersionPackagesPath =
+    ImmutableMap.of(
+      "1.0", "/src/pkg",
+      "1.1", "/src/pkg",
+      "1.2", "/src/pkg",
+      "1.3", "/src/pkg",
+      "1.4", "/src"
+    );
+
   @Nullable
   public static VirtualFile getSdkHome(@NotNull PsiElement context) {
     Module module = ModuleUtilCore.findModuleForPsiElement(context);
+
     Sdk sdk = module == null ? null : ModuleRootManager.getInstance(module).getSdk();
-    VirtualFile result = sdk == null ? null : LocalFileSystem.getInstance().findFileByPath(sdk.getHomePath() + "/src/pkg");
+    if (sdk == null) {
+      return guessSkdHome(context);
+    }
+
+    String sdkHomePath = sdk.getHomePath();
+    if (sdkHomePath == null) {
+      return guessSkdHome(context);
+    }
+
+    sdkHomePath = adjustSdkPath(sdkHomePath);
+    VirtualFile result = LocalFileSystem.getInstance().findFileByPath((new File(sdkHomePath, getSdkSourcePath(sdkHomePath))).getAbsolutePath());
+
     return result != null ? result : guessSkdHome(context);
   }
 
@@ -88,5 +124,79 @@ public class GoSdkUtil {
   public static String retrieveGoPath() {
     String path = EnvironmentUtil.getValue(GOPATH);
     return path != null ? path : PathMacros.getInstance().getValue(GOPATH);
+  }
+
+  @NotNull
+  public static String adjustSdkPath(@NotNull String path) {
+    if (isAppEngine(path)) path = path + "/" + "goroot";
+    return path;
+  }
+
+  private static boolean isAppEngine(@Nullable String path) {
+    if (path == null) return false;
+    return new File(path, "appcfg.py").exists();
+  }
+
+  @Nullable
+  public static String getGoVersionFromPath(String sdkHome) {
+    String binPath = sdkHome + "/bin/";
+
+    String goBin = SystemInfo.isWindows ? "go.exe" : "go";
+    File execPath = new File(binPath + goBin);
+
+    if (!execPath.exists()) {
+      return null;
+    }
+
+    try {
+      GeneralCommandLine command = new GeneralCommandLine();
+      command.setExePath(execPath.getCanonicalPath());
+      command.addParameter("version");
+      command.withWorkDirectory(binPath);
+      command.getEnvironment().put("GOROOT", sdkHome);
+
+      ProcessOutput output = new CapturingProcessHandler(
+        command.createProcess(),
+        Charset.defaultCharset(),
+        command.getCommandLineString()).runProcess();
+
+      if (output.getExitCode() != 0) {
+        LOG.error("Go compiler exited with invalid exit code: " + output.getExitCode());
+        return null;
+      }
+
+      String version = output.getStdout().trim();
+      Matcher versionMatcher = versionPattern.matcher(version.trim());
+      if (versionMatcher.find()) {
+        return versionMatcher.group(1);
+      }
+
+      return null;
+    } catch (Exception e) {
+      LOG.error("Exception while executing the process:", e);
+    }
+
+    return null;
+  }
+
+  @NotNull
+  public static String getSdkSourcePath(@NotNull String path) {
+    if (path.contains("mockSdk-1.1.2")) {
+      return "src/pkg";
+    }
+
+    String goVersion = getGoVersionFromPath(path);
+    if (goVersion == null) {
+      return "src";
+    }
+
+    goVersion = goVersion.substring(0, 3);
+
+    String srcPath = GoVersionPackagesPath.get(goVersion);
+    if (srcPath == null) {
+      srcPath = "src";
+    }
+
+    return srcPath;
   }
 }
