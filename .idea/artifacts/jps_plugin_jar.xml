@@ -2,7 +2,7 @@
   <artifact type="jar" build-on-make="true" name="jps-plugin.jar">
     <output-path>$PROJECT_DIR$/bin</output-path>
     <root id="archive" name="jps-plugin.jar">
-      <element id="module-output" name="jps-plugin" />
+      <element id="module-output" name="go-jps-plugin" />
     </root>
   </artifact>
 </component>
