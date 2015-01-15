@@ -84,7 +84,7 @@
             </constraints>
             <properties>
               <labelFor value="5083e"/>
-              <text value="Package N&amp;ame:"/>
+              <text value="Package &amp;Name:"/>
             </properties>
           </component>
         </children>

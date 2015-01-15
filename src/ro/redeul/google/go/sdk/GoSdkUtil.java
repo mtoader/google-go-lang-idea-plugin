@@ -803,8 +803,8 @@ public class GoSdkUtil {
 
         if (project != null) {
             GoProjectSettings.GoProjectSettingsBean settings = GoProjectSettings.getInstance(project).getState();
-            prependSysGoPath = settings.useGOPATH;
-            appendSysGoPath = settings.prependToGOPATH;
+            prependSysGoPath = settings.prependGoPath;
+            appendSysGoPath = settings.useGoPath;
         }
 
         return getExtendedSysEnv(sdkData, projectDir, envVars, prependSysGoPath, appendSysGoPath);
