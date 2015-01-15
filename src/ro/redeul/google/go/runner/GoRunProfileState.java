@@ -58,7 +58,7 @@ public class GoRunProfileState extends CommandLineState {
         }
 
         GoProjectSettings.GoProjectSettingsBean settings = GoProjectSettings.getInstance(m_project).getState();
-        Map<String,String> sysEnv = GoSdkUtil.getExtendedSysEnv(sdkData, projectDir, m_configuration.envVars, settings.useGOPATH, settings.prependToGOPATH);
+        Map<String,String> sysEnv = GoSdkUtil.getExtendedSysEnv(sdkData, projectDir, m_configuration.envVars, settings.prependGoPath, settings.useGoPath);
 
         GoToolWindow toolWindow = GoToolWindow.getInstance(m_project);
         toolWindow.setTitle(TITLE);
