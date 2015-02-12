@@ -73,4 +73,13 @@
             <option name="GO_FUNCTION" value="true"/>
         </context>
     </template>
+
+    <template name="gt" 
+              value="func Test$CONTENT$(t *testing.T) {&#10;&#9;$END$&#10;}&#10;" 
+              description="Create a go test function" toReformat="true" toShortenFQNames="false">
+        <variable name="CONTENT" expression="" defaultValue="" alwaysStopAt="true" />
+        <context>
+            <option name="GO" value="true" />
+        </context>
+    </template>
 </templateSet>
