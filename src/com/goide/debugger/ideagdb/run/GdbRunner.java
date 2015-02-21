@@ -73,7 +73,6 @@ public class GdbRunner extends DefaultProgramRunner {
       @NotNull
       @Override
       public XDebugProcess start(@NotNull XDebugSession session) throws ExecutionException {
-        session.setAutoInitBreakpoints(false);
         final ExecutionResult result = state.execute(executor, GdbRunner.this);
         return new GdbDebugProcess(session, (GdbExecutionResult)result);
       }
