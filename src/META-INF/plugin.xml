@@ -72,7 +72,7 @@
     <lang.elementManipulator forClass="com.goide.psi.GoImportString"
                              implementationClass="com.goide.psi.impl.manipulator.GoImportStringManipulator"/>
 
-    <errorHandler implementation="com.intellij.diagnostic.ITNReporter"/>
+    <errorHandler implementation="com.goide.diagnostics.error.ErrorReporter"/>
     <extendWordSelectionHandler implementation="com.goide.editor.GoWordSelectioner"/>
     <annotator language="go" implementationClass="com.goide.GoAnnotator"/>
     
