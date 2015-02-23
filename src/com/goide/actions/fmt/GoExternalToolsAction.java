@@ -17,6 +17,7 @@
 package com.goide.actions.fmt;
 
 import com.goide.psi.GoFile;
+import com.goide.sdk.GoSdkService;
 import com.intellij.execution.ExecutionException;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -25,6 +26,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
@@ -60,7 +62,20 @@ public abstract class GoExternalToolsAction extends AnAction implements DumbAwar
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-    e.getPresentation().setEnabled(e.getProject() != null && e.getData(CommonDataKeys.PSI_FILE) instanceof GoFile);
+    Project project = e.getProject();
+    if (project == null) {
+      e.getPresentation().setEnabled(false);
+      return;
+    }
+
+    PsiFile file = e.getData(CommonDataKeys.PSI_FILE);
+    if (!(file instanceof GoFile)) {
+      e.getPresentation().setEnabled(false);
+      return;
+    }
+
+    String sdkHome = GoSdkService.getInstance(project).getSdkHomePath(ModuleUtilCore.findModuleForPsiElement(file));
+    e.getPresentation().setEnabled(StringUtil.isEmpty(sdkHome));
   }
 
   @Override

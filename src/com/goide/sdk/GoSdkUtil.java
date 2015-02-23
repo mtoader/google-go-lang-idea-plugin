@@ -23,6 +23,7 @@ import com.intellij.execution.configurations.PathEnvironmentVariableUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
@@ -69,7 +70,6 @@ public class GoSdkUtil {
     return sdkSrcDir != null ? sdkSrcDir : guessSkdSrcDir(context);
   }
 
-  // todo: caching
   @Nullable
   public static GoFile findBuiltinFile(@NotNull PsiElement context) {
     VirtualFile sdkSrcDir = getSdkSrcDir(context);

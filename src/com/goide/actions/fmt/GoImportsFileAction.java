@@ -18,11 +18,9 @@ package com.goide.actions.fmt;
 
 import com.goide.GoEnvironmentUtil;
 import com.goide.sdk.GoSdkService;
+import com.goide.util.GoExecutor;
 import com.intellij.execution.ExecutionException;
-import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.PathEnvironmentVariableUtil;
-import com.intellij.execution.process.KillableColoredProcessHandler;
-import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -52,8 +50,8 @@ public class GoImportsFileAction extends GoExternalToolsAction {
   protected String getErrorTitle(@NotNull String fileName) {
     return fileName + " optimizing imports with goimports failed. You maybe need to install goimports.";
   }
-  
-  
+
+
   public boolean doSomething(@NotNull PsiFile file,
                              @NotNull Project project,
                              @Nullable final VirtualFile virtualFile,
@@ -64,46 +62,23 @@ public class GoImportsFileAction extends GoExternalToolsAction {
     String filePath = virtualFile.getCanonicalPath();
     assert filePath != null;
 
-    GeneralCommandLine commandLine = new GeneralCommandLine();
-    String sdkHome = GoSdkService.getInstance(project).getSdkHomePath(ModuleUtilCore.findModuleForPsiElement(file));
-    if (StringUtil.isEmpty(sdkHome)) {
-      warning(project, groupId, "Project sdk is not valid");
-      return true;
-    }
-
-    File executable = PathEnvironmentVariableUtil.findInPath(GoEnvironmentUtil.getBinaryFileNameForPath("goimports"));
+    File executable = GoEnvironmentUtil.getBinaryFilePathFromEnvironment("goimports");
 
     if (executable == null) {
       warning(project, groupId, "Looks like you haven't any goimports executable in your PATH");
       return true;
     }
 
-    commandLine.setExePath(executable.getAbsolutePath());
-    commandLine.addParameters("-w", filePath);
-
     FileDocumentManager.getInstance().saveDocument(document);
 
-    String commandLineString = commandLine.getCommandLineString();
-    OSProcessHandler handler = new KillableColoredProcessHandler(commandLine.createProcess(), commandLineString);
-    handler.addProcessListener(new ProcessAdapter() {
-      @Override
-      public void processTerminated(ProcessEvent event) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            ApplicationManager.getApplication().runWriteAction(new Runnable() {
-              @Override
-              public void run() {
-                virtualFile.refresh(false, false);
-              }
-            });
-          }
-        });
-      }
-    });
-    handler.startNotify();
+    GoExecutor.
+      in(project).
+      withExePath(executable.getAbsolutePath()).
+      addParameters("-w", filePath).
+      showOutputOnError().
+      execute();
     return false;
   }
 
-  
+
 }
