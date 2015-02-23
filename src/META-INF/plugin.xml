@@ -144,6 +144,9 @@
     <checkinHandlerFactory implementation="com.goide.actions.fmt.GoFmtCheckinFactory" order="last"/>
 
     <editorNotificationProvider implementation="com.goide.inspections.SetupSDKNotificationProvider"/>
+    <editorNotificationProvider implementation="com.goide.ui.ProjectConfigurationNotification"/>
+
+    <applicationService serviceImplementation="com.goide.settings.GoPluginSettings"/>
     
     <lang.inspectionSuppressor language="go" implementationClass="com.goide.inspections.suppression.GoInspectionSuppressor"/>
     
