@@ -29,7 +29,7 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GoRunConfigurationProducerBase<T extends GoRunConfigurationWithMain> extends RunConfigurationProducer<T> implements Cloneable {
+public class GoRunConfigurationProducerBase<T extends GoRunConfigurationBase> extends RunConfigurationProducer<T> implements Cloneable {
   protected GoRunConfigurationProducerBase(@NotNull ConfigurationType configurationType) {
     super(configurationType);
   }

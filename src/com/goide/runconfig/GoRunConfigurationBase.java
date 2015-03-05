@@ -48,6 +48,7 @@ public abstract class GoRunConfigurationBase<RunningState extends GoRunningState
   private static final String PARAMETERS_NAME = "parameters";
   private static final String PASS_PARENT_ENV = "pass_parent_env";
 
+  @NotNull private String myFilePath = "";
   @NotNull private String myWorkingDirectory = "";
   @NotNull private String myParams = "";
   @NotNull private Map<String, String> myCustomEnvironment = ContainerUtil.newHashMap();
@@ -194,4 +195,14 @@ public abstract class GoRunConfigurationBase<RunningState extends GoRunningState
   public void setWorkingDirectory(@NotNull String workingDirectory) {
     myWorkingDirectory = workingDirectory;
   }
+
+  @NotNull
+  public String getFilePath() {
+    return myFilePath;
+  }
+
+  public void setFilePath(@NotNull String filePath) {
+    myFilePath = filePath;
+  }
+
 }

@@ -24,17 +24,19 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
 
-public class GoApplicationRunningState extends GoRunningState<GoApplicationConfiguration> {
+public class GoApplicationRunningState extends GoRunningState<GoApplicationRunConfiguration> {
   private File myTempFile;
 
   public GoApplicationRunningState(@NotNull ExecutionEnvironment env, @NotNull Module module,
-                                   @NotNull GoApplicationConfiguration configuration) {
+                                   @NotNull GoApplicationRunConfiguration configuration) {
     super(env, module, configuration);
   }
 
@@ -52,12 +54,13 @@ public class GoApplicationRunningState extends GoRunningState<GoApplicationConfi
     }
     try {
       ProcessOutput processOutput = new ProcessOutput();
+      VirtualFile[] sourceRoots = ModuleRootManager.getInstance(myModule).getSourceRoots(false); //Eventually to support multiple module dependencies
       boolean success = GoExecutor.in(myModule)
-        .addParameters("build", "-o", myTempFile.getAbsolutePath(), myConfiguration.getFilePath())
+        .addParameters("build", "-o", myTempFile.getAbsolutePath())
+        .withWorkDirectory(sourceRoots[0].getCanonicalPath())
         .withProcessOutput(processOutput)
         .showOutputOnError()
         .execute();
-
       if (!success) {
         throw new ExecutionException("Build failure. `go build` is finished with exit code " + processOutput.getExitCode());
       }

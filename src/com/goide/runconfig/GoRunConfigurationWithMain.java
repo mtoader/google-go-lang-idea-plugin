@@ -38,11 +38,9 @@ import org.jetbrains.annotations.NotNull;
 public abstract class GoRunConfigurationWithMain<T extends GoRunningState> extends GoRunConfigurationBase<T> {
   private static final String FILE_PATH_NAME = "file_path";
   
-  @NotNull private String myFilePath = "";
-
   public GoRunConfigurationWithMain(String name, GoModuleBasedConfiguration configurationModule, ConfigurationFactory factory) {
     super(name, configurationModule, factory);
-    myFilePath = getWorkingDirectory();
+    setFilePath(getWorkingDirectory());
   }
 
   @Override
@@ -50,15 +48,15 @@ public abstract class GoRunConfigurationWithMain<T extends GoRunningState> exten
     super.readExternal(element);
     String filePathValue = JDOMExternalizerUtil.getFirstChildValueAttribute(element, FILE_PATH_NAME);
     if (filePathValue != null) {
-      myFilePath = filePathValue;
+      setFilePath(filePathValue);
     }
   }
 
   @Override
   public void writeExternal(Element element) throws WriteExternalException {
     super.writeExternal(element);
-    if (StringUtil.isNotEmpty(myFilePath)) {
-      JDOMExternalizerUtil.addElementWithValueAttribute(element, FILE_PATH_NAME, myFilePath);
+    if (StringUtil.isNotEmpty(getFilePath())) {
+      JDOMExternalizerUtil.addElementWithValueAttribute(element, FILE_PATH_NAME, getFilePath());
     }
   }
 
@@ -83,12 +81,4 @@ public abstract class GoRunConfigurationWithMain<T extends GoRunningState> exten
     }
   }
 
-  @NotNull
-  public String getFilePath() {
-    return myFilePath;
-  }
-
-  public void setFilePath(@NotNull String filePath) {
-    myFilePath = filePath;
-  }
 }
