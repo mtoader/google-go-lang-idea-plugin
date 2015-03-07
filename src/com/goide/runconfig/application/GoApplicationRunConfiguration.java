@@ -17,32 +17,33 @@
 package com.goide.runconfig.application;
 
 import com.goide.runconfig.GoModuleBasedConfiguration;
-import com.goide.runconfig.GoRunConfigurationWithMain;
-import com.goide.runconfig.ui.GoRunConfigurationEditorForm;
+import com.goide.runconfig.GoRunConfigurationBase;
+import com.goide.runconfig.ui.GoApplicationRunConfigurationEditorForm;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-public class GoApplicationConfiguration extends GoRunConfigurationWithMain<GoApplicationRunningState> {
-  public GoApplicationConfiguration(Project project, String name, @NotNull ConfigurationType configurationType) {
+public class GoApplicationRunConfiguration extends GoRunConfigurationBase<GoApplicationRunningState> {
+  public GoApplicationRunConfiguration(Project project, String name, @NotNull ConfigurationType configurationType) {
     super(name, new GoModuleBasedConfiguration(project), configurationType.getConfigurationFactories()[0]);
   }
 
   @NotNull
   @Override
   protected ModuleBasedConfiguration createInstance() {
-    return new GoApplicationConfiguration(getProject(), getName(), GoApplicationRunConfigurationType.getInstance());
+    return new GoApplicationRunConfiguration(getProject(), getName(), GoApplicationRunConfigurationType.getInstance());
   }
 
   @NotNull
   @Override
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
-    return new GoRunConfigurationEditorForm(getProject());
+    return new GoApplicationRunConfigurationEditorForm(getProject());
   }
 
   @NotNull
@@ -50,4 +51,10 @@ public class GoApplicationConfiguration extends GoRunConfigurationWithMain<GoApp
   protected GoApplicationRunningState newRunningState(@NotNull ExecutionEnvironment env, @NotNull Module module) {
     return new GoApplicationRunningState(env, module, this);
   }
+
+  @Override
+  public void checkConfiguration() throws RuntimeConfigurationException {
+    super.checkConfiguration();
+  }
+
 }

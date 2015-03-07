@@ -30,7 +30,7 @@ public class GoApplicationRunConfigurationType extends ConfigurationTypeBase {
     addFactory(new GoConfigurationFactoryBase(this) {
       @NotNull
       public RunConfiguration createTemplateConfiguration(Project project) {
-        return new GoApplicationConfiguration(project, "Go", getInstance());
+        return new GoApplicationRunConfiguration(project, "Go", getInstance());
       }
     });
   }
