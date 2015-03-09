@@ -22,7 +22,6 @@ import com.goide.runconfig.ui.GoApplicationRunConfigurationEditorForm;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
@@ -51,10 +50,4 @@ public class GoApplicationRunConfiguration extends GoRunConfigurationBase<GoAppl
   protected GoApplicationRunningState newRunningState(@NotNull ExecutionEnvironment env, @NotNull Module module) {
     return new GoApplicationRunningState(env, module, this);
   }
-
-  @Override
-  public void checkConfiguration() throws RuntimeConfigurationException {
-    super.checkConfiguration();
-  }
-
 }
