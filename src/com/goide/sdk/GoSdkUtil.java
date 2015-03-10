@@ -70,6 +70,7 @@ public class GoSdkUtil {
     return sdkSrcDir != null ? sdkSrcDir : guessSkdSrcDir(context);
   }
 
+  // todo: caching
   @Nullable
   public static GoFile findBuiltinFile(@NotNull PsiElement context) {
     VirtualFile sdkSrcDir = getSdkSrcDir(context);

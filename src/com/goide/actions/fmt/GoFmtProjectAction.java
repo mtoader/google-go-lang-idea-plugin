@@ -71,7 +71,6 @@ public class GoFmtProjectAction extends AnAction implements DumbAware {
       commandLine.withWorkDirectory(project.getBasePath());
       commandLine.setExePath(executable.getAbsolutePath());
       commandLine.addParameters("fmt", "./...");
-      commandLine.setPassParentEnvironment(true);
 
       final String commandLineString = commandLine.getCommandLineString();
       OSProcessHandler handler = new KillableColoredProcessHandler(commandLine.createProcess(), commandLineString);
