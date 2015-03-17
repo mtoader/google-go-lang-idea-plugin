@@ -38,7 +38,7 @@
   <idea-version since-build="139.1111"/>
   <depends>com.intellij.modules.lang</depends>
   <depends optional="true" config-file="java-deps.xml">com.intellij.modules.java</depends>
-  
+
   <module-components>
     <component>
       <implementation-class>com.goide.project.GoModuleLibrariesInitializer</implementation-class>
@@ -57,12 +57,15 @@
     <internalFileTemplate name="Go File"/>
 
     <!-- project -->
+    <applicationService
+        serviceImplementation="com.goide.settings.GoApplicationSettings"/>
+
     <applicationService serviceImplementation="com.goide.project.GoApplicationLibrariesService"/>
     <projectService serviceImplementation="com.goide.project.GoProjectLibrariesService"/>
     <moduleService serviceImplementation="com.goide.project.GoModuleLibrariesService"/>
-    <projectConfigurable groupId="language" provider="com.goide.configuration.GoConfigurableProvider" dynamic="true" 
+    <projectConfigurable groupId="language" provider="com.goide.configuration.GoConfigurableProvider" dynamic="true"
                          bundle="do.not.touch.this.attribute" />
-    
+
     <defaultLiveTemplatesProvider implementation="com.goide.template.GoLiveTemplatesProvider"/>
     <liveTemplateContext implementation="com.goide.template.GoEverywhereContextType"/>
     <liveTemplateContext implementation="com.goide.template.GoLiveTemplateContextType$GoFileContextType"/>
@@ -75,11 +78,11 @@
     <errorHandler implementation="com.intellij.diagnostic.ITNReporter"/>
     <extendWordSelectionHandler implementation="com.goide.editor.GoWordSelectioner"/>
     <annotator language="go" implementationClass="com.goide.GoAnnotator"/>
-    
+
     <lang.importOptimizer language="go" implementationClass="com.goide.codeInsight.imports.GoImportOptimizer"/>
     <psi.fileReferenceHelper implementation="com.goide.psi.impl.imports.GoImportReferenceHelper"/>
     <fileContextProvider implementation="com.goide.psi.impl.imports.GoFileContextProvider"/>
-    
+
     <lang.parserDefinition language="go" implementationClass="com.goide.GoParserDefinition"/>
     <fileTypeFactory implementation="com.goide.GoFileTypeFactory"/>
     <lang.syntaxHighlighterFactory key="go" implementationClass="com.goide.highlighting.GoSyntaxHighlighterFactory"/>
@@ -110,10 +113,11 @@
     <codeInsight.lineMarkerProvider language="go" implementationClass="com.goide.editor.marker.GoMethodSeparatorProvider"/>
 
     <!--formatter-->
+    <fileDocumentManagerListener implementation="com.goide.formatter.GoOnSaveFormatter"/>
     <lang.formatter language="go" implementationClass="com.goide.formatter.GoFormattingModelBuilder"/>
     <codeStyleSettingsProvider implementation="com.goide.formatter.settings.GoCodeStyleSettingsProvider"/>
     <langCodeStyleSettingsProvider implementation="com.goide.formatter.settings.GoLanguageCodeStyleSettingsProvider"/>
-    
+
     <renamePsiElementProcessor implementation="com.goide.refactor.GoAnonymousFieldProcessor"/>
 
     <gotoSymbolContributor implementation="com.goide.go.GoSymbolContributor"/>
@@ -151,9 +155,9 @@
     <programRunner implementation="com.goide.debugger.ideagdb.run.GdbRunner"/>
 
     <checkinHandlerFactory implementation="com.goide.actions.fmt.GoFmtCheckinFactory" order="last"/>
-    
+
     <lang.inspectionSuppressor language="go" implementationClass="com.goide.inspections.suppression.GoInspectionSuppressor"/>
-    
+
     <localInspection language="go" displayName="Unresolved reference inspection"
                      groupName="Go" enabledByDefault="true" level="ERROR"
                      implementationClass="com.goide.inspections.unresolved.GoUnresolvedReferenceInspection"/>
@@ -161,16 +165,16 @@
                      groupName="Go" enabledByDefault="true" level="ERROR"
                      implementationClass="com.goide.inspections.GoUnusedImportDeclaration"/>
     <localInspection language="go" displayName="Duplicate fields and methods inspection"
-                     groupName="Go" enabledByDefault="true" level="ERROR" 
+                     groupName="Go" enabledByDefault="true" level="ERROR"
                      implementationClass="com.goide.inspections.GoDuplicateFieldsOrMethodsInspection"/>
     <localInspection language="go" displayName="Unused variables inspection"
-                     groupName="Go" enabledByDefault="true" level="ERROR"  
+                     groupName="Go" enabledByDefault="true" level="ERROR"
                      implementationClass="com.goide.inspections.unresolved.GoUnusedVariableInspection"/>
     <localInspection language="go" displayName="Unused global variables inspection"
-                     groupName="Go" enabledByDefault="true" level="WARNING" 
+                     groupName="Go" enabledByDefault="true" level="WARNING"
                      implementationClass="com.goide.inspections.unresolved.GoUnusedGlobalVariableInspection"/>
     <localInspection language="go" displayName="Unused function inspection"
-                     groupName="Go" enabledByDefault="true" level="WARNING" 
+                     groupName="Go" enabledByDefault="true" level="WARNING"
                      implementationClass="com.goide.inspections.unresolved.GoUnusedFunctionInspection"/>
     <localInspection language="go" displayName="Assignment to constant"
                      groupName="Go" enabledByDefault="true" level="ERROR"
@@ -179,25 +183,25 @@
                      groupName="Go" enabledByDefault="true" level="ERROR"
                      implementationClass="com.goide.inspections.GoDuplicateFunctionInspection"/>
     <localInspection language="go" displayName="Duplicate argument"
-                     groupName="Go" enabledByDefault="true" level="ERROR" 
+                     groupName="Go" enabledByDefault="true" level="ERROR"
                      implementationClass="com.goide.inspections.GoDuplicateArgumentInspection"/>
     <localInspection language="go" displayName="Duplicate return argument"
-                     groupName="Go" enabledByDefault="true" level="ERROR" 
+                     groupName="Go" enabledByDefault="true" level="ERROR"
                      implementationClass="com.goide.inspections.GoDuplicateReturnArgumentInspection"/>
     <localInspection language="go" displayName="Incorrect variadic parameter"
-                     groupName="Go" enabledByDefault="true" level="ERROR" 
+                     groupName="Go" enabledByDefault="true" level="ERROR"
                      implementationClass="com.goide.inspections.GoFunctionVariadicParameterInspection"/>
     <localInspection language="go" displayName="Incorrect variable declaration"
-                     groupName="Go" enabledByDefault="true" level="ERROR" 
+                     groupName="Go" enabledByDefault="true" level="ERROR"
                      implementationClass="com.goide.inspections.GoVarDeclarationInspection"/>
     <localInspection language="go" displayName="No new variables on left side of :="
-                     groupName="Go" enabledByDefault="true" level="ERROR" 
+                     groupName="Go" enabledByDefault="true" level="ERROR"
                      implementationClass="com.goide.inspections.GoNoNewVariablesInspection"/>
     <localInspection language="go" displayName="Missing return at end of function"
-                     groupName="Go" enabledByDefault="true" level="ERROR" 
+                     groupName="Go" enabledByDefault="true" level="ERROR"
                      implementationClass="com.goide.inspections.GoReturnInspection"/>
     <localInspection language="go" displayName="Function call inspection"
-                     groupName="Go" enabledByDefault="true" level="ERROR" 
+                     groupName="Go" enabledByDefault="true" level="ERROR"
                      implementationClass="com.goide.inspections.GoFunctionCallInspection"/>
     <localInspection language="go" displayName="Defer/go statements check"
                      groupName="Go" enabledByDefault="true" level="ERROR"
@@ -208,7 +212,7 @@
             text="Go File" description="Create new Go file">
       <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>
     </action>
-    
+
     <action id="GoShowTypeInternalAction"
             class="com.goide.actions.internal.GoShowTypeInternalAction"
             text="Show Go type info">

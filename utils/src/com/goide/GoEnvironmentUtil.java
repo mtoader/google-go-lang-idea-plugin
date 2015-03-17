@@ -1,6 +1,9 @@
 package com.goide;
 
+import com.intellij.execution.configurations.PathEnvironmentVariableUtil;
 import com.intellij.openapi.application.PathMacros;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.EnvironmentUtil;
@@ -35,6 +38,11 @@ public class GoEnvironmentUtil {
     return SystemInfo.isWindows ? resultBinaryName + ".exe" : resultBinaryName;
   }
 
+  @Nullable
+  public static File getBinaryFilePathFromEnvironment(@NotNull String binaryName) {
+    return PathEnvironmentVariableUtil.findInPath(getBinaryFileNameForPath(binaryName));
+  }
+
   @NotNull
   private static File getExecutable(@NotNull String path, @NotNull String command) {
     return new File(path, getBinaryFileNameForPath(command));
@@ -44,5 +52,20 @@ public class GoEnvironmentUtil {
   public static String retrieveGoPathFromEnvironment() {
     String path = EnvironmentUtil.getValue(GoConstants.GO_PATH);
     return path != null ? path : PathMacros.getInstance().getValue(GoConstants.GO_PATH);
+  }
+
+  @NotNull
+  public static String[] getEnvironment(@NotNull Project project, @NotNull String sdkHomePath) {
+    String[] env = EnvironmentUtil.getEnvironment();
+
+    for (int i=0; i < env.length; i++) {
+      if (env[i].toLowerCase().startsWith("path=")) {
+        env[i] = env[i] + File.pathSeparator + sdkHomePath;
+        env[i] = env[i] + File.pathSeparator + project.getBasePath();
+        break;
+      }
+    }
+
+    return env;
   }
 }

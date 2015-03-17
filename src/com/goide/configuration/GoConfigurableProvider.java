@@ -22,13 +22,14 @@ public class GoConfigurableProvider extends ConfigurableProvider {
   @Nullable
   @Override
   public Configurable createConfigurable() {
+    Configurable settingsConfigurable = new GoSettingsConfigurableProvider().createConfigurable();
     Configurable librariesConfigurable = new GoLibrariesConfigurableProvider(myProject).createConfigurable();
     Configurable sdkConfigurable = GoSdkService.getInstance(myProject).createSdkConfigurable();
     if (sdkConfigurable != null) {
-      return new GoCompositeConfigurable(sdkConfigurable, librariesConfigurable);
+      return new GoCompositeConfigurable(settingsConfigurable, sdkConfigurable, librariesConfigurable);
     }
     else {
-      return new GoCompositeConfigurable(librariesConfigurable);
+      return new GoCompositeConfigurable(settingsConfigurable, librariesConfigurable);
     }
   }
 

@@ -18,10 +18,9 @@ package com.goide.actions.fmt;
 
 import com.goide.GoEnvironmentUtil;
 import com.goide.sdk.GoSdkService;
+import com.goide.util.GoExecutor;
 import com.intellij.execution.ExecutionException;
-import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.process.KillableColoredProcessHandler;
-import com.intellij.execution.process.OSProcessHandler;
+import com.intellij.execution.configurations.PathEnvironmentVariableUtil;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -49,40 +48,20 @@ public class GoFmtFileAction extends GoExternalToolsAction {
     String filePath = virtualFile.getCanonicalPath();
     assert filePath != null;
 
-    GeneralCommandLine commandLine = new GeneralCommandLine();
+    File executable = GoEnvironmentUtil.getBinaryFilePathFromEnvironment("gofmt");
 
-    String sdkHome = GoSdkService.getInstance(project).getSdkHomePath(ModuleUtilCore.findModuleForPsiElement(file));
-    if (StringUtil.isEmpty(sdkHome)) {
-      warning(project, groupId, "Project sdk is not valid");
+    if (executable == null) {
+      warning(project, groupId, "Looks like you haven't any gofmt executable in your PATH");
       return true;
     }
 
-    File executable = GoEnvironmentUtil.getExecutableForSdk(sdkHome);
-
-    commandLine.setExePath(executable.getAbsolutePath());
-    commandLine.addParameters("fmt", filePath);
-
     FileDocumentManager.getInstance().saveDocument(document);
 
-    String commandLineString = commandLine.getCommandLineString();
-    OSProcessHandler handler = new KillableColoredProcessHandler(commandLine.createProcess(), commandLineString);
-    handler.addProcessListener(new ProcessAdapter() {
-      @Override
-      public void processTerminated(ProcessEvent event) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            ApplicationManager.getApplication().runWriteAction(new Runnable() {
-              @Override
-              public void run() {
-                virtualFile.refresh(false, false);
-              }
-            });
-          }
-        });
-      }
-    });
-    handler.startNotify();
+    GoExecutor.
+      in(project).
+      addParameters("fmt", filePath).
+      showOutputOnError().
+      execute();
     return false;
   }
 
