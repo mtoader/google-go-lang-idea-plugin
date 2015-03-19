@@ -19,6 +19,7 @@ package com.goide.editor;
 import com.goide.GoParserDefinition;
 import com.goide.GoTypes;
 import com.goide.psi.*;
+import com.goide.psi.impl.GoReference;
 import com.intellij.codeInsight.folding.CodeFoldingSettings;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.folding.FoldingBuilderEx;
@@ -27,6 +28,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiReference;
 import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.search.PsiElementProcessor;
@@ -98,6 +100,15 @@ public class GoFoldingBuilder extends FoldingBuilderEx implements DumbAware {
     if (element instanceof GoInterfaceType) {
       addTypeBlock(element, ((GoInterfaceType)element).getLbrace(), ((GoInterfaceType)element).getRbrace(), result);
     }
+    if (element instanceof GoReferenceExpression) {
+      PsiReference reference = element.getReference();
+      if (reference != null) {
+        PsiElement resolved = reference.resolve();
+        if (resolved instanceof GoConstDefinition) {
+          result.add(new FoldingDescriptor(element, element.getTextRange()));
+        }
+      }
+    }
   }
 
   private static void addTypeBlock(@NotNull PsiElement element,
@@ -110,7 +121,7 @@ public class GoFoldingBuilder extends FoldingBuilderEx implements DumbAware {
   }
 
   // com.intellij.codeInsight.folding.impl.JavaFoldingBuilderBase.addCodeBlockFolds()
-  private static void addCommentFolds(@NotNull PsiElement comment, 
+  private static void addCommentFolds(@NotNull PsiElement comment,
                                       @NotNull Set<PsiElement> processedComments,
                                       @NotNull List<FoldingDescriptor> foldElements) {
     if (processedComments.contains(comment)) return;
@@ -133,7 +144,7 @@ public class GoFoldingBuilder extends FoldingBuilderEx implements DumbAware {
       foldElements.add(new FoldingDescriptor(comment, new TextRange(comment.getTextRange().getStartOffset(), end.getTextRange().getEndOffset())));
     }
   }
-  
+
   @Nullable
   @Override
   public String getPlaceholderText(@NotNull ASTNode node) {
@@ -143,6 +154,17 @@ public class GoFoldingBuilder extends FoldingBuilderEx implements DumbAware {
     if (psi instanceof GoImportDeclaration) return "...";
     if (GoParserDefinition.LINE_COMMENT == type) return "/.../";
     if (GoParserDefinition.MULTILINE_COMMENT == type) return "/*...*/";
+
+    if (psi instanceof GoReferenceExpression) {
+      PsiReference reference = psi.getReference();
+      if (reference != null) {
+        PsiElement referenced = reference.resolve();
+        if (referenced instanceof GoConstDefinition) {
+          return "How do I get the value of the const?";
+        }
+      }
+    }
+
     return null;
   }
 
@@ -155,6 +177,15 @@ public class GoFoldingBuilder extends FoldingBuilderEx implements DumbAware {
     if (type == GoTypes.BLOCK && CodeFoldingSettings.getInstance().COLLAPSE_METHODS) {
       ASTNode parent = node.getTreeParent();
       return parent != null && parent.getPsi() instanceof GoFunctionOrMethodDeclaration;
+    }
+    if (type == GoTypes.REFERENCE_EXPRESSION) {
+      PsiReference reference = node.getPsi().getReference();
+      if (reference != null) {
+        PsiElement referenced = reference.resolve();
+        if (referenced instanceof GoConstDefinition) {
+          return true;
+        }
+      }
     }
     return CodeFoldingSettings.getInstance().COLLAPSE_IMPORTS && node.getElementType() == GoTypes.IMPORT_LIST;
   }
