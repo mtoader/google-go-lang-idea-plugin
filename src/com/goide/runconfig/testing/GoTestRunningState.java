@@ -73,6 +73,7 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
   @Override
   protected GoExecutor patchExecutor(@NotNull GoExecutor executor) throws ExecutionException {
     executor.withParameters("test", "-v");
+    executor.withParameterString(myConfiguration.getGoParams());
     switch (myConfiguration.getKind()) {
       case DIRECTORY:
         String relativePath = FileUtil.getRelativePath(myConfiguration.getWorkingDirectory(),

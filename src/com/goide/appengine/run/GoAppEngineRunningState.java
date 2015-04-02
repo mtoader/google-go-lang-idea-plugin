@@ -14,10 +14,11 @@ public class GoAppEngineRunningState extends GoRunningState<GoAppEngineRunConfig
                                  @NotNull GoAppEngineRunConfiguration configuration) {
     super(env, module, configuration);
   }
-  
+
   @Override
   protected GoExecutor patchExecutor(@NotNull GoExecutor executor) throws ExecutionException {
     executor.withParameters("serve");
+    executor.withParameterString(myConfiguration.getGoParams());
     String host = myConfiguration.getHost();
     String port = myConfiguration.getPort();
     if (StringUtil.isNotEmpty(host)) {

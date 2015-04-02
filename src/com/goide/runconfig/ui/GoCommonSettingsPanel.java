@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public class GoCommonSettingsPanel extends JBPanel {
+  private RawCommandLineEditor myGoParamsField;
   private RawCommandLineEditor myParamsField;
   private TextFieldWithBrowseButton myWorkingDirectoryField;
   private EnvironmentVariablesTextFieldWithBrowseButton myEnvironmentField;
@@ -28,6 +29,7 @@ public class GoCommonSettingsPanel extends JBPanel {
   public void resetEditorFrom(@NotNull GoRunConfigurationBase<?> configuration) {
     myModulesComboBox.setModules(configuration.getValidModules());
     myModulesComboBox.setSelectedModule(configuration.getConfigurationModule().getModule());
+    myGoParamsField.setText(configuration.getGoParams());
     myParamsField.setText(configuration.getParams());
     myWorkingDirectoryField.setText(configuration.getWorkingDirectory());
     myEnvironmentField.setEnvs(configuration.getCustomEnvironment());
@@ -36,6 +38,7 @@ public class GoCommonSettingsPanel extends JBPanel {
 
   public void applyEditorTo(@NotNull GoRunConfigurationBase<?> configuration) {
     configuration.setModule(myModulesComboBox.getSelectedModule());
+    configuration.setGoParams(myGoParamsField.getText());
     configuration.setParams(myParamsField.getText());
     configuration.setWorkingDirectory(myWorkingDirectoryField.getText());
     configuration.setCustomEnvironment(myEnvironmentField.getEnvs());

@@ -38,7 +38,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class GoExecutor {  
+public class GoExecutor {
   private static final Logger LOGGER = Logger.getInstance(GoExecutor.class);
   @NotNull private final Map<String, String> myExtraEnvironment = ContainerUtil.newHashMap();
   @NotNull private final ParametersList myParameterList = new ParametersList();
@@ -106,7 +106,7 @@ public class GoExecutor {
     myGoPath = goPath;
     return this;
   }
-  
+
   public GoExecutor withProcessListener(@NotNull ProcessListener listener) {
     myProcessListeners.add(listener);
     return this;
@@ -195,7 +195,7 @@ public class GoExecutor {
       myProcessHandler.startNotify();
       ExecutionModes.SameThreadMode sameThreadMode = new ExecutionModes.SameThreadMode(getPresentableName());
       ExecutionHelper.executeExternalProcess(myProject, myProcessHandler, sameThreadMode, commandLine);
-      
+
       LOGGER.debug("Finished `" + getPresentableName() + "` with result: " + result.get());
       return result.get();
     }
