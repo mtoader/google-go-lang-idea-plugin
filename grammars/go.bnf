@@ -123,7 +123,7 @@ private TypeLit ::=
   | MapType
   | ChannelType
 
-ArrayOrSliceType ::= '[' ('...'|Expression?) ']' <<exitModeSafe "BLOCK?">> Type {pin=1}
+ArrayOrSliceType ::= '[' ('...'|Expression?) ']' Type {pin=1}
 
 StructType ::= struct '{' Fields? '}' {pin=1}
 private Fields ::= FieldDeclaration (semi FieldDeclaration)* semi? {pin=1}
@@ -147,7 +147,7 @@ Signature ::= Parameters Result? {
   stubClass="com.goide.stubs.GoSignatureStub"
   methods=[shouldGoDeeper]
 }
-Result ::= '(' TypeListNoPin ')' | Type | Parameters {
+Result ::= '(' TypeListNoPin ')' | Type | Parameters { // todo: reorder and pin (
   stubClass="com.goide.stubs.GoResultStub"
 }
 Parameters ::= '(' [ (ParameterList ','?| TypeListNoPin) ] ')' {
@@ -155,7 +155,7 @@ Parameters ::= '(' [ (ParameterList ','?| TypeListNoPin) ] ')' {
   stubClass="com.goide.stubs.GoParametersStub"
 }
 private ParameterList ::= ParameterDeclaration (',' (ParameterDeclaration | &')'))* {pin(".*")=1}
-ParameterDeclaration ::= ParamDefinitionListNoPin? '...'? Type | Type {
+ParameterDeclaration ::= ParamDefinitionListNoPin? '...'? Type | Type { // todo: use left rule
   stubClass="com.goide.stubs.GoParameterDeclarationStub"
   methods = [isVariadic]
 }
@@ -185,7 +185,7 @@ MapType ::= map '[' Type ']' Type {
 ChannelType ::= ChanTypePrefix Type {pin=1}
 private ChanTypePrefix ::= chan '<-'? | '<-' chan {pin(".*")=1}
 
-Block ::= <<consumeBlock>> | '{' <<exitModeSafe "PAR">> <<exitModeSafe "BLOCK?">> ('}' | Statements '}') {pin(".*")=1 methods=[processDeclarations]}
+Block ::= <<consumeBlock>> | '{' ('}' | (<<withOff Statements "BLOCK?" "PAR">> | (!() Statements)) '}') {pin(".*")=1 methods=[processDeclarations]}
 private Statements ::= StatementWithSemi*
 
 private StatementWithSemi ::= Statement (semi|&'}') { pin=1 recoverWhile=StatementRecover }
@@ -211,10 +211,8 @@ Statement ::=
 private StatementRecover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '&^' | '&^=' | '(' | '*' | '*=' | '+' | '++' | '+=' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<-' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | '>=' | '>>' | '>>=' | '[' | '^' | '^=' | 'type' | '{' | '|' | '|=' | '||' | '}' | break | case | chan | char | const | continue | decimali | default | defer | else | fallthrough | float | floati | for | func | go | goto | hex | identifier | if | imaginary | int | interface | map | oct | return | rune | select | string | raw_string | struct | switch | var)
 
 SimpleStatement ::=
-    AssignmentStatement
-  | SendStatement
-  | ShortVarDeclaration
-  | Expression ['++' | '--']
+    ShortVarDeclaration
+  | (LeftHandExprList (AssignmentStatement | SendStatement | ['++' | '--'])) {pin(".*")="ExpressionList"}
 
 private TopLevelDeclaration ::= OneOfDeclarations semi {pin=1 recoverWhile=TopLevelDeclarationRecover}
 private OneOfDeclarations ::=
@@ -234,6 +232,9 @@ ConstDefinition ::= identifier {
   methods=[getGoType]
 }
 
+LeftHandExprList ::= ExpressionList
+private ExpressionArgList ::= ExpressionWithRecover2 (',' (ExpressionWithRecover2 | &')'))* {pin(".*")=1}
+private ExpressionWithRecover2 ::= <<withOn "PAR" ExpressionWithRecover>> | (!() Expression) {recoverWhile=ExpressionListRecover}
 private ExpressionList ::= ExpressionWithRecover (',' (ExpressionWithRecover | &')'))* {pin(".*")=1}
 private ExpressionWithRecover ::= Expression {recoverWhile=ExpressionListRecover}
 private ExpressionListRecover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '&^' | '&^=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<-' | '<<' | '<<=' | '<=' | '<NL>' | '=' | '==' | '>' | '>=' | '>>' | '>>=' | '[' | ']' | '^' | '^=' | 'type' | '{' | '|' | '|=' | '||' | '}' | break | case | chan | char | const | continue | decimali | default | defer | else | fallthrough | float | floati | for | func | go | goto | hex | identifier | if | imaginary | int | interface | map | oct | return | rune | select | string | raw_string | struct | switch | var)
@@ -273,7 +274,7 @@ Receiver ::= '(' (identifier ReceiverTail | ReceiverTail) ')' {
   pin=1
   stubClass="com.goide.stubs.GoReceiverStub"
 }
-private ReceiverTail ::= '*'? ReceiverResultType
+private ReceiverTail ::= '*'? ReceiverResultType ','?
 ReceiverResultType ::= TypeReferenceExpression {elementType=Type}
 
 Literal ::=
@@ -297,15 +298,18 @@ OperandName ::= ReferenceExpression QualifiedReferenceExpression? {elementType=R
 left QualifiedReferenceExpression ::= '.' identifier {elementType=ReferenceExpression}
 ReferenceExpression ::= identifier { methods=[getReference getQualifier] extends=Expression}
 
-CompositeLit ::= (LiteralTypeExpr LiteralValue) // the brackets are valuable
-LiteralTypeExpr ::=
+CompositeLit ::= (LiteralTypeExprInner LiteralValue) // the brackets are valuable
+private LiteralTypeExprInner ::=
     StructType
   | ArrayOrSliceType
   | MapType
   | TypeName
+  
+LiteralTypeExpr ::= LiteralTypeExprInner
 
-LiteralValue ::= (<<isModeOff "BLOCK?">> | <<isModeOn "PAR">>) '{' ElementList? '}' {pin=2}
-private ElementList  ::= Element ( ',' Element? )*
+LiteralValue ::= (<<isModeOff "BLOCK?">> | <<isModeOn "PAR">> | <<prevIsArrayType>>) '{' ElementList? '}' {pin=2}
+private ElementList  ::= E ( ',' E? )*
+private E::= <<withOn "PAR" Element>> | (!() Element)
 Element ::= First [':' Value] 
 private First ::= Key | <<keyOrValueExpression>>
 Key ::= (FieldName &':') | !() Expression // nullability hack for key without reference inside
@@ -327,7 +331,7 @@ Expression ::=
   | MaxGroup
   | ParenthesesExpr {methods=[getGoType] implements="com.goide.psi.GoTypeOwner"}
 
-fake BinaryExpr ::= Expression+{
+fake BinaryExpr ::= Expression+ {
   methods=[left="Expression[0]" right="Expression[1]"]
 }
 
@@ -369,7 +373,7 @@ private inner SliceExprBodyInner ::= SliceExprBody
 private SliceExprBody ::= &':' (':' Expression ':' Expression) | (':' Expression?)
 TypeAssertionExpr ::= Expression '.' '(' &(!'type') Type ')'
 CallExpr ::= Expression ArgumentList
-ArgumentList ::= '(' <<enterMode "PAR">> [ ExpressionList '...'? ','? ] <<exitModeSafe "PAR">>')' {pin=1}
+ArgumentList ::= '(' [ ExpressionArgList '...'? ','? ] ')' {pin=1}
 ConversionExpr ::= &ConversionPredicate Type ConversionTail
 private ConversionPredicate ::= ConversionStart | '(' ConversionStart
 private ConversionTail ::= '(' Expression ','? ')' {pin=1}
@@ -379,8 +383,8 @@ LabeledStatement ::= LabelDefinition ':' Statement? {pin=2}
 LabelDefinition ::= identifier {
   stubClass="com.goide.stubs.GoLabelDefinitionStub" // todo: remove when you'll have some spare time 
 }
-SendStatement ::= Expression '<-' Expression {pin=2}
-AssignmentStatement ::= ExpressionList assign_op ExpressionList {pin=2}
+left SendStatement ::= '<-' Expression {pin=1}
+left AssignmentStatement ::= assign_op ExpressionList {pin=1}
 assign_op ::= '=' | '+=' | '-=' | '|=' | '^=' | '*=' | '/=' | '%=' | '<<=' | '>>=' | '&=' | '&^='
 IfStatement ::= if Condition Block ElseStatement?
 ElseStatement ::= else (IfStatement | Block)
@@ -400,7 +404,7 @@ TypeCaseClause ::= TypeSwitchCase ':' Statements?
 TypeSwitchCase ::= case TypeList | default {pin(".*")=1}
 TypeList ::= Type ( ',' Type )*
 TypeListNoPin ::= Type ( ',' Type )* {elementType=TypeList}
-ForStatement ::= for <<enterMode "BLOCK?">> (ForOrRangeClause Block | Block | Expression Block) {pin(".*")="for|ForOrRangeClause"}
+ForStatement ::= for <<enterMode "BLOCK?">> (ForOrRangeClause Block | Block | Expression Block) <<exitModeSafe "BLOCK?">> {pin(".*")="for|ForOrRangeClause"}
 private ForOrRangeClause ::= (ForClause | RangeClause)
 ForClause ::= SimpleStatement? ';' Expression? ';' SimpleStatement? {methods=[processDeclarations]}
 RangeClause ::= ExpressionsOrVariables? range Expression {pin=2 extends=VarSpec}
@@ -408,7 +412,7 @@ private ExpressionsOrVariables ::= ExpressionList '=' | VarDefinitionList ':='
 GoStatement ::= go Expression
 SelectStatement ::= select '{' CommClause* '}'
 CommClause ::= CommCase ':' Statements? {pin=1}
-CommCase ::= case ( SendStatement | RecvStatement ) | default {pin(".*")=1}
+CommCase ::= case ( Expression SendStatement | RecvStatement ) | default {pin(".*")="case"}
 RecvStatement ::= ExpressionsOrVariables? Expression {pin=0 extends=VarSpec}
 ReturnStatement ::= return ExpressionList?
 LabelRef ::= identifier {

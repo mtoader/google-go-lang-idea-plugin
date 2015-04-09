@@ -9,6 +9,8 @@
             <element id="artifact" artifact-name="jps-plugin.jar" />
           </element>
           <element id="artifact" artifact-name="utils.jar" />
+          <element id="artifact" artifact-name="google-app-engine.jar" />
+          <element id="artifact" artifact-name="google-app-engine-yaml.jar" />
         </element>
       </element>
     </root>

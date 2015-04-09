@@ -76,6 +76,8 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
   public void testInterfaces()  { doTest(); }
   public void testReceiverType(){ doTest(); }
   public void testForRange()    { doTest(); }
+  public void testMismatch()    { doTest(); }
+  public void testStubParams()  { doTest(); }
   
   public void testDoNotReportNonLastMultiResolvedImport() throws IOException {
     final VirtualFile root1 = myFixture.getTempDirFixture().findOrCreateDir("root1");
@@ -99,6 +101,12 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
     myFixture.checkHighlighting();
   }
   
+  public void testInnerTypesFromOtherPackage() {
+    myFixture.configureByText("main.go", "package main; import \"io\"; type Outer struct { *io.LimitedReader };" +
+                                         "func main() { _ = &Outer{LimitedReader: &io.LimitedReader{}, } }");
+    myFixture.checkHighlighting();
+  }
+  
   public void testDuplicatesInOnePackage() {
     myFixture.configureByText("a.go", "package foo; func init() {bar()}; func bar() {}");
     myFixture.configureByText("b.go", "package foo; func <error>bar</error>() {}");
@@ -107,7 +115,7 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
   
   public void testInitInOnePackage() {
     myFixture.configureByText("a.go", "package foo; func init() {bar()}; func bar() {}");
-    myFixture.configureByText("b.go", "package foo; func init() {bar()}; func <error>bar</error>() {}");
+    myFixture.configureByText("b.go", "package foo; func init() {bar()}; func <error>bar</error>() {}; func init() {}");
     myFixture.checkHighlighting();
   }
 

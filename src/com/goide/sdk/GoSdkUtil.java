@@ -276,17 +276,26 @@ public class GoSdkUtil {
     return null;
   }
 
-  public static boolean isAppEngineSdkPath(@Nullable String path) {
-    return path != null && new File(path, GoConstants.APP_ENGINE_MARKER_FILE).exists();
-  }
-
   @NotNull
   public static String adjustSdkPath(@NotNull String path) {
     if (new File(path, GoConstants.LIB_EXEC_DIRECTORY).exists()) {
       path += File.separatorChar + GoConstants.LIB_EXEC_DIRECTORY;
     }
-    return isAppEngineSdkPath(path) ? path + File.separatorChar + GoConstants.APP_ENGINE_GO_ROOT_DIRECTORY : path;
+
+    File possibleGCloudSdk = new File(path, GoConstants.GCLOUD_APP_ENGINE_DIRECTORY_PATH);
+    if (possibleGCloudSdk.exists() && possibleGCloudSdk.isDirectory()) {
+      if (isAppEngine(possibleGCloudSdk.getAbsolutePath())) {
+        return possibleGCloudSdk.getAbsolutePath() + GoConstants.APP_ENGINE_GO_ROOT_DIRECTORY_PATH;
+      }
+    }
+
+    return isAppEngine(path) ? path + GoConstants.APP_ENGINE_GO_ROOT_DIRECTORY_PATH : path;
   }
+
+  private static boolean isAppEngine(@NotNull String path) {
+    return new File(path, GoConstants.APP_ENGINE_MARKER_FILE).exists();
+  }
+
 
   @NotNull
   public static Collection<VirtualFile> getSdkDirectoriesToAttach(@NotNull String sdkPath, @NotNull String versionString) {

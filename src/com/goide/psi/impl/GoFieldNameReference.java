@@ -39,7 +39,7 @@ public class GoFieldNameReference extends GoCachedReference<GoReferenceExpressio
     return new GoScopeProcessorBase(myElement.getText(), myElement, completion) {
       @Override
       protected boolean condition(@NotNull PsiElement element) {
-        return !(element instanceof GoFieldDefinition);
+        return !(element instanceof GoFieldDefinition) && !(element instanceof GoAnonymousFieldDefinition);
       }
     };
   }
@@ -61,12 +61,10 @@ public class GoFieldNameReference extends GoCachedReference<GoReferenceExpressio
     if (key == null && (value == null || PsiTreeUtil.getPrevSiblingOfType(value, GoKey.class) != null)) return false;
 
     GoCompositeLit lit = PsiTreeUtil.getParentOfType(myElement, GoCompositeLit.class);
-    GoLiteralTypeExpr expr = lit != null ? lit.getLiteralTypeExpr() : null;
-    if (expr == null) return false;
 
-    GoType type = expr.getType();
-    if (type == null) {
-      type = GoPsiImplUtil.getType(expr.getTypeReferenceExpression());
+    GoType type = lit != null ? lit.getType() : null;
+    if (type == null && lit != null) {
+      type = GoPsiImplUtil.getType(lit.getTypeReferenceExpression());
     }
 
     type = getType(type);
@@ -77,7 +75,7 @@ public class GoFieldNameReference extends GoCachedReference<GoReferenceExpressio
   }
 
   @Nullable
-  private GoType getType(GoType type) {
+  private GoType getType(GoType type) { // todo: rethink and unify this algorithm
     boolean inValue = myValue != null;
     
     if (inValue && type instanceof GoArrayOrSliceType) type = type.getType();
@@ -94,6 +92,13 @@ public class GoFieldNameReference extends GoCachedReference<GoReferenceExpressio
 
     if (type != null && type.getTypeReferenceExpression() != null) {
       type = GoPsiImplUtil.getType(type.getTypeReferenceExpression());
+    }
+
+    if (type instanceof GoPointerType) {
+      GoType inner = type.getType();
+      if (inner != null && inner.getTypeReferenceExpression() != null) {
+        type = GoPsiImplUtil.getType(inner.getTypeReferenceExpression());
+      }
     }
 
     return type;

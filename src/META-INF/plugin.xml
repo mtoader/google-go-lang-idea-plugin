@@ -18,7 +18,7 @@
   <id>ro.redeul.google.go</id>
   <name>Go</name>
   <version>1.0</version>
-  <vendor url="https://github.com/go-lang-plugin-org/go-lang-idea-plugin"/>
+  <vendor url="https://github.com/go-lang-plugin-org"/>
   <category>Custom Languages</category>
 
   <description><![CDATA[
@@ -34,16 +34,19 @@
   <change-notes>
     <![CDATA[
     <ul>
-      <li>Fully reworked internals</li>
+      <li>Initial GAE support: running dev server. <strong>Requires resetting project SDK.</strong></li>
     </ul>
     ]]>
   </change-notes>
 
-  <idea-version since-build="141.2"/>
+  <idea-version since-build="141.2" until-build="141.9999"/>
   <depends>com.intellij.modules.lang</depends>
+  
   <depends optional="true" config-file="java-deps.xml">com.intellij.modules.java</depends>
   <depends optional="true" config-file="coverage.xml">Coverage</depends>
   <depends optional="true" config-file="coverage.xml">com.intellij.modules.coverage</depends>
+  <!-- todo[IDEA 15] replace with real dependency -->
+  <depends optional="true" config-file="app-engine.xml">com.intellij.modules.lang</depends>
   
   <module-components>
     <component>
@@ -138,7 +141,8 @@
     <runConfigurationProducer implementation="com.goide.runconfig.file.GoRunFileConfigurationProducer"/>
 
     <!-- run application -->
-    <programRunner implementation="com.goide.runconfig.GoRunner"/>
+    <programRunner implementation="com.goide.runconfig.GoBuildingRunner" order="before goRunner"/>
+    <programRunner id="goRunner" implementation="com.goide.runconfig.GoRunner"/>
     <runConfigurationProducer implementation="com.goide.runconfig.application.GoApplicationRunConfigurationProducer"/>
     <configurationType implementation="com.goide.runconfig.application.GoApplicationRunConfigurationType"/>
 
@@ -251,4 +255,16 @@
       <implementation-class>com.goide.ui.ProjectTutorialNotification</implementation-class>
     </component>
   </application-components>
+  
+  
+  <!-- GAE -->
+  
+  <!-- START plugin.xml of future GAE module -->
+  <!-- todo[IDEA 15] It's supposed that GAE-core module will be moved to IDEA source and bundled in IDEA 15 -->
+  <!--<id>com.intellij.appengine</id>-->
+  <depends optional="true" config-file="google-app-engine-core-yaml.xml">org.jetbrains.plugins.yaml</depends>
+  <extensionPoints>
+    <extensionPoint name="appengine.Extension" interface="com.intellij.appengine.AppEngineExtension"/>
+  </extensionPoints>
+  <!-- END plugin.xml of future GAE module -->
 </idea-plugin>

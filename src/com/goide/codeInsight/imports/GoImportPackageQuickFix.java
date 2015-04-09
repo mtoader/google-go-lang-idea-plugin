@@ -35,7 +35,9 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
@@ -46,14 +48,15 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.Function;
 import com.intellij.util.NotNullFunction;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Collection;
+import java.util.Comparator;
 
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_SHOW_INTENTION_ACTIONS;
+import static com.intellij.util.containers.ContainerUtil.*;
 
 public class GoImportPackageQuickFix extends LocalQuickFixAndIntentionActionOnPsiElement implements HintAction, HighPriorityAction {
   @NotNull private final String myPackageName;
@@ -132,7 +135,7 @@ public class GoImportPackageQuickFix extends LocalQuickFixAndIntentionActionOnPs
 
   @NotNull
   private static String getText(@NotNull Collection<String> packagesToImport) {
-    return ContainerUtil.getFirstItem(packagesToImport, "") + "? " + (packagesToImport.size() > 1 ? "(multiple choices...) " : "");
+    return getFirstItem(packagesToImport, "") + "? " + (packagesToImport.size() > 1 ? "(multiple choices...) " : "");
   }
 
   @NotNull
@@ -170,14 +173,16 @@ public class GoImportPackageQuickFix extends LocalQuickFixAndIntentionActionOnPs
     if (myPackagesToImport == null) {
       final GlobalSearchScope scope = GoUtil.moduleScope(element);
       Collection<GoFile> es = StubIndex.getElements(GoPackagesIndex.KEY, myPackageName, element.getProject(), scope, GoFile.class);
-      myPackagesToImport = ContainerUtil.skipNulls(ContainerUtil.map2Set(es, new Function<GoFile, String>() {
-                                                                           @Nullable
-                                                                           @Override
-                                                                           public String fun(@NotNull GoFile file) {
+      myPackagesToImport = sorted(skipNulls(map2Set(
+        es,
+        new Function<GoFile, String>() {
+          @Nullable
+          @Override
+          public String fun(@NotNull GoFile file) {
             return file.getImportPath();
           }
         }
-      ));
+      )), new MyImportsComparator());
     }
     return myPackagesToImport;
   }
@@ -201,7 +206,7 @@ public class GoImportPackageQuickFix extends LocalQuickFixAndIntentionActionOnPs
           public void run() {
             final int i = list.getSelectedIndex();
             if (i < 0) return;
-            final String selected = ContainerUtil.newArrayList(packagesToImport).get(i);
+            final String selected = newArrayList(packagesToImport).get(i);
             new WriteCommandAction.Simple(file.getProject(), getFamilyName(), file) {
               @Override
               protected void run() throws Throwable {
@@ -213,13 +218,22 @@ public class GoImportPackageQuickFix extends LocalQuickFixAndIntentionActionOnPs
       ).createPopup().showInBestPositionFor(editor);
     }
     else {
-      perform(file, ContainerUtil.getFirstItem(packagesToImport));
+      perform(file, getFirstItem(packagesToImport));
     }
   }
 
   private static void perform(@NotNull PsiFile file, @Nullable String firstItem) {
     if (file instanceof GoFile && firstItem != null) {
       ((GoFile)file).addImport(firstItem, null);
+    }
+  }
+
+  private static class MyImportsComparator implements Comparator<String> {
+    @Override
+    public int compare(String s1, String s2) {
+      int result = Comparing.compare(StringUtil.containsChar(s1, '.'), StringUtil.containsChar(s2, '.'));
+      result = result == 0 ? Comparing.compare(StringUtil.containsChar(s1, '/'), StringUtil.containsChar(s2, '/')) : result;
+      return result == 0 ? Comparing.compare(s1, s2) : result;
     }
   }
 }

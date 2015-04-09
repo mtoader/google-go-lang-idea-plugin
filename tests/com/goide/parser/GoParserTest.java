@@ -49,6 +49,8 @@ public class GoParserTest extends ParsingTestCase {
   public void testTorture()                         { doTest(true);  }
   public void testLiteralValues()                   { doTest(true);  }
   public void testIfComposite()                     { doTest(true);  }
+  public void testArrayTypes()                      { doTest(true);  }
+  public void testArrayTypesInRanges()              { doTest(true);  }
   public void testIf()                              { doTest(false); }
   public void testSimple()                          { doTest(false); }
   public void testRecover()                         { doTest(false); }
@@ -57,4 +59,5 @@ public class GoParserTest extends ParsingTestCase {
   public void testLabels()                          { doTest(false); }
   public void testBlockRecover()                    { doTest(false); }
   public void testMethodWithoutReceiverIdentifier() { doTest(false); }
+  public void testExpressionPerformance()           { doTest(false); }
 }

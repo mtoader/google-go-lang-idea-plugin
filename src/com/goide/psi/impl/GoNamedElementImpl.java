@@ -17,19 +17,19 @@
 package com.goide.psi.impl;
 
 import com.goide.GoIcons;
-import com.goide.GoTypes;
 import com.goide.psi.*;
 import com.goide.stubs.GoNamedStub;
-import com.goide.stubs.types.GoTypeStubElementType;
+import com.goide.stubs.GoTypeStub;
 import com.intellij.lang.ASTNode;
+import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.ResolveState;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.stubs.IStubElementType;
-import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.usageView.UsageViewUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -97,12 +97,11 @@ public abstract class GoNamedElementImpl<T extends GoNamedStub<?>> extends GoStu
   public GoType findSiblingType() {
     T stub = getStub();
     if (stub != null) {
-      StubElement parentStub = stub.getParentStub();
-      if (parentStub != null) {
-        //noinspection unchecked
-        StubElement type = parentStub.findChildStubByType((GoTypeStubElementType)GoTypes.TYPE);
-        return type != null ? (GoType)type.getPsi() : null;
-      }
+      PsiElement parent = getParentByStub();
+      // todo: cast is weird
+      return parent instanceof GoStubbedElementImpl ? 
+             (GoType)((GoStubbedElementImpl)parent).findChildByClass(GoType.class, GoTypeStub.class) :
+             null;
     }
     return PsiTreeUtil.getNextSiblingOfType(this, GoType.class);
   }
@@ -115,6 +114,33 @@ public abstract class GoNamedElementImpl<T extends GoNamedStub<?>> extends GoStu
     return GoCompositeElementImpl.precessDeclarationDefault(this, processor, state, lastParent, place);
   }
 
+  @Override
+  public ItemPresentation getPresentation() {
+    final String text = UsageViewUtil.createNodeText(this);
+    if (text != null) {
+      return new ItemPresentation() {
+        @Nullable
+        @Override
+        public String getPresentableText() {
+          return getName();
+        }
+
+        @Nullable
+        @Override
+        public String getLocationString() {
+          return getContainingFile().getName();
+        }
+
+        @Nullable
+        @Override
+        public Icon getIcon(boolean b) {
+          return GoNamedElementImpl.this.getIcon(0);
+        }
+      };
+    }
+    return super.getPresentation();
+  }
+
   @Nullable
   @Override
   public Icon getIcon(int flags) {
@@ -122,11 +148,12 @@ public abstract class GoNamedElementImpl<T extends GoNamedStub<?>> extends GoStu
     if (this instanceof GoFunctionDeclaration) return GoIcons.FUNCTION;
     if (this instanceof GoTypeSpec) return GoIcons.TYPE;
     if (this instanceof GoVarDefinition) return GoIcons.VARIABLE;
-    if (this instanceof GoConstDefinition) return GoIcons.CONST;
+    if (this instanceof GoConstDefinition) return GoIcons.CONSTANT;
     if (this instanceof GoFieldDefinition) return GoIcons.FIELD;
     if (this instanceof GoMethodSpec) return GoIcons.METHOD;
     if (this instanceof GoAnonymousFieldDefinition) return GoIcons.FIELD;
     if (this instanceof GoParamDefinition) return GoIcons.PARAMETER;
+    if (this instanceof GoLabelDefinition) return GoIcons.LABEL;
     return super.getIcon(flags);
   }
 

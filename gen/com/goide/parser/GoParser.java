@@ -169,6 +169,9 @@ public class GoParser implements PsiParser {
     else if (t == LABELED_STATEMENT) {
       r = LabeledStatement(b, 0);
     }
+    else if (t == LEFT_HAND_EXPR_LIST) {
+      r = LeftHandExprList(b, 0);
+    }
     else if (t == LITERAL) {
       r = Literal(b, 0);
     }
@@ -374,7 +377,7 @@ public class GoParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // '(' <<enterMode "PAR">> [ ExpressionList '...'? ','? ] <<exitModeSafe "PAR">>')'
+  // '(' [ ExpressionArgList '...'? ','? ] ')'
   public static boolean ArgumentList(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ArgumentList")) return false;
     if (!nextTokenIs(b, LPAREN)) return false;
@@ -382,49 +385,47 @@ public class GoParser implements PsiParser {
     Marker m = enter_section_(b, l, _NONE_, null);
     r = consumeToken(b, LPAREN);
     p = r; // pin = 1
-    r = r && report_error_(b, enterMode(b, l + 1, "PAR"));
-    r = p && report_error_(b, ArgumentList_2(b, l + 1)) && r;
-    r = p && report_error_(b, exitModeSafe(b, l + 1, "PAR")) && r;
+    r = r && report_error_(b, ArgumentList_1(b, l + 1));
     r = p && consumeToken(b, RPAREN) && r;
     exit_section_(b, l, m, ARGUMENT_LIST, r, p, null);
     return r || p;
   }
 
-  // [ ExpressionList '...'? ','? ]
-  private static boolean ArgumentList_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "ArgumentList_2")) return false;
-    ArgumentList_2_0(b, l + 1);
+  // [ ExpressionArgList '...'? ','? ]
+  private static boolean ArgumentList_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ArgumentList_1")) return false;
+    ArgumentList_1_0(b, l + 1);
     return true;
   }
 
-  // ExpressionList '...'? ','?
-  private static boolean ArgumentList_2_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "ArgumentList_2_0")) return false;
+  // ExpressionArgList '...'? ','?
+  private static boolean ArgumentList_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ArgumentList_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = ExpressionList(b, l + 1);
-    r = r && ArgumentList_2_0_1(b, l + 1);
-    r = r && ArgumentList_2_0_2(b, l + 1);
+    r = ExpressionArgList(b, l + 1);
+    r = r && ArgumentList_1_0_1(b, l + 1);
+    r = r && ArgumentList_1_0_2(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
   // '...'?
-  private static boolean ArgumentList_2_0_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "ArgumentList_2_0_1")) return false;
+  private static boolean ArgumentList_1_0_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ArgumentList_1_0_1")) return false;
     consumeToken(b, TRIPLE_DOT);
     return true;
   }
 
   // ','?
-  private static boolean ArgumentList_2_0_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "ArgumentList_2_0_2")) return false;
+  private static boolean ArgumentList_1_0_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ArgumentList_1_0_2")) return false;
     consumeToken(b, COMMA);
     return true;
   }
 
   /* ********************************************************** */
-  // '[' ('...'|Expression?) ']' <<exitModeSafe "BLOCK?">> Type
+  // '[' ('...'|Expression?) ']' Type
   public static boolean ArrayOrSliceType(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ArrayOrSliceType")) return false;
     if (!nextTokenIs(b, LBRACK)) return false;
@@ -434,7 +435,6 @@ public class GoParser implements PsiParser {
     p = r; // pin = 1
     r = r && report_error_(b, ArrayOrSliceType_1(b, l + 1));
     r = p && report_error_(b, consumeToken(b, RBRACK)) && r;
-    r = p && report_error_(b, exitModeSafe(b, l + 1, "BLOCK?")) && r;
     r = p && Type(b, l + 1) && r;
     exit_section_(b, l, m, ARRAY_OR_SLICE_TYPE, r, p, null);
     return r || p;
@@ -459,21 +459,20 @@ public class GoParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // ExpressionList assign_op ExpressionList
+  // assign_op ExpressionList
   public static boolean AssignmentStatement(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "AssignmentStatement")) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, "<assignment statement>");
-    r = ExpressionList(b, l + 1);
-    r = r && assign_op(b, l + 1);
-    p = r; // pin = 2
+    Marker m = enter_section_(b, l, _LEFT_, "<assignment statement>");
+    r = assign_op(b, l + 1);
+    p = r; // pin = 1
     r = r && ExpressionList(b, l + 1);
     exit_section_(b, l, m, ASSIGNMENT_STATEMENT, r, p, null);
     return r || p;
   }
 
   /* ********************************************************** */
-  // <<consumeBlock>> | '{' <<exitModeSafe "PAR">> <<exitModeSafe "BLOCK?">> ('}' | Statements '}')
+  // <<consumeBlock>> | '{' ('}' | (<<withOff Statements "BLOCK?" "PAR">> | (!() Statements)) '}')
   public static boolean Block(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "Block")) return false;
     boolean r;
@@ -484,41 +483,77 @@ public class GoParser implements PsiParser {
     return r;
   }
 
-  // '{' <<exitModeSafe "PAR">> <<exitModeSafe "BLOCK?">> ('}' | Statements '}')
+  // '{' ('}' | (<<withOff Statements "BLOCK?" "PAR">> | (!() Statements)) '}')
   private static boolean Block_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "Block_1")) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, null);
     r = consumeToken(b, LBRACE);
     p = r; // pin = 1
-    r = r && report_error_(b, exitModeSafe(b, l + 1, "PAR"));
-    r = p && report_error_(b, exitModeSafe(b, l + 1, "BLOCK?")) && r;
-    r = p && Block_1_3(b, l + 1) && r;
+    r = r && Block_1_1(b, l + 1);
     exit_section_(b, l, m, null, r, p, null);
     return r || p;
   }
 
-  // '}' | Statements '}'
-  private static boolean Block_1_3(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "Block_1_3")) return false;
+  // '}' | (<<withOff Statements "BLOCK?" "PAR">> | (!() Statements)) '}'
+  private static boolean Block_1_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "Block_1_1")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, RBRACE);
-    if (!r) r = Block_1_3_1(b, l + 1);
+    if (!r) r = Block_1_1_1(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
-  // Statements '}'
-  private static boolean Block_1_3_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "Block_1_3_1")) return false;
+  // (<<withOff Statements "BLOCK?" "PAR">> | (!() Statements)) '}'
+  private static boolean Block_1_1_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "Block_1_1_1")) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, null);
-    r = Statements(b, l + 1);
+    r = Block_1_1_1_0(b, l + 1);
     p = r; // pin = 1
     r = r && consumeToken(b, RBRACE);
     exit_section_(b, l, m, null, r, p, null);
     return r || p;
+  }
+
+  // <<withOff Statements "BLOCK?" "PAR">> | (!() Statements)
+  private static boolean Block_1_1_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "Block_1_1_1_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = withOff(b, l + 1, Statements_parser_, "BLOCK?", "PAR");
+    if (!r) r = Block_1_1_1_0_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // !() Statements
+  private static boolean Block_1_1_1_0_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "Block_1_1_1_0_1")) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, null);
+    r = Block_1_1_1_0_1_0(b, l + 1);
+    p = r; // pin = 1
+    r = r && Statements(b, l + 1);
+    exit_section_(b, l, m, null, r, p, null);
+    return r || p;
+  }
+
+  // !()
+  private static boolean Block_1_1_1_0_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "Block_1_1_1_0_1_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_, null);
+    r = !Block_1_1_1_0_1_0_0(b, l + 1);
+    exit_section_(b, l, m, null, r, false, null);
+    return r;
+  }
+
+  // ()
+  private static boolean Block_1_1_1_0_1_0_0(PsiBuilder b, int l) {
+    return true;
   }
 
   /* ********************************************************** */
@@ -668,7 +703,7 @@ public class GoParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // case ( SendStatement | RecvStatement ) | default
+  // case ( Expression SendStatement | RecvStatement ) | default
   public static boolean CommCase(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "CommCase")) return false;
     if (!nextTokenIs(b, "<comm case>", CASE, DEFAULT)) return false;
@@ -680,25 +715,36 @@ public class GoParser implements PsiParser {
     return r;
   }
 
-  // case ( SendStatement | RecvStatement )
+  // case ( Expression SendStatement | RecvStatement )
   private static boolean CommCase_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "CommCase_0")) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, null);
     r = consumeToken(b, CASE);
-    p = r; // pin = 1
+    p = r; // pin = case
     r = r && CommCase_0_1(b, l + 1);
     exit_section_(b, l, m, null, r, p, null);
     return r || p;
   }
 
-  // SendStatement | RecvStatement
+  // Expression SendStatement | RecvStatement
   private static boolean CommCase_0_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "CommCase_0_1")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = SendStatement(b, l + 1);
+    r = CommCase_0_1_0(b, l + 1);
     if (!r) r = RecvStatement(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // Expression SendStatement
+  private static boolean CommCase_0_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "CommCase_0_1_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = Expression(b, l + 1, -1);
+    r = r && SendStatement(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -1043,6 +1089,44 @@ public class GoParser implements PsiParser {
   }
 
   /* ********************************************************** */
+  // <<withOn "PAR" Element>> | (!() Element)
+  static boolean E(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "E")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = withOn(b, l + 1, "PAR", Element_parser_);
+    if (!r) r = E_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // !() Element
+  private static boolean E_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "E_1")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = E_1_0(b, l + 1);
+    r = r && Element(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // !()
+  private static boolean E_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "E_1_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_, null);
+    r = !E_1_0_0(b, l + 1);
+    exit_section_(b, l, m, null, r, false, null);
+    return r;
+  }
+
+  // ()
+  private static boolean E_1_0_0(PsiBuilder b, int l) {
+    return true;
+  }
+
+  /* ********************************************************** */
   // First [':' Value]
   public static boolean Element(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "Element")) return false;
@@ -1073,19 +1157,19 @@ public class GoParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // Element ( ',' Element? )*
+  // E ( ',' E? )*
   static boolean ElementList(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ElementList")) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, null);
-    r = Element(b, l + 1);
+    r = E(b, l + 1);
     p = r; // pin = 1
     r = r && ElementList_1(b, l + 1);
     exit_section_(b, l, m, null, r, p, null);
     return r || p;
   }
 
-  // ( ',' Element? )*
+  // ( ',' E? )*
   private static boolean ElementList_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ElementList_1")) return false;
     int c = current_position_(b);
@@ -1097,7 +1181,7 @@ public class GoParser implements PsiParser {
     return true;
   }
 
-  // ',' Element?
+  // ',' E?
   private static boolean ElementList_1_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ElementList_1_0")) return false;
     boolean r, p;
@@ -1109,10 +1193,10 @@ public class GoParser implements PsiParser {
     return r || p;
   }
 
-  // Element?
+  // E?
   private static boolean ElementList_1_0_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ElementList_1_0_1")) return false;
-    Element(b, l + 1);
+    E(b, l + 1);
     return true;
   }
 
@@ -1213,6 +1297,64 @@ public class GoParser implements PsiParser {
       c = current_position_(b);
     }
     return true;
+  }
+
+  /* ********************************************************** */
+  // ExpressionWithRecover2 (',' (ExpressionWithRecover2 | &')'))*
+  static boolean ExpressionArgList(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ExpressionArgList")) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, null);
+    r = ExpressionWithRecover2(b, l + 1);
+    p = r; // pin = 1
+    r = r && ExpressionArgList_1(b, l + 1);
+    exit_section_(b, l, m, null, r, p, null);
+    return r || p;
+  }
+
+  // (',' (ExpressionWithRecover2 | &')'))*
+  private static boolean ExpressionArgList_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ExpressionArgList_1")) return false;
+    int c = current_position_(b);
+    while (true) {
+      if (!ExpressionArgList_1_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "ExpressionArgList_1", c)) break;
+      c = current_position_(b);
+    }
+    return true;
+  }
+
+  // ',' (ExpressionWithRecover2 | &')')
+  private static boolean ExpressionArgList_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ExpressionArgList_1_0")) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, null);
+    r = consumeToken(b, COMMA);
+    p = r; // pin = 1
+    r = r && ExpressionArgList_1_0_1(b, l + 1);
+    exit_section_(b, l, m, null, r, p, null);
+    return r || p;
+  }
+
+  // ExpressionWithRecover2 | &')'
+  private static boolean ExpressionArgList_1_0_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ExpressionArgList_1_0_1")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = ExpressionWithRecover2(b, l + 1);
+    if (!r) r = ExpressionArgList_1_0_1_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // &')'
+  private static boolean ExpressionArgList_1_0_1_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ExpressionArgList_1_0_1_1")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _AND_, null);
+    r = consumeToken(b, RPAREN);
+    exit_section_(b, l, m, null, r, false, null);
+    return r;
   }
 
   /* ********************************************************** */
@@ -1383,6 +1525,44 @@ public class GoParser implements PsiParser {
     r = Expression(b, l + 1, -1);
     exit_section_(b, l, m, null, r, false, ExpressionListRecover_parser_);
     return r;
+  }
+
+  /* ********************************************************** */
+  // <<withOn "PAR" ExpressionWithRecover>> | (!() Expression)
+  static boolean ExpressionWithRecover2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ExpressionWithRecover2")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, null);
+    r = withOn(b, l + 1, "PAR", ExpressionWithRecover_parser_);
+    if (!r) r = ExpressionWithRecover2_1(b, l + 1);
+    exit_section_(b, l, m, null, r, false, ExpressionListRecover_parser_);
+    return r;
+  }
+
+  // !() Expression
+  private static boolean ExpressionWithRecover2_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ExpressionWithRecover2_1")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = ExpressionWithRecover2_1_0(b, l + 1);
+    r = r && Expression(b, l + 1, -1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // !()
+  private static boolean ExpressionWithRecover2_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ExpressionWithRecover2_1_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_, null);
+    r = !ExpressionWithRecover2_1_0_0(b, l + 1);
+    exit_section_(b, l, m, null, r, false, null);
+    return r;
+  }
+
+  // ()
+  private static boolean ExpressionWithRecover2_1_0_0(PsiBuilder b, int l) {
+    return true;
   }
 
   /* ********************************************************** */
@@ -1669,7 +1849,7 @@ public class GoParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // for <<enterMode "BLOCK?">> (ForOrRangeClause Block | Block | Expression Block)
+  // for <<enterMode "BLOCK?">> (ForOrRangeClause Block | Block | Expression Block) <<exitModeSafe "BLOCK?">>
   public static boolean ForStatement(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ForStatement")) return false;
     if (!nextTokenIs(b, FOR)) return false;
@@ -1678,7 +1858,8 @@ public class GoParser implements PsiParser {
     r = consumeToken(b, FOR);
     p = r; // pin = for|ForOrRangeClause
     r = r && report_error_(b, enterMode(b, l + 1, "BLOCK?"));
-    r = p && ForStatement_2(b, l + 1) && r;
+    r = p && report_error_(b, ForStatement_2(b, l + 1)) && r;
+    r = p && exitModeSafe(b, l + 1, "BLOCK?") && r;
     exit_section_(b, l, m, FOR_STATEMENT, r, p, null);
     return r || p;
   }
@@ -2126,7 +2307,35 @@ public class GoParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // (<<isModeOff "BLOCK?">> | <<isModeOn "PAR">>) '{' ElementList? '}'
+  // ExpressionList
+  public static boolean LeftHandExprList(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "LeftHandExprList")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, "<left hand expr list>");
+    r = ExpressionList(b, l + 1);
+    exit_section_(b, l, m, LEFT_HAND_EXPR_LIST, r, false, null);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // StructType
+  //   | ArrayOrSliceType
+  //   | MapType
+  //   | TypeName
+  static boolean LiteralTypeExprInner(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "LiteralTypeExprInner")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = StructType(b, l + 1);
+    if (!r) r = ArrayOrSliceType(b, l + 1);
+    if (!r) r = MapType(b, l + 1);
+    if (!r) r = TypeName(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // (<<isModeOff "BLOCK?">> | <<isModeOn "PAR">> | <<prevIsArrayType>>) '{' ElementList? '}'
   public static boolean LiteralValue(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "LiteralValue")) return false;
     boolean r, p;
@@ -2140,13 +2349,14 @@ public class GoParser implements PsiParser {
     return r || p;
   }
 
-  // <<isModeOff "BLOCK?">> | <<isModeOn "PAR">>
+  // <<isModeOff "BLOCK?">> | <<isModeOn "PAR">> | <<prevIsArrayType>>
   private static boolean LiteralValue_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "LiteralValue_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = isModeOff(b, l + 1, "BLOCK?");
     if (!r) r = isModeOn(b, l + 1, "PAR");
+    if (!r) r = prevIsArrayType(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -2669,7 +2879,7 @@ public class GoParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // '*'? ReceiverResultType
+  // '*'? ReceiverResultType ','?
   static boolean ReceiverTail(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ReceiverTail")) return false;
     if (!nextTokenIs(b, "", MUL, IDENTIFIER)) return false;
@@ -2677,6 +2887,7 @@ public class GoParser implements PsiParser {
     Marker m = enter_section_(b);
     r = ReceiverTail_0(b, l + 1);
     r = r && ReceiverResultType(b, l + 1);
+    r = r && ReceiverTail_2(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -2685,6 +2896,13 @@ public class GoParser implements PsiParser {
   private static boolean ReceiverTail_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ReceiverTail_0")) return false;
     consumeToken(b, MUL);
+    return true;
+  }
+
+  // ','?
+  private static boolean ReceiverTail_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ReceiverTail_2")) return false;
+    consumeToken(b, COMMA);
     return true;
   }
 
@@ -2833,14 +3051,14 @@ public class GoParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // Expression '<-' Expression
+  // '<-' Expression
   public static boolean SendStatement(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "SendStatement")) return false;
+    if (!nextTokenIs(b, SEND_CHANNEL)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, "<send statement>");
-    r = Expression(b, l + 1, -1);
-    r = r && consumeToken(b, SEND_CHANNEL);
-    p = r; // pin = 2
+    Marker m = enter_section_(b, l, _LEFT_, null);
+    r = consumeToken(b, SEND_CHANNEL);
+    p = r; // pin = 1
     r = r && Expression(b, l + 1, -1);
     exit_section_(b, l, m, SEND_STATEMENT, r, p, null);
     return r || p;
@@ -2883,43 +3101,51 @@ public class GoParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // AssignmentStatement
-  //   | SendStatement
-  //   | ShortVarDeclaration
-  //   | Expression ['++' | '--']
+  // ShortVarDeclaration
+  //   | (LeftHandExprList (AssignmentStatement | SendStatement | ['++' | '--']))
   public static boolean SimpleStatement(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "SimpleStatement")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _COLLAPSE_, "<simple statement>");
-    r = AssignmentStatement(b, l + 1);
-    if (!r) r = SendStatement(b, l + 1);
-    if (!r) r = ShortVarDeclaration(b, l + 1);
-    if (!r) r = SimpleStatement_3(b, l + 1);
+    r = ShortVarDeclaration(b, l + 1);
+    if (!r) r = SimpleStatement_1(b, l + 1);
     exit_section_(b, l, m, SIMPLE_STATEMENT, r, false, null);
     return r;
   }
 
-  // Expression ['++' | '--']
-  private static boolean SimpleStatement_3(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "SimpleStatement_3")) return false;
+  // LeftHandExprList (AssignmentStatement | SendStatement | ['++' | '--'])
+  private static boolean SimpleStatement_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "SimpleStatement_1")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = Expression(b, l + 1, -1);
-    r = r && SimpleStatement_3_1(b, l + 1);
+    r = LeftHandExprList(b, l + 1);
+    r = r && SimpleStatement_1_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // AssignmentStatement | SendStatement | ['++' | '--']
+  private static boolean SimpleStatement_1_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "SimpleStatement_1_1")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = AssignmentStatement(b, l + 1);
+    if (!r) r = SendStatement(b, l + 1);
+    if (!r) r = SimpleStatement_1_1_2(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
   // ['++' | '--']
-  private static boolean SimpleStatement_3_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "SimpleStatement_3_1")) return false;
-    SimpleStatement_3_1_0(b, l + 1);
+  private static boolean SimpleStatement_1_1_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "SimpleStatement_1_1_2")) return false;
+    SimpleStatement_1_1_2_0(b, l + 1);
     return true;
   }
 
   // '++' | '--'
-  private static boolean SimpleStatement_3_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "SimpleStatement_3_1_0")) return false;
+  private static boolean SimpleStatement_1_1_2_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "SimpleStatement_1_1_2_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, PLUS_PLUS);
@@ -4184,12 +4410,12 @@ public class GoParser implements PsiParser {
     return r;
   }
 
-  // LiteralTypeExpr LiteralValue
+  // LiteralTypeExprInner LiteralValue
   public static boolean CompositeLit(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "CompositeLit")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, "<composite lit>");
-    r = LiteralTypeExpr(b, l + 1);
+    r = LiteralTypeExprInner(b, l + 1);
     r = r && LiteralValue(b, l + 1);
     exit_section_(b, l, m, COMPOSITE_LIT, r, false, null);
     return r;
@@ -4394,18 +4620,12 @@ public class GoParser implements PsiParser {
     return r;
   }
 
-  // StructType
-  //   | ArrayOrSliceType
-  //   | MapType
-  //   | TypeName
+  // LiteralTypeExprInner
   public static boolean LiteralTypeExpr(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "LiteralTypeExpr")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, "<literal type expr>");
-    r = StructType(b, l + 1);
-    if (!r) r = ArrayOrSliceType(b, l + 1);
-    if (!r) r = MapType(b, l + 1);
-    if (!r) r = TypeName(b, l + 1);
+    r = LiteralTypeExprInner(b, l + 1);
     exit_section_(b, l, m, LITERAL_TYPE_EXPR, r, false, null);
     return r;
   }
@@ -4440,14 +4660,29 @@ public class GoParser implements PsiParser {
     return r || p;
   }
 
+  final static Parser Element_parser_ = new Parser() {
+    public boolean parse(PsiBuilder b, int l) {
+      return Element(b, l + 1);
+    }
+  };
   final static Parser ExpressionListRecover_parser_ = new Parser() {
     public boolean parse(PsiBuilder b, int l) {
       return ExpressionListRecover(b, l + 1);
     }
   };
+  final static Parser ExpressionWithRecover_parser_ = new Parser() {
+    public boolean parse(PsiBuilder b, int l) {
+      return ExpressionWithRecover(b, l + 1);
+    }
+  };
   final static Parser StatementRecover_parser_ = new Parser() {
     public boolean parse(PsiBuilder b, int l) {
       return StatementRecover(b, l + 1);
+    }
+  };
+  final static Parser Statements_parser_ = new Parser() {
+    public boolean parse(PsiBuilder b, int l) {
+      return Statements(b, l + 1);
     }
   };
   final static Parser TopLevelDeclarationRecover_parser_ = new Parser() {

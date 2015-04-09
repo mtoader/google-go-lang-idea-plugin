@@ -29,6 +29,12 @@ public class GoAssignmentStatementImpl extends GoStatementImpl implements GoAssi
 
   @Override
   @NotNull
+  public GoLeftHandExprList getLeftHandExprList() {
+    return findNotNullChildByClass(GoLeftHandExprList.class);
+  }
+
+  @Override
+  @NotNull
   public GoAssignOp getAssignOp() {
     return findNotNullChildByClass(GoAssignOp.class);
   }

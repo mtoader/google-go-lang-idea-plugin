@@ -11,6 +11,9 @@ public interface GoAssignmentStatement extends GoStatement {
   List<GoExpression> getExpressionList();
 
   @NotNull
+  GoLeftHandExprList getLeftHandExprList();
+
+  @NotNull
   GoAssignOp getAssignOp();
 
 }

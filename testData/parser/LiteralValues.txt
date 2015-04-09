@@ -222,8 +222,9 @@ GO_FILE
                 PsiElement(])(']')
               PsiElement())(')')
       ASSIGNMENT_STATEMENT
-        REFERENCE_EXPRESSION
-          PsiElement(identifier)('err')
+        LEFT_HAND_EXPR_LIST
+          REFERENCE_EXPRESSION
+            PsiElement(identifier)('err')
         ASSIGN_OP
           PsiElement(=)('=')
         CALL_EXPR
@@ -243,12 +244,13 @@ GO_FILE
       IF_STATEMENT
         PsiElement(if)('if')
         SIMPLE_STATEMENT
-          CONDITIONAL_EXPR
-            REFERENCE_EXPRESSION
-              PsiElement(identifier)('err')
-            PsiElement(!=)('!=')
-            REFERENCE_EXPRESSION
-              PsiElement(identifier)('nil')
+          LEFT_HAND_EXPR_LIST
+            CONDITIONAL_EXPR
+              REFERENCE_EXPRESSION
+                PsiElement(identifier)('err')
+              PsiElement(!=)('!=')
+              REFERENCE_EXPRESSION
+                PsiElement(identifier)('nil')
         BLOCK
           PsiElement({)('{')
           RETURN_STATEMENT
@@ -321,8 +323,9 @@ GO_FILE
               PsiElement(()('(')
               PsiElement())(')')
       ASSIGNMENT_STATEMENT
-        REFERENCE_EXPRESSION
-          PsiElement(identifier)('err')
+        LEFT_HAND_EXPR_LIST
+          REFERENCE_EXPRESSION
+            PsiElement(identifier)('err')
         ASSIGN_OP
           PsiElement(=)('=')
         CALL_EXPR
@@ -342,12 +345,13 @@ GO_FILE
       IF_STATEMENT
         PsiElement(if)('if')
         SIMPLE_STATEMENT
-          CONDITIONAL_EXPR
-            REFERENCE_EXPRESSION
-              PsiElement(identifier)('err')
-            PsiElement(!=)('!=')
-            REFERENCE_EXPRESSION
-              PsiElement(identifier)('nil')
+          LEFT_HAND_EXPR_LIST
+            CONDITIONAL_EXPR
+              REFERENCE_EXPRESSION
+                PsiElement(identifier)('err')
+              PsiElement(!=)('!=')
+              REFERENCE_EXPRESSION
+                PsiElement(identifier)('nil')
         BLOCK
           PsiElement({)('{')
           RETURN_STATEMENT
@@ -420,8 +424,9 @@ GO_FILE
               PsiElement(()('(')
               PsiElement())(')')
       ASSIGNMENT_STATEMENT
-        REFERENCE_EXPRESSION
-          PsiElement(identifier)('err')
+        LEFT_HAND_EXPR_LIST
+          REFERENCE_EXPRESSION
+            PsiElement(identifier)('err')
         ASSIGN_OP
           PsiElement(=)('=')
         CALL_EXPR
@@ -441,12 +446,13 @@ GO_FILE
       IF_STATEMENT
         PsiElement(if)('if')
         SIMPLE_STATEMENT
-          CONDITIONAL_EXPR
-            REFERENCE_EXPRESSION
-              PsiElement(identifier)('err')
-            PsiElement(!=)('!=')
-            REFERENCE_EXPRESSION
-              PsiElement(identifier)('nil')
+          LEFT_HAND_EXPR_LIST
+            CONDITIONAL_EXPR
+              REFERENCE_EXPRESSION
+                PsiElement(identifier)('err')
+              PsiElement(!=)('!=')
+              REFERENCE_EXPRESSION
+                PsiElement(identifier)('nil')
         BLOCK
           PsiElement({)('{')
           RETURN_STATEMENT
@@ -534,12 +540,13 @@ GO_FILE
       IF_STATEMENT
         PsiElement(if)('if')
         SIMPLE_STATEMENT
-          CONDITIONAL_EXPR
-            REFERENCE_EXPRESSION
-              PsiElement(identifier)('err')
-            PsiElement(!=)('!=')
-            REFERENCE_EXPRESSION
-              PsiElement(identifier)('nil')
+          LEFT_HAND_EXPR_LIST
+            CONDITIONAL_EXPR
+              REFERENCE_EXPRESSION
+                PsiElement(identifier)('err')
+              PsiElement(!=)('!=')
+              REFERENCE_EXPRESSION
+                PsiElement(identifier)('nil')
         BLOCK
           PsiElement({)('{')
           RETURN_STATEMENT
@@ -570,8 +577,9 @@ GO_FILE
                 PsiElement(identifier)('p0')
               PsiElement())(')')
       ASSIGNMENT_STATEMENT
-        REFERENCE_EXPRESSION
-          PsiElement(identifier)('err')
+        LEFT_HAND_EXPR_LIST
+          REFERENCE_EXPRESSION
+            PsiElement(identifier)('err')
         ASSIGN_OP
           PsiElement(=)('=')
         CALL_EXPR
@@ -591,12 +599,13 @@ GO_FILE
       IF_STATEMENT
         PsiElement(if)('if')
         SIMPLE_STATEMENT
-          CONDITIONAL_EXPR
-            REFERENCE_EXPRESSION
-              PsiElement(identifier)('err')
-            PsiElement(!=)('!=')
-            REFERENCE_EXPRESSION
-              PsiElement(identifier)('nil')
+          LEFT_HAND_EXPR_LIST
+            CONDITIONAL_EXPR
+              REFERENCE_EXPRESSION
+                PsiElement(identifier)('err')
+              PsiElement(!=)('!=')
+              REFERENCE_EXPRESSION
+                PsiElement(identifier)('nil')
         BLOCK
           PsiElement({)('{')
           RETURN_STATEMENT
@@ -628,9 +637,8 @@ GO_FILE
         PsiElement(identifier)('θ_parse_tree')
       PsiElement(=)('=')
       COMPOSITE_LIT
-        LITERAL_TYPE_EXPR
-          TYPE_REFERENCE_EXPRESSION
-            PsiElement(identifier)('θ_parse_node')
+        TYPE_REFERENCE_EXPRESSION
+          PsiElement(identifier)('θ_parse_node')
         LITERAL_VALUE
           PsiElement({)('{')
           ELEMENT
@@ -646,13 +654,12 @@ GO_FILE
           ELEMENT
             VALUE
               COMPOSITE_LIT
-                LITERAL_TYPE_EXPR
-                  ARRAY_OR_SLICE_TYPE
-                    PsiElement([)('[')
-                    PsiElement(])(']')
-                    TYPE
-                      TYPE_REFERENCE_EXPRESSION
-                        PsiElement(identifier)('int')
+                ARRAY_OR_SLICE_TYPE
+                  PsiElement([)('[')
+                  PsiElement(])(']')
+                  TYPE
+                    TYPE_REFERENCE_EXPRESSION
+                      PsiElement(identifier)('int')
                 LITERAL_VALUE
                   PsiElement({)('{')
                   PsiElement(})('}')
@@ -670,21 +677,19 @@ GO_FILE
           ELEMENT
             VALUE
               COMPOSITE_LIT
-                LITERAL_TYPE_EXPR
-                  ARRAY_OR_SLICE_TYPE
-                    PsiElement([)('[')
-                    PsiElement(])(']')
-                    TYPE
-                      TYPE_REFERENCE_EXPRESSION
-                        PsiElement(identifier)('θ_parse_node')
+                ARRAY_OR_SLICE_TYPE
+                  PsiElement([)('[')
+                  PsiElement(])(']')
+                  TYPE
+                    TYPE_REFERENCE_EXPRESSION
+                      PsiElement(identifier)('θ_parse_node')
                 LITERAL_VALUE
                   PsiElement({)('{')
                   ELEMENT
                     VALUE
                       COMPOSITE_LIT
-                        LITERAL_TYPE_EXPR
-                          TYPE_REFERENCE_EXPRESSION
-                            PsiElement(identifier)('θ_parse_node')
+                        TYPE_REFERENCE_EXPRESSION
+                          PsiElement(identifier)('θ_parse_node')
                         LITERAL_VALUE
                           PsiElement({)('{')
                           ELEMENT
@@ -700,13 +705,12 @@ GO_FILE
                           ELEMENT
                             VALUE
                               COMPOSITE_LIT
-                                LITERAL_TYPE_EXPR
-                                  ARRAY_OR_SLICE_TYPE
-                                    PsiElement([)('[')
-                                    PsiElement(])(']')
-                                    TYPE
-                                      TYPE_REFERENCE_EXPRESSION
-                                        PsiElement(identifier)('int')
+                                ARRAY_OR_SLICE_TYPE
+                                  PsiElement([)('[')
+                                  PsiElement(])(']')
+                                  TYPE
+                                    TYPE_REFERENCE_EXPRESSION
+                                      PsiElement(identifier)('int')
                                 LITERAL_VALUE
                                   PsiElement({)('{')
                                   PsiElement(})('}')
@@ -724,21 +728,19 @@ GO_FILE
                           ELEMENT
                             VALUE
                               COMPOSITE_LIT
-                                LITERAL_TYPE_EXPR
-                                  ARRAY_OR_SLICE_TYPE
-                                    PsiElement([)('[')
-                                    PsiElement(])(']')
-                                    TYPE
-                                      TYPE_REFERENCE_EXPRESSION
-                                        PsiElement(identifier)('θ_parse_node')
+                                ARRAY_OR_SLICE_TYPE
+                                  PsiElement([)('[')
+                                  PsiElement(])(']')
+                                  TYPE
+                                    TYPE_REFERENCE_EXPRESSION
+                                      PsiElement(identifier)('θ_parse_node')
                                 LITERAL_VALUE
                                   PsiElement({)('{')
                                   ELEMENT
                                     VALUE
                                       COMPOSITE_LIT
-                                        LITERAL_TYPE_EXPR
-                                          TYPE_REFERENCE_EXPRESSION
-                                            PsiElement(identifier)('θ_parse_node')
+                                        TYPE_REFERENCE_EXPRESSION
+                                          PsiElement(identifier)('θ_parse_node')
                                         LITERAL_VALUE
                                           PsiElement({)('{')
                                           ELEMENT
@@ -754,13 +756,12 @@ GO_FILE
                                           ELEMENT
                                             VALUE
                                               COMPOSITE_LIT
-                                                LITERAL_TYPE_EXPR
-                                                  ARRAY_OR_SLICE_TYPE
-                                                    PsiElement([)('[')
-                                                    PsiElement(])(']')
-                                                    TYPE
-                                                      TYPE_REFERENCE_EXPRESSION
-                                                        PsiElement(identifier)('int')
+                                                ARRAY_OR_SLICE_TYPE
+                                                  PsiElement([)('[')
+                                                  PsiElement(])(']')
+                                                  TYPE
+                                                    TYPE_REFERENCE_EXPRESSION
+                                                      PsiElement(identifier)('int')
                                                 LITERAL_VALUE
                                                   PsiElement({)('{')
                                                   PsiElement(})('}')
@@ -778,21 +779,19 @@ GO_FILE
                                           ELEMENT
                                             VALUE
                                               COMPOSITE_LIT
-                                                LITERAL_TYPE_EXPR
-                                                  ARRAY_OR_SLICE_TYPE
-                                                    PsiElement([)('[')
-                                                    PsiElement(])(']')
-                                                    TYPE
-                                                      TYPE_REFERENCE_EXPRESSION
-                                                        PsiElement(identifier)('θ_parse_node')
+                                                ARRAY_OR_SLICE_TYPE
+                                                  PsiElement([)('[')
+                                                  PsiElement(])(']')
+                                                  TYPE
+                                                    TYPE_REFERENCE_EXPRESSION
+                                                      PsiElement(identifier)('θ_parse_node')
                                                 LITERAL_VALUE
                                                   PsiElement({)('{')
                                                   ELEMENT
                                                     VALUE
                                                       COMPOSITE_LIT
-                                                        LITERAL_TYPE_EXPR
-                                                          TYPE_REFERENCE_EXPRESSION
-                                                            PsiElement(identifier)('θ_parse_node')
+                                                        TYPE_REFERENCE_EXPRESSION
+                                                          PsiElement(identifier)('θ_parse_node')
                                                         LITERAL_VALUE
                                                           PsiElement({)('{')
                                                           ELEMENT
@@ -808,13 +807,12 @@ GO_FILE
                                                           ELEMENT
                                                             VALUE
                                                               COMPOSITE_LIT
-                                                                LITERAL_TYPE_EXPR
-                                                                  ARRAY_OR_SLICE_TYPE
-                                                                    PsiElement([)('[')
-                                                                    PsiElement(])(']')
-                                                                    TYPE
-                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                        PsiElement(identifier)('int')
+                                                                ARRAY_OR_SLICE_TYPE
+                                                                  PsiElement([)('[')
+                                                                  PsiElement(])(']')
+                                                                  TYPE
+                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                      PsiElement(identifier)('int')
                                                                 LITERAL_VALUE
                                                                   PsiElement({)('{')
                                                                   PsiElement(})('}')
@@ -832,21 +830,19 @@ GO_FILE
                                                           ELEMENT
                                                             VALUE
                                                               COMPOSITE_LIT
-                                                                LITERAL_TYPE_EXPR
-                                                                  ARRAY_OR_SLICE_TYPE
-                                                                    PsiElement([)('[')
-                                                                    PsiElement(])(']')
-                                                                    TYPE
-                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                        PsiElement(identifier)('θ_parse_node')
+                                                                ARRAY_OR_SLICE_TYPE
+                                                                  PsiElement([)('[')
+                                                                  PsiElement(])(']')
+                                                                  TYPE
+                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                      PsiElement(identifier)('θ_parse_node')
                                                                 LITERAL_VALUE
                                                                   PsiElement({)('{')
                                                                   ELEMENT
                                                                     VALUE
                                                                       COMPOSITE_LIT
-                                                                        LITERAL_TYPE_EXPR
-                                                                          TYPE_REFERENCE_EXPRESSION
-                                                                            PsiElement(identifier)('θ_parse_node')
+                                                                        TYPE_REFERENCE_EXPRESSION
+                                                                          PsiElement(identifier)('θ_parse_node')
                                                                         LITERAL_VALUE
                                                                           PsiElement({)('{')
                                                                           ELEMENT
@@ -862,13 +858,12 @@ GO_FILE
                                                                           ELEMENT
                                                                             VALUE
                                                                               COMPOSITE_LIT
-                                                                                LITERAL_TYPE_EXPR
-                                                                                  ARRAY_OR_SLICE_TYPE
-                                                                                    PsiElement([)('[')
-                                                                                    PsiElement(])(']')
-                                                                                    TYPE
-                                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                                        PsiElement(identifier)('int')
+                                                                                ARRAY_OR_SLICE_TYPE
+                                                                                  PsiElement([)('[')
+                                                                                  PsiElement(])(']')
+                                                                                  TYPE
+                                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                                      PsiElement(identifier)('int')
                                                                                 LITERAL_VALUE
                                                                                   PsiElement({)('{')
                                                                                   PsiElement(})('}')
@@ -886,21 +881,19 @@ GO_FILE
                                                                           ELEMENT
                                                                             VALUE
                                                                               COMPOSITE_LIT
-                                                                                LITERAL_TYPE_EXPR
-                                                                                  ARRAY_OR_SLICE_TYPE
-                                                                                    PsiElement([)('[')
-                                                                                    PsiElement(])(']')
-                                                                                    TYPE
-                                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                                        PsiElement(identifier)('θ_parse_node')
+                                                                                ARRAY_OR_SLICE_TYPE
+                                                                                  PsiElement([)('[')
+                                                                                  PsiElement(])(']')
+                                                                                  TYPE
+                                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                                      PsiElement(identifier)('θ_parse_node')
                                                                                 LITERAL_VALUE
                                                                                   PsiElement({)('{')
                                                                                   ELEMENT
                                                                                     VALUE
                                                                                       COMPOSITE_LIT
-                                                                                        LITERAL_TYPE_EXPR
-                                                                                          TYPE_REFERENCE_EXPRESSION
-                                                                                            PsiElement(identifier)('θ_parse_node')
+                                                                                        TYPE_REFERENCE_EXPRESSION
+                                                                                          PsiElement(identifier)('θ_parse_node')
                                                                                         LITERAL_VALUE
                                                                                           PsiElement({)('{')
                                                                                           ELEMENT
@@ -916,13 +909,12 @@ GO_FILE
                                                                                           ELEMENT
                                                                                             VALUE
                                                                                               COMPOSITE_LIT
-                                                                                                LITERAL_TYPE_EXPR
-                                                                                                  ARRAY_OR_SLICE_TYPE
-                                                                                                    PsiElement([)('[')
-                                                                                                    PsiElement(])(']')
-                                                                                                    TYPE
-                                                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                                                        PsiElement(identifier)('int')
+                                                                                                ARRAY_OR_SLICE_TYPE
+                                                                                                  PsiElement([)('[')
+                                                                                                  PsiElement(])(']')
+                                                                                                  TYPE
+                                                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                                                      PsiElement(identifier)('int')
                                                                                                 LITERAL_VALUE
                                                                                                   PsiElement({)('{')
                                                                                                   PsiElement(})('}')
@@ -940,21 +932,19 @@ GO_FILE
                                                                                           ELEMENT
                                                                                             VALUE
                                                                                               COMPOSITE_LIT
-                                                                                                LITERAL_TYPE_EXPR
-                                                                                                  ARRAY_OR_SLICE_TYPE
-                                                                                                    PsiElement([)('[')
-                                                                                                    PsiElement(])(']')
-                                                                                                    TYPE
-                                                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                                                        PsiElement(identifier)('θ_parse_node')
+                                                                                                ARRAY_OR_SLICE_TYPE
+                                                                                                  PsiElement([)('[')
+                                                                                                  PsiElement(])(']')
+                                                                                                  TYPE
+                                                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                                                      PsiElement(identifier)('θ_parse_node')
                                                                                                 LITERAL_VALUE
                                                                                                   PsiElement({)('{')
                                                                                                   ELEMENT
                                                                                                     VALUE
                                                                                                       COMPOSITE_LIT
-                                                                                                        LITERAL_TYPE_EXPR
-                                                                                                          TYPE_REFERENCE_EXPRESSION
-                                                                                                            PsiElement(identifier)('θ_parse_node')
+                                                                                                        TYPE_REFERENCE_EXPRESSION
+                                                                                                          PsiElement(identifier)('θ_parse_node')
                                                                                                         LITERAL_VALUE
                                                                                                           PsiElement({)('{')
                                                                                                           ELEMENT
@@ -970,13 +960,12 @@ GO_FILE
                                                                                                           ELEMENT
                                                                                                             VALUE
                                                                                                               COMPOSITE_LIT
-                                                                                                                LITERAL_TYPE_EXPR
-                                                                                                                  ARRAY_OR_SLICE_TYPE
-                                                                                                                    PsiElement([)('[')
-                                                                                                                    PsiElement(])(']')
-                                                                                                                    TYPE
-                                                                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                                                                        PsiElement(identifier)('int')
+                                                                                                                ARRAY_OR_SLICE_TYPE
+                                                                                                                  PsiElement([)('[')
+                                                                                                                  PsiElement(])(']')
+                                                                                                                  TYPE
+                                                                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                                                                      PsiElement(identifier)('int')
                                                                                                                 LITERAL_VALUE
                                                                                                                   PsiElement({)('{')
                                                                                                                   PsiElement(})('}')
@@ -994,21 +983,19 @@ GO_FILE
                                                                                                           ELEMENT
                                                                                                             VALUE
                                                                                                               COMPOSITE_LIT
-                                                                                                                LITERAL_TYPE_EXPR
-                                                                                                                  ARRAY_OR_SLICE_TYPE
-                                                                                                                    PsiElement([)('[')
-                                                                                                                    PsiElement(])(']')
-                                                                                                                    TYPE
-                                                                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                                                                        PsiElement(identifier)('θ_parse_node')
+                                                                                                                ARRAY_OR_SLICE_TYPE
+                                                                                                                  PsiElement([)('[')
+                                                                                                                  PsiElement(])(']')
+                                                                                                                  TYPE
+                                                                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                                                                      PsiElement(identifier)('θ_parse_node')
                                                                                                                 LITERAL_VALUE
                                                                                                                   PsiElement({)('{')
                                                                                                                   ELEMENT
                                                                                                                     VALUE
                                                                                                                       COMPOSITE_LIT
-                                                                                                                        LITERAL_TYPE_EXPR
-                                                                                                                          TYPE_REFERENCE_EXPRESSION
-                                                                                                                            PsiElement(identifier)('θ_parse_node')
+                                                                                                                        TYPE_REFERENCE_EXPRESSION
+                                                                                                                          PsiElement(identifier)('θ_parse_node')
                                                                                                                         LITERAL_VALUE
                                                                                                                           PsiElement({)('{')
                                                                                                                           ELEMENT
@@ -1024,13 +1011,12 @@ GO_FILE
                                                                                                                           ELEMENT
                                                                                                                             VALUE
                                                                                                                               COMPOSITE_LIT
-                                                                                                                                LITERAL_TYPE_EXPR
-                                                                                                                                  ARRAY_OR_SLICE_TYPE
-                                                                                                                                    PsiElement([)('[')
-                                                                                                                                    PsiElement(])(']')
-                                                                                                                                    TYPE
-                                                                                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                                                                                        PsiElement(identifier)('int')
+                                                                                                                                ARRAY_OR_SLICE_TYPE
+                                                                                                                                  PsiElement([)('[')
+                                                                                                                                  PsiElement(])(']')
+                                                                                                                                  TYPE
+                                                                                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                                                                                      PsiElement(identifier)('int')
                                                                                                                                 LITERAL_VALUE
                                                                                                                                   PsiElement({)('{')
                                                                                                                                   PsiElement(})('}')
@@ -1048,21 +1034,19 @@ GO_FILE
                                                                                                                           ELEMENT
                                                                                                                             VALUE
                                                                                                                               COMPOSITE_LIT
-                                                                                                                                LITERAL_TYPE_EXPR
-                                                                                                                                  ARRAY_OR_SLICE_TYPE
-                                                                                                                                    PsiElement([)('[')
-                                                                                                                                    PsiElement(])(']')
-                                                                                                                                    TYPE
-                                                                                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                                                                                        PsiElement(identifier)('θ_parse_node')
+                                                                                                                                ARRAY_OR_SLICE_TYPE
+                                                                                                                                  PsiElement([)('[')
+                                                                                                                                  PsiElement(])(']')
+                                                                                                                                  TYPE
+                                                                                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                                                                                      PsiElement(identifier)('θ_parse_node')
                                                                                                                                 LITERAL_VALUE
                                                                                                                                   PsiElement({)('{')
                                                                                                                                   ELEMENT
                                                                                                                                     VALUE
                                                                                                                                       COMPOSITE_LIT
-                                                                                                                                        LITERAL_TYPE_EXPR
-                                                                                                                                          TYPE_REFERENCE_EXPRESSION
-                                                                                                                                            PsiElement(identifier)('θ_parse_node')
+                                                                                                                                        TYPE_REFERENCE_EXPRESSION
+                                                                                                                                          PsiElement(identifier)('θ_parse_node')
                                                                                                                                         LITERAL_VALUE
                                                                                                                                           PsiElement({)('{')
                                                                                                                                           ELEMENT
@@ -1078,13 +1062,12 @@ GO_FILE
                                                                                                                                           ELEMENT
                                                                                                                                             VALUE
                                                                                                                                               COMPOSITE_LIT
-                                                                                                                                                LITERAL_TYPE_EXPR
-                                                                                                                                                  ARRAY_OR_SLICE_TYPE
-                                                                                                                                                    PsiElement([)('[')
-                                                                                                                                                    PsiElement(])(']')
-                                                                                                                                                    TYPE
-                                                                                                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                                                                                                        PsiElement(identifier)('int')
+                                                                                                                                                ARRAY_OR_SLICE_TYPE
+                                                                                                                                                  PsiElement([)('[')
+                                                                                                                                                  PsiElement(])(']')
+                                                                                                                                                  TYPE
+                                                                                                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                                                                                                      PsiElement(identifier)('int')
                                                                                                                                                 LITERAL_VALUE
                                                                                                                                                   PsiElement({)('{')
                                                                                                                                                   PsiElement(})('}')
@@ -1102,21 +1085,19 @@ GO_FILE
                                                                                                                                           ELEMENT
                                                                                                                                             VALUE
                                                                                                                                               COMPOSITE_LIT
-                                                                                                                                                LITERAL_TYPE_EXPR
-                                                                                                                                                  ARRAY_OR_SLICE_TYPE
-                                                                                                                                                    PsiElement([)('[')
-                                                                                                                                                    PsiElement(])(']')
-                                                                                                                                                    TYPE
-                                                                                                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                                                                                                        PsiElement(identifier)('θ_parse_node')
+                                                                                                                                                ARRAY_OR_SLICE_TYPE
+                                                                                                                                                  PsiElement([)('[')
+                                                                                                                                                  PsiElement(])(']')
+                                                                                                                                                  TYPE
+                                                                                                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                                                                                                      PsiElement(identifier)('θ_parse_node')
                                                                                                                                                 LITERAL_VALUE
                                                                                                                                                   PsiElement({)('{')
                                                                                                                                                   ELEMENT
                                                                                                                                                     VALUE
                                                                                                                                                       COMPOSITE_LIT
-                                                                                                                                                        LITERAL_TYPE_EXPR
-                                                                                                                                                          TYPE_REFERENCE_EXPRESSION
-                                                                                                                                                            PsiElement(identifier)('θ_parse_node')
+                                                                                                                                                        TYPE_REFERENCE_EXPRESSION
+                                                                                                                                                          PsiElement(identifier)('θ_parse_node')
                                                                                                                                                         LITERAL_VALUE
                                                                                                                                                           PsiElement({)('{')
                                                                                                                                                           ELEMENT
@@ -1132,13 +1113,12 @@ GO_FILE
                                                                                                                                                           ELEMENT
                                                                                                                                                             VALUE
                                                                                                                                                               COMPOSITE_LIT
-                                                                                                                                                                LITERAL_TYPE_EXPR
-                                                                                                                                                                  ARRAY_OR_SLICE_TYPE
-                                                                                                                                                                    PsiElement([)('[')
-                                                                                                                                                                    PsiElement(])(']')
-                                                                                                                                                                    TYPE
-                                                                                                                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                                                                                                                        PsiElement(identifier)('int')
+                                                                                                                                                                ARRAY_OR_SLICE_TYPE
+                                                                                                                                                                  PsiElement([)('[')
+                                                                                                                                                                  PsiElement(])(']')
+                                                                                                                                                                  TYPE
+                                                                                                                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                                                                                                                      PsiElement(identifier)('int')
                                                                                                                                                                 LITERAL_VALUE
                                                                                                                                                                   PsiElement({)('{')
                                                                                                                                                                   PsiElement(})('}')
@@ -1156,21 +1136,19 @@ GO_FILE
                                                                                                                                                           ELEMENT
                                                                                                                                                             VALUE
                                                                                                                                                               COMPOSITE_LIT
-                                                                                                                                                                LITERAL_TYPE_EXPR
-                                                                                                                                                                  ARRAY_OR_SLICE_TYPE
-                                                                                                                                                                    PsiElement([)('[')
-                                                                                                                                                                    PsiElement(])(']')
-                                                                                                                                                                    TYPE
-                                                                                                                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                                                                                                                        PsiElement(identifier)('θ_parse_node')
+                                                                                                                                                                ARRAY_OR_SLICE_TYPE
+                                                                                                                                                                  PsiElement([)('[')
+                                                                                                                                                                  PsiElement(])(']')
+                                                                                                                                                                  TYPE
+                                                                                                                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                                                                                                                      PsiElement(identifier)('θ_parse_node')
                                                                                                                                                                 LITERAL_VALUE
                                                                                                                                                                   PsiElement({)('{')
                                                                                                                                                                   ELEMENT
                                                                                                                                                                     VALUE
                                                                                                                                                                       COMPOSITE_LIT
-                                                                                                                                                                        LITERAL_TYPE_EXPR
-                                                                                                                                                                          TYPE_REFERENCE_EXPRESSION
-                                                                                                                                                                            PsiElement(identifier)('θ_parse_node')
+                                                                                                                                                                        TYPE_REFERENCE_EXPRESSION
+                                                                                                                                                                          PsiElement(identifier)('θ_parse_node')
                                                                                                                                                                         LITERAL_VALUE
                                                                                                                                                                           PsiElement({)('{')
                                                                                                                                                                           ELEMENT
@@ -1186,13 +1164,12 @@ GO_FILE
                                                                                                                                                                           ELEMENT
                                                                                                                                                                             VALUE
                                                                                                                                                                               COMPOSITE_LIT
-                                                                                                                                                                                LITERAL_TYPE_EXPR
-                                                                                                                                                                                  ARRAY_OR_SLICE_TYPE
-                                                                                                                                                                                    PsiElement([)('[')
-                                                                                                                                                                                    PsiElement(])(']')
-                                                                                                                                                                                    TYPE
-                                                                                                                                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                                                                                                                                        PsiElement(identifier)('int')
+                                                                                                                                                                                ARRAY_OR_SLICE_TYPE
+                                                                                                                                                                                  PsiElement([)('[')
+                                                                                                                                                                                  PsiElement(])(']')
+                                                                                                                                                                                  TYPE
+                                                                                                                                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                                                                                                                                      PsiElement(identifier)('int')
                                                                                                                                                                                 LITERAL_VALUE
                                                                                                                                                                                   PsiElement({)('{')
                                                                                                                                                                                   PsiElement(})('}')
@@ -1210,21 +1187,19 @@ GO_FILE
                                                                                                                                                                           ELEMENT
                                                                                                                                                                             VALUE
                                                                                                                                                                               COMPOSITE_LIT
-                                                                                                                                                                                LITERAL_TYPE_EXPR
-                                                                                                                                                                                  ARRAY_OR_SLICE_TYPE
-                                                                                                                                                                                    PsiElement([)('[')
-                                                                                                                                                                                    PsiElement(])(']')
-                                                                                                                                                                                    TYPE
-                                                                                                                                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                                                                                                                                        PsiElement(identifier)('θ_parse_node')
+                                                                                                                                                                                ARRAY_OR_SLICE_TYPE
+                                                                                                                                                                                  PsiElement([)('[')
+                                                                                                                                                                                  PsiElement(])(']')
+                                                                                                                                                                                  TYPE
+                                                                                                                                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                                                                                                                                      PsiElement(identifier)('θ_parse_node')
                                                                                                                                                                                 LITERAL_VALUE
                                                                                                                                                                                   PsiElement({)('{')
                                                                                                                                                                                   ELEMENT
                                                                                                                                                                                     VALUE
                                                                                                                                                                                       COMPOSITE_LIT
-                                                                                                                                                                                        LITERAL_TYPE_EXPR
-                                                                                                                                                                                          TYPE_REFERENCE_EXPRESSION
-                                                                                                                                                                                            PsiElement(identifier)('θ_parse_node')
+                                                                                                                                                                                        TYPE_REFERENCE_EXPRESSION
+                                                                                                                                                                                          PsiElement(identifier)('θ_parse_node')
                                                                                                                                                                                         LITERAL_VALUE
                                                                                                                                                                                           PsiElement({)('{')
                                                                                                                                                                                           ELEMENT
@@ -1240,13 +1215,12 @@ GO_FILE
                                                                                                                                                                                           ELEMENT
                                                                                                                                                                                             VALUE
                                                                                                                                                                                               COMPOSITE_LIT
-                                                                                                                                                                                                LITERAL_TYPE_EXPR
-                                                                                                                                                                                                  ARRAY_OR_SLICE_TYPE
-                                                                                                                                                                                                    PsiElement([)('[')
-                                                                                                                                                                                                    PsiElement(])(']')
-                                                                                                                                                                                                    TYPE
-                                                                                                                                                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                                                                                                                                                        PsiElement(identifier)('int')
+                                                                                                                                                                                                ARRAY_OR_SLICE_TYPE
+                                                                                                                                                                                                  PsiElement([)('[')
+                                                                                                                                                                                                  PsiElement(])(']')
+                                                                                                                                                                                                  TYPE
+                                                                                                                                                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                                                                                                                                                      PsiElement(identifier)('int')
                                                                                                                                                                                                 LITERAL_VALUE
                                                                                                                                                                                                   PsiElement({)('{')
                                                                                                                                                                                                   ELEMENT
@@ -1276,13 +1250,12 @@ GO_FILE
                                                                                                                                                                                           ELEMENT
                                                                                                                                                                                             VALUE
                                                                                                                                                                                               COMPOSITE_LIT
-                                                                                                                                                                                                LITERAL_TYPE_EXPR
-                                                                                                                                                                                                  ARRAY_OR_SLICE_TYPE
-                                                                                                                                                                                                    PsiElement([)('[')
-                                                                                                                                                                                                    PsiElement(])(']')
-                                                                                                                                                                                                    TYPE
-                                                                                                                                                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                                                                                                                                                        PsiElement(identifier)('θ_parse_node')
+                                                                                                                                                                                                ARRAY_OR_SLICE_TYPE
+                                                                                                                                                                                                  PsiElement([)('[')
+                                                                                                                                                                                                  PsiElement(])(']')
+                                                                                                                                                                                                  TYPE
+                                                                                                                                                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                                                                                                                                                      PsiElement(identifier)('θ_parse_node')
                                                                                                                                                                                                 LITERAL_VALUE
                                                                                                                                                                                                   PsiElement({)('{')
                                                                                                                                                                                                   PsiElement(})('}')
@@ -1311,9 +1284,8 @@ GO_FILE
                   ELEMENT
                     VALUE
                       COMPOSITE_LIT
-                        LITERAL_TYPE_EXPR
-                          TYPE_REFERENCE_EXPRESSION
-                            PsiElement(identifier)('θ_parse_node')
+                        TYPE_REFERENCE_EXPRESSION
+                          PsiElement(identifier)('θ_parse_node')
                         LITERAL_VALUE
                           PsiElement({)('{')
                           ELEMENT
@@ -1329,13 +1301,12 @@ GO_FILE
                           ELEMENT
                             VALUE
                               COMPOSITE_LIT
-                                LITERAL_TYPE_EXPR
-                                  ARRAY_OR_SLICE_TYPE
-                                    PsiElement([)('[')
-                                    PsiElement(])(']')
-                                    TYPE
-                                      TYPE_REFERENCE_EXPRESSION
-                                        PsiElement(identifier)('int')
+                                ARRAY_OR_SLICE_TYPE
+                                  PsiElement([)('[')
+                                  PsiElement(])(']')
+                                  TYPE
+                                    TYPE_REFERENCE_EXPRESSION
+                                      PsiElement(identifier)('int')
                                 LITERAL_VALUE
                                   PsiElement({)('{')
                                   PsiElement(})('}')
@@ -1353,21 +1324,19 @@ GO_FILE
                           ELEMENT
                             VALUE
                               COMPOSITE_LIT
-                                LITERAL_TYPE_EXPR
-                                  ARRAY_OR_SLICE_TYPE
-                                    PsiElement([)('[')
-                                    PsiElement(])(']')
-                                    TYPE
-                                      TYPE_REFERENCE_EXPRESSION
-                                        PsiElement(identifier)('θ_parse_node')
+                                ARRAY_OR_SLICE_TYPE
+                                  PsiElement([)('[')
+                                  PsiElement(])(']')
+                                  TYPE
+                                    TYPE_REFERENCE_EXPRESSION
+                                      PsiElement(identifier)('θ_parse_node')
                                 LITERAL_VALUE
                                   PsiElement({)('{')
                                   ELEMENT
                                     VALUE
                                       COMPOSITE_LIT
-                                        LITERAL_TYPE_EXPR
-                                          TYPE_REFERENCE_EXPRESSION
-                                            PsiElement(identifier)('θ_parse_node')
+                                        TYPE_REFERENCE_EXPRESSION
+                                          PsiElement(identifier)('θ_parse_node')
                                         LITERAL_VALUE
                                           PsiElement({)('{')
                                           ELEMENT
@@ -1383,13 +1352,12 @@ GO_FILE
                                           ELEMENT
                                             VALUE
                                               COMPOSITE_LIT
-                                                LITERAL_TYPE_EXPR
-                                                  ARRAY_OR_SLICE_TYPE
-                                                    PsiElement([)('[')
-                                                    PsiElement(])(']')
-                                                    TYPE
-                                                      TYPE_REFERENCE_EXPRESSION
-                                                        PsiElement(identifier)('int')
+                                                ARRAY_OR_SLICE_TYPE
+                                                  PsiElement([)('[')
+                                                  PsiElement(])(']')
+                                                  TYPE
+                                                    TYPE_REFERENCE_EXPRESSION
+                                                      PsiElement(identifier)('int')
                                                 LITERAL_VALUE
                                                   PsiElement({)('{')
                                                   ELEMENT
@@ -1419,13 +1387,12 @@ GO_FILE
                                           ELEMENT
                                             VALUE
                                               COMPOSITE_LIT
-                                                LITERAL_TYPE_EXPR
-                                                  ARRAY_OR_SLICE_TYPE
-                                                    PsiElement([)('[')
-                                                    PsiElement(])(']')
-                                                    TYPE
-                                                      TYPE_REFERENCE_EXPRESSION
-                                                        PsiElement(identifier)('θ_parse_node')
+                                                ARRAY_OR_SLICE_TYPE
+                                                  PsiElement([)('[')
+                                                  PsiElement(])(']')
+                                                  TYPE
+                                                    TYPE_REFERENCE_EXPRESSION
+                                                      PsiElement(identifier)('θ_parse_node')
                                                 LITERAL_VALUE
                                                   PsiElement({)('{')
                                                   PsiElement(})('}')
@@ -1436,9 +1403,8 @@ GO_FILE
                   ELEMENT
                     VALUE
                       COMPOSITE_LIT
-                        LITERAL_TYPE_EXPR
-                          TYPE_REFERENCE_EXPRESSION
-                            PsiElement(identifier)('θ_parse_node')
+                        TYPE_REFERENCE_EXPRESSION
+                          PsiElement(identifier)('θ_parse_node')
                         LITERAL_VALUE
                           PsiElement({)('{')
                           ELEMENT
@@ -1454,13 +1420,12 @@ GO_FILE
                           ELEMENT
                             VALUE
                               COMPOSITE_LIT
-                                LITERAL_TYPE_EXPR
-                                  ARRAY_OR_SLICE_TYPE
-                                    PsiElement([)('[')
-                                    PsiElement(])(']')
-                                    TYPE
-                                      TYPE_REFERENCE_EXPRESSION
-                                        PsiElement(identifier)('int')
+                                ARRAY_OR_SLICE_TYPE
+                                  PsiElement([)('[')
+                                  PsiElement(])(']')
+                                  TYPE
+                                    TYPE_REFERENCE_EXPRESSION
+                                      PsiElement(identifier)('int')
                                 LITERAL_VALUE
                                   PsiElement({)('{')
                                   PsiElement(})('}')
@@ -1478,21 +1443,19 @@ GO_FILE
                           ELEMENT
                             VALUE
                               COMPOSITE_LIT
-                                LITERAL_TYPE_EXPR
-                                  ARRAY_OR_SLICE_TYPE
-                                    PsiElement([)('[')
-                                    PsiElement(])(']')
-                                    TYPE
-                                      TYPE_REFERENCE_EXPRESSION
-                                        PsiElement(identifier)('θ_parse_node')
+                                ARRAY_OR_SLICE_TYPE
+                                  PsiElement([)('[')
+                                  PsiElement(])(']')
+                                  TYPE
+                                    TYPE_REFERENCE_EXPRESSION
+                                      PsiElement(identifier)('θ_parse_node')
                                 LITERAL_VALUE
                                   PsiElement({)('{')
                                   ELEMENT
                                     VALUE
                                       COMPOSITE_LIT
-                                        LITERAL_TYPE_EXPR
-                                          TYPE_REFERENCE_EXPRESSION
-                                            PsiElement(identifier)('θ_parse_node')
+                                        TYPE_REFERENCE_EXPRESSION
+                                          PsiElement(identifier)('θ_parse_node')
                                         LITERAL_VALUE
                                           PsiElement({)('{')
                                           ELEMENT
@@ -1508,13 +1471,12 @@ GO_FILE
                                           ELEMENT
                                             VALUE
                                               COMPOSITE_LIT
-                                                LITERAL_TYPE_EXPR
-                                                  ARRAY_OR_SLICE_TYPE
-                                                    PsiElement([)('[')
-                                                    PsiElement(])(']')
-                                                    TYPE
-                                                      TYPE_REFERENCE_EXPRESSION
-                                                        PsiElement(identifier)('int')
+                                                ARRAY_OR_SLICE_TYPE
+                                                  PsiElement([)('[')
+                                                  PsiElement(])(']')
+                                                  TYPE
+                                                    TYPE_REFERENCE_EXPRESSION
+                                                      PsiElement(identifier)('int')
                                                 LITERAL_VALUE
                                                   PsiElement({)('{')
                                                   PsiElement(})('}')
@@ -1532,21 +1494,19 @@ GO_FILE
                                           ELEMENT
                                             VALUE
                                               COMPOSITE_LIT
-                                                LITERAL_TYPE_EXPR
-                                                  ARRAY_OR_SLICE_TYPE
-                                                    PsiElement([)('[')
-                                                    PsiElement(])(']')
-                                                    TYPE
-                                                      TYPE_REFERENCE_EXPRESSION
-                                                        PsiElement(identifier)('θ_parse_node')
+                                                ARRAY_OR_SLICE_TYPE
+                                                  PsiElement([)('[')
+                                                  PsiElement(])(']')
+                                                  TYPE
+                                                    TYPE_REFERENCE_EXPRESSION
+                                                      PsiElement(identifier)('θ_parse_node')
                                                 LITERAL_VALUE
                                                   PsiElement({)('{')
                                                   ELEMENT
                                                     VALUE
                                                       COMPOSITE_LIT
-                                                        LITERAL_TYPE_EXPR
-                                                          TYPE_REFERENCE_EXPRESSION
-                                                            PsiElement(identifier)('θ_parse_node')
+                                                        TYPE_REFERENCE_EXPRESSION
+                                                          PsiElement(identifier)('θ_parse_node')
                                                         LITERAL_VALUE
                                                           PsiElement({)('{')
                                                           ELEMENT
@@ -1562,13 +1522,12 @@ GO_FILE
                                                           ELEMENT
                                                             VALUE
                                                               COMPOSITE_LIT
-                                                                LITERAL_TYPE_EXPR
-                                                                  ARRAY_OR_SLICE_TYPE
-                                                                    PsiElement([)('[')
-                                                                    PsiElement(])(']')
-                                                                    TYPE
-                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                        PsiElement(identifier)('int')
+                                                                ARRAY_OR_SLICE_TYPE
+                                                                  PsiElement([)('[')
+                                                                  PsiElement(])(']')
+                                                                  TYPE
+                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                      PsiElement(identifier)('int')
                                                                 LITERAL_VALUE
                                                                   PsiElement({)('{')
                                                                   PsiElement(})('}')
@@ -1594,13 +1553,12 @@ GO_FILE
                                                           ELEMENT
                                                             VALUE
                                                               COMPOSITE_LIT
-                                                                LITERAL_TYPE_EXPR
-                                                                  ARRAY_OR_SLICE_TYPE
-                                                                    PsiElement([)('[')
-                                                                    PsiElement(])(']')
-                                                                    TYPE
-                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                        PsiElement(identifier)('θ_parse_node')
+                                                                ARRAY_OR_SLICE_TYPE
+                                                                  PsiElement([)('[')
+                                                                  PsiElement(])(']')
+                                                                  TYPE
+                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                      PsiElement(identifier)('θ_parse_node')
                                                                 LITERAL_VALUE
                                                                   PsiElement({)('{')
                                                                   PsiElement(})('}')
@@ -1611,9 +1569,8 @@ GO_FILE
                                   ELEMENT
                                     VALUE
                                       COMPOSITE_LIT
-                                        LITERAL_TYPE_EXPR
-                                          TYPE_REFERENCE_EXPRESSION
-                                            PsiElement(identifier)('θ_parse_node')
+                                        TYPE_REFERENCE_EXPRESSION
+                                          PsiElement(identifier)('θ_parse_node')
                                         LITERAL_VALUE
                                           PsiElement({)('{')
                                           ELEMENT
@@ -1629,13 +1586,12 @@ GO_FILE
                                           ELEMENT
                                             VALUE
                                               COMPOSITE_LIT
-                                                LITERAL_TYPE_EXPR
-                                                  ARRAY_OR_SLICE_TYPE
-                                                    PsiElement([)('[')
-                                                    PsiElement(])(']')
-                                                    TYPE
-                                                      TYPE_REFERENCE_EXPRESSION
-                                                        PsiElement(identifier)('int')
+                                                ARRAY_OR_SLICE_TYPE
+                                                  PsiElement([)('[')
+                                                  PsiElement(])(']')
+                                                  TYPE
+                                                    TYPE_REFERENCE_EXPRESSION
+                                                      PsiElement(identifier)('int')
                                                 LITERAL_VALUE
                                                   PsiElement({)('{')
                                                   PsiElement(})('}')
@@ -1653,21 +1609,19 @@ GO_FILE
                                           ELEMENT
                                             VALUE
                                               COMPOSITE_LIT
-                                                LITERAL_TYPE_EXPR
-                                                  ARRAY_OR_SLICE_TYPE
-                                                    PsiElement([)('[')
-                                                    PsiElement(])(']')
-                                                    TYPE
-                                                      TYPE_REFERENCE_EXPRESSION
-                                                        PsiElement(identifier)('θ_parse_node')
+                                                ARRAY_OR_SLICE_TYPE
+                                                  PsiElement([)('[')
+                                                  PsiElement(])(']')
+                                                  TYPE
+                                                    TYPE_REFERENCE_EXPRESSION
+                                                      PsiElement(identifier)('θ_parse_node')
                                                 LITERAL_VALUE
                                                   PsiElement({)('{')
                                                   ELEMENT
                                                     VALUE
                                                       COMPOSITE_LIT
-                                                        LITERAL_TYPE_EXPR
-                                                          TYPE_REFERENCE_EXPRESSION
-                                                            PsiElement(identifier)('θ_parse_node')
+                                                        TYPE_REFERENCE_EXPRESSION
+                                                          PsiElement(identifier)('θ_parse_node')
                                                         LITERAL_VALUE
                                                           PsiElement({)('{')
                                                           ELEMENT
@@ -1683,13 +1637,12 @@ GO_FILE
                                                           ELEMENT
                                                             VALUE
                                                               COMPOSITE_LIT
-                                                                LITERAL_TYPE_EXPR
-                                                                  ARRAY_OR_SLICE_TYPE
-                                                                    PsiElement([)('[')
-                                                                    PsiElement(])(']')
-                                                                    TYPE
-                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                        PsiElement(identifier)('int')
+                                                                ARRAY_OR_SLICE_TYPE
+                                                                  PsiElement([)('[')
+                                                                  PsiElement(])(']')
+                                                                  TYPE
+                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                      PsiElement(identifier)('int')
                                                                 LITERAL_VALUE
                                                                   PsiElement({)('{')
                                                                   PsiElement(})('}')
@@ -1715,13 +1668,12 @@ GO_FILE
                                                           ELEMENT
                                                             VALUE
                                                               COMPOSITE_LIT
-                                                                LITERAL_TYPE_EXPR
-                                                                  ARRAY_OR_SLICE_TYPE
-                                                                    PsiElement([)('[')
-                                                                    PsiElement(])(']')
-                                                                    TYPE
-                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                        PsiElement(identifier)('θ_parse_node')
+                                                                ARRAY_OR_SLICE_TYPE
+                                                                  PsiElement([)('[')
+                                                                  PsiElement(])(']')
+                                                                  TYPE
+                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                      PsiElement(identifier)('θ_parse_node')
                                                                 LITERAL_VALUE
                                                                   PsiElement({)('{')
                                                                   PsiElement(})('}')
@@ -1734,9 +1686,8 @@ GO_FILE
                   ELEMENT
                     VALUE
                       COMPOSITE_LIT
-                        LITERAL_TYPE_EXPR
-                          TYPE_REFERENCE_EXPRESSION
-                            PsiElement(identifier)('θ_parse_node')
+                        TYPE_REFERENCE_EXPRESSION
+                          PsiElement(identifier)('θ_parse_node')
                         LITERAL_VALUE
                           PsiElement({)('{')
                           ELEMENT
@@ -1752,13 +1703,12 @@ GO_FILE
                           ELEMENT
                             VALUE
                               COMPOSITE_LIT
-                                LITERAL_TYPE_EXPR
-                                  ARRAY_OR_SLICE_TYPE
-                                    PsiElement([)('[')
-                                    PsiElement(])(']')
-                                    TYPE
-                                      TYPE_REFERENCE_EXPRESSION
-                                        PsiElement(identifier)('int')
+                                ARRAY_OR_SLICE_TYPE
+                                  PsiElement([)('[')
+                                  PsiElement(])(']')
+                                  TYPE
+                                    TYPE_REFERENCE_EXPRESSION
+                                      PsiElement(identifier)('int')
                                 LITERAL_VALUE
                                   PsiElement({)('{')
                                   PsiElement(})('}')
@@ -1784,13 +1734,12 @@ GO_FILE
                           ELEMENT
                             VALUE
                               COMPOSITE_LIT
-                                LITERAL_TYPE_EXPR
-                                  ARRAY_OR_SLICE_TYPE
-                                    PsiElement([)('[')
-                                    PsiElement(])(']')
-                                    TYPE
-                                      TYPE_REFERENCE_EXPRESSION
-                                        PsiElement(identifier)('θ_parse_node')
+                                ARRAY_OR_SLICE_TYPE
+                                  PsiElement([)('[')
+                                  PsiElement(])(']')
+                                  TYPE
+                                    TYPE_REFERENCE_EXPRESSION
+                                      PsiElement(identifier)('θ_parse_node')
                                 LITERAL_VALUE
                                   PsiElement({)('{')
                                   PsiElement(})('}')
@@ -1799,9 +1748,8 @@ GO_FILE
                   ELEMENT
                     VALUE
                       COMPOSITE_LIT
-                        LITERAL_TYPE_EXPR
-                          TYPE_REFERENCE_EXPRESSION
-                            PsiElement(identifier)('θ_parse_node')
+                        TYPE_REFERENCE_EXPRESSION
+                          PsiElement(identifier)('θ_parse_node')
                         LITERAL_VALUE
                           PsiElement({)('{')
                           ELEMENT
@@ -1817,13 +1765,12 @@ GO_FILE
                           ELEMENT
                             VALUE
                               COMPOSITE_LIT
-                                LITERAL_TYPE_EXPR
-                                  ARRAY_OR_SLICE_TYPE
-                                    PsiElement([)('[')
-                                    PsiElement(])(']')
-                                    TYPE
-                                      TYPE_REFERENCE_EXPRESSION
-                                        PsiElement(identifier)('int')
+                                ARRAY_OR_SLICE_TYPE
+                                  PsiElement([)('[')
+                                  PsiElement(])(']')
+                                  TYPE
+                                    TYPE_REFERENCE_EXPRESSION
+                                      PsiElement(identifier)('int')
                                 LITERAL_VALUE
                                   PsiElement({)('{')
                                   PsiElement(})('}')
@@ -1841,21 +1788,19 @@ GO_FILE
                           ELEMENT
                             VALUE
                               COMPOSITE_LIT
-                                LITERAL_TYPE_EXPR
-                                  ARRAY_OR_SLICE_TYPE
-                                    PsiElement([)('[')
-                                    PsiElement(])(']')
-                                    TYPE
-                                      TYPE_REFERENCE_EXPRESSION
-                                        PsiElement(identifier)('θ_parse_node')
+                                ARRAY_OR_SLICE_TYPE
+                                  PsiElement([)('[')
+                                  PsiElement(])(']')
+                                  TYPE
+                                    TYPE_REFERENCE_EXPRESSION
+                                      PsiElement(identifier)('θ_parse_node')
                                 LITERAL_VALUE
                                   PsiElement({)('{')
                                   ELEMENT
                                     VALUE
                                       COMPOSITE_LIT
-                                        LITERAL_TYPE_EXPR
-                                          TYPE_REFERENCE_EXPRESSION
-                                            PsiElement(identifier)('θ_parse_node')
+                                        TYPE_REFERENCE_EXPRESSION
+                                          PsiElement(identifier)('θ_parse_node')
                                         LITERAL_VALUE
                                           PsiElement({)('{')
                                           ELEMENT
@@ -1871,13 +1816,12 @@ GO_FILE
                                           ELEMENT
                                             VALUE
                                               COMPOSITE_LIT
-                                                LITERAL_TYPE_EXPR
-                                                  ARRAY_OR_SLICE_TYPE
-                                                    PsiElement([)('[')
-                                                    PsiElement(])(']')
-                                                    TYPE
-                                                      TYPE_REFERENCE_EXPRESSION
-                                                        PsiElement(identifier)('int')
+                                                ARRAY_OR_SLICE_TYPE
+                                                  PsiElement([)('[')
+                                                  PsiElement(])(']')
+                                                  TYPE
+                                                    TYPE_REFERENCE_EXPRESSION
+                                                      PsiElement(identifier)('int')
                                                 LITERAL_VALUE
                                                   PsiElement({)('{')
                                                   PsiElement(})('}')
@@ -1895,21 +1839,19 @@ GO_FILE
                                           ELEMENT
                                             VALUE
                                               COMPOSITE_LIT
-                                                LITERAL_TYPE_EXPR
-                                                  ARRAY_OR_SLICE_TYPE
-                                                    PsiElement([)('[')
-                                                    PsiElement(])(']')
-                                                    TYPE
-                                                      TYPE_REFERENCE_EXPRESSION
-                                                        PsiElement(identifier)('θ_parse_node')
+                                                ARRAY_OR_SLICE_TYPE
+                                                  PsiElement([)('[')
+                                                  PsiElement(])(']')
+                                                  TYPE
+                                                    TYPE_REFERENCE_EXPRESSION
+                                                      PsiElement(identifier)('θ_parse_node')
                                                 LITERAL_VALUE
                                                   PsiElement({)('{')
                                                   ELEMENT
                                                     VALUE
                                                       COMPOSITE_LIT
-                                                        LITERAL_TYPE_EXPR
-                                                          TYPE_REFERENCE_EXPRESSION
-                                                            PsiElement(identifier)('θ_parse_node')
+                                                        TYPE_REFERENCE_EXPRESSION
+                                                          PsiElement(identifier)('θ_parse_node')
                                                         LITERAL_VALUE
                                                           PsiElement({)('{')
                                                           ELEMENT
@@ -1925,13 +1867,12 @@ GO_FILE
                                                           ELEMENT
                                                             VALUE
                                                               COMPOSITE_LIT
-                                                                LITERAL_TYPE_EXPR
-                                                                  ARRAY_OR_SLICE_TYPE
-                                                                    PsiElement([)('[')
-                                                                    PsiElement(])(']')
-                                                                    TYPE
-                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                        PsiElement(identifier)('int')
+                                                                ARRAY_OR_SLICE_TYPE
+                                                                  PsiElement([)('[')
+                                                                  PsiElement(])(']')
+                                                                  TYPE
+                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                      PsiElement(identifier)('int')
                                                                 LITERAL_VALUE
                                                                   PsiElement({)('{')
                                                                   PsiElement(})('}')
@@ -1949,21 +1890,19 @@ GO_FILE
                                                           ELEMENT
                                                             VALUE
                                                               COMPOSITE_LIT
-                                                                LITERAL_TYPE_EXPR
-                                                                  ARRAY_OR_SLICE_TYPE
-                                                                    PsiElement([)('[')
-                                                                    PsiElement(])(']')
-                                                                    TYPE
-                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                        PsiElement(identifier)('θ_parse_node')
+                                                                ARRAY_OR_SLICE_TYPE
+                                                                  PsiElement([)('[')
+                                                                  PsiElement(])(']')
+                                                                  TYPE
+                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                      PsiElement(identifier)('θ_parse_node')
                                                                 LITERAL_VALUE
                                                                   PsiElement({)('{')
                                                                   ELEMENT
                                                                     VALUE
                                                                       COMPOSITE_LIT
-                                                                        LITERAL_TYPE_EXPR
-                                                                          TYPE_REFERENCE_EXPRESSION
-                                                                            PsiElement(identifier)('θ_parse_node')
+                                                                        TYPE_REFERENCE_EXPRESSION
+                                                                          PsiElement(identifier)('θ_parse_node')
                                                                         LITERAL_VALUE
                                                                           PsiElement({)('{')
                                                                           ELEMENT
@@ -1979,13 +1918,12 @@ GO_FILE
                                                                           ELEMENT
                                                                             VALUE
                                                                               COMPOSITE_LIT
-                                                                                LITERAL_TYPE_EXPR
-                                                                                  ARRAY_OR_SLICE_TYPE
-                                                                                    PsiElement([)('[')
-                                                                                    PsiElement(])(']')
-                                                                                    TYPE
-                                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                                        PsiElement(identifier)('int')
+                                                                                ARRAY_OR_SLICE_TYPE
+                                                                                  PsiElement([)('[')
+                                                                                  PsiElement(])(']')
+                                                                                  TYPE
+                                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                                      PsiElement(identifier)('int')
                                                                                 LITERAL_VALUE
                                                                                   PsiElement({)('{')
                                                                                   PsiElement(})('}')
@@ -2003,21 +1941,19 @@ GO_FILE
                                                                           ELEMENT
                                                                             VALUE
                                                                               COMPOSITE_LIT
-                                                                                LITERAL_TYPE_EXPR
-                                                                                  ARRAY_OR_SLICE_TYPE
-                                                                                    PsiElement([)('[')
-                                                                                    PsiElement(])(']')
-                                                                                    TYPE
-                                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                                        PsiElement(identifier)('θ_parse_node')
+                                                                                ARRAY_OR_SLICE_TYPE
+                                                                                  PsiElement([)('[')
+                                                                                  PsiElement(])(']')
+                                                                                  TYPE
+                                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                                      PsiElement(identifier)('θ_parse_node')
                                                                                 LITERAL_VALUE
                                                                                   PsiElement({)('{')
                                                                                   ELEMENT
                                                                                     VALUE
                                                                                       COMPOSITE_LIT
-                                                                                        LITERAL_TYPE_EXPR
-                                                                                          TYPE_REFERENCE_EXPRESSION
-                                                                                            PsiElement(identifier)('θ_parse_node')
+                                                                                        TYPE_REFERENCE_EXPRESSION
+                                                                                          PsiElement(identifier)('θ_parse_node')
                                                                                         LITERAL_VALUE
                                                                                           PsiElement({)('{')
                                                                                           ELEMENT
@@ -2033,13 +1969,12 @@ GO_FILE
                                                                                           ELEMENT
                                                                                             VALUE
                                                                                               COMPOSITE_LIT
-                                                                                                LITERAL_TYPE_EXPR
-                                                                                                  ARRAY_OR_SLICE_TYPE
-                                                                                                    PsiElement([)('[')
-                                                                                                    PsiElement(])(']')
-                                                                                                    TYPE
-                                                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                                                        PsiElement(identifier)('int')
+                                                                                                ARRAY_OR_SLICE_TYPE
+                                                                                                  PsiElement([)('[')
+                                                                                                  PsiElement(])(']')
+                                                                                                  TYPE
+                                                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                                                      PsiElement(identifier)('int')
                                                                                                 LITERAL_VALUE
                                                                                                   PsiElement({)('{')
                                                                                                   ELEMENT
@@ -2069,13 +2004,12 @@ GO_FILE
                                                                                           ELEMENT
                                                                                             VALUE
                                                                                               COMPOSITE_LIT
-                                                                                                LITERAL_TYPE_EXPR
-                                                                                                  ARRAY_OR_SLICE_TYPE
-                                                                                                    PsiElement([)('[')
-                                                                                                    PsiElement(])(']')
-                                                                                                    TYPE
-                                                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                                                        PsiElement(identifier)('θ_parse_node')
+                                                                                                ARRAY_OR_SLICE_TYPE
+                                                                                                  PsiElement([)('[')
+                                                                                                  PsiElement(])(']')
+                                                                                                  TYPE
+                                                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                                                      PsiElement(identifier)('θ_parse_node')
                                                                                                 LITERAL_VALUE
                                                                                                   PsiElement({)('{')
                                                                                                   PsiElement(})('}')
@@ -2092,9 +2026,8 @@ GO_FILE
                   ELEMENT
                     VALUE
                       COMPOSITE_LIT
-                        LITERAL_TYPE_EXPR
-                          TYPE_REFERENCE_EXPRESSION
-                            PsiElement(identifier)('θ_parse_node')
+                        TYPE_REFERENCE_EXPRESSION
+                          PsiElement(identifier)('θ_parse_node')
                         LITERAL_VALUE
                           PsiElement({)('{')
                           ELEMENT
@@ -2110,13 +2043,12 @@ GO_FILE
                           ELEMENT
                             VALUE
                               COMPOSITE_LIT
-                                LITERAL_TYPE_EXPR
-                                  ARRAY_OR_SLICE_TYPE
-                                    PsiElement([)('[')
-                                    PsiElement(])(']')
-                                    TYPE
-                                      TYPE_REFERENCE_EXPRESSION
-                                        PsiElement(identifier)('int')
+                                ARRAY_OR_SLICE_TYPE
+                                  PsiElement([)('[')
+                                  PsiElement(])(']')
+                                  TYPE
+                                    TYPE_REFERENCE_EXPRESSION
+                                      PsiElement(identifier)('int')
                                 LITERAL_VALUE
                                   PsiElement({)('{')
                                   PsiElement(})('}')
@@ -2134,21 +2066,19 @@ GO_FILE
                           ELEMENT
                             VALUE
                               COMPOSITE_LIT
-                                LITERAL_TYPE_EXPR
-                                  ARRAY_OR_SLICE_TYPE
-                                    PsiElement([)('[')
-                                    PsiElement(])(']')
-                                    TYPE
-                                      TYPE_REFERENCE_EXPRESSION
-                                        PsiElement(identifier)('θ_parse_node')
+                                ARRAY_OR_SLICE_TYPE
+                                  PsiElement([)('[')
+                                  PsiElement(])(']')
+                                  TYPE
+                                    TYPE_REFERENCE_EXPRESSION
+                                      PsiElement(identifier)('θ_parse_node')
                                 LITERAL_VALUE
                                   PsiElement({)('{')
                                   ELEMENT
                                     VALUE
                                       COMPOSITE_LIT
-                                        LITERAL_TYPE_EXPR
-                                          TYPE_REFERENCE_EXPRESSION
-                                            PsiElement(identifier)('θ_parse_node')
+                                        TYPE_REFERENCE_EXPRESSION
+                                          PsiElement(identifier)('θ_parse_node')
                                         LITERAL_VALUE
                                           PsiElement({)('{')
                                           ELEMENT
@@ -2164,13 +2094,12 @@ GO_FILE
                                           ELEMENT
                                             VALUE
                                               COMPOSITE_LIT
-                                                LITERAL_TYPE_EXPR
-                                                  ARRAY_OR_SLICE_TYPE
-                                                    PsiElement([)('[')
-                                                    PsiElement(])(']')
-                                                    TYPE
-                                                      TYPE_REFERENCE_EXPRESSION
-                                                        PsiElement(identifier)('int')
+                                                ARRAY_OR_SLICE_TYPE
+                                                  PsiElement([)('[')
+                                                  PsiElement(])(']')
+                                                  TYPE
+                                                    TYPE_REFERENCE_EXPRESSION
+                                                      PsiElement(identifier)('int')
                                                 LITERAL_VALUE
                                                   PsiElement({)('{')
                                                   PsiElement(})('}')
@@ -2188,21 +2117,19 @@ GO_FILE
                                           ELEMENT
                                             VALUE
                                               COMPOSITE_LIT
-                                                LITERAL_TYPE_EXPR
-                                                  ARRAY_OR_SLICE_TYPE
-                                                    PsiElement([)('[')
-                                                    PsiElement(])(']')
-                                                    TYPE
-                                                      TYPE_REFERENCE_EXPRESSION
-                                                        PsiElement(identifier)('θ_parse_node')
+                                                ARRAY_OR_SLICE_TYPE
+                                                  PsiElement([)('[')
+                                                  PsiElement(])(']')
+                                                  TYPE
+                                                    TYPE_REFERENCE_EXPRESSION
+                                                      PsiElement(identifier)('θ_parse_node')
                                                 LITERAL_VALUE
                                                   PsiElement({)('{')
                                                   ELEMENT
                                                     VALUE
                                                       COMPOSITE_LIT
-                                                        LITERAL_TYPE_EXPR
-                                                          TYPE_REFERENCE_EXPRESSION
-                                                            PsiElement(identifier)('θ_parse_node')
+                                                        TYPE_REFERENCE_EXPRESSION
+                                                          PsiElement(identifier)('θ_parse_node')
                                                         LITERAL_VALUE
                                                           PsiElement({)('{')
                                                           ELEMENT
@@ -2218,13 +2145,12 @@ GO_FILE
                                                           ELEMENT
                                                             VALUE
                                                               COMPOSITE_LIT
-                                                                LITERAL_TYPE_EXPR
-                                                                  ARRAY_OR_SLICE_TYPE
-                                                                    PsiElement([)('[')
-                                                                    PsiElement(])(']')
-                                                                    TYPE
-                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                        PsiElement(identifier)('int')
+                                                                ARRAY_OR_SLICE_TYPE
+                                                                  PsiElement([)('[')
+                                                                  PsiElement(])(']')
+                                                                  TYPE
+                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                      PsiElement(identifier)('int')
                                                                 LITERAL_VALUE
                                                                   PsiElement({)('{')
                                                                   PsiElement(})('}')
@@ -2250,13 +2176,12 @@ GO_FILE
                                                           ELEMENT
                                                             VALUE
                                                               COMPOSITE_LIT
-                                                                LITERAL_TYPE_EXPR
-                                                                  ARRAY_OR_SLICE_TYPE
-                                                                    PsiElement([)('[')
-                                                                    PsiElement(])(']')
-                                                                    TYPE
-                                                                      TYPE_REFERENCE_EXPRESSION
-                                                                        PsiElement(identifier)('θ_parse_node')
+                                                                ARRAY_OR_SLICE_TYPE
+                                                                  PsiElement([)('[')
+                                                                  PsiElement(])(']')
+                                                                  TYPE
+                                                                    TYPE_REFERENCE_EXPRESSION
+                                                                      PsiElement(identifier)('θ_parse_node')
                                                                 LITERAL_VALUE
                                                                   PsiElement({)('{')
                                                                   PsiElement(})('}')
@@ -2333,9 +2258,8 @@ GO_FILE
           UNARY_EXPR
             PsiElement(&)('&')
             COMPOSITE_LIT
-              LITERAL_TYPE_EXPR
-                TYPE_REFERENCE_EXPRESSION
-                  PsiElement(identifier)('stru')
+              TYPE_REFERENCE_EXPRESSION
+                PsiElement(identifier)('stru')
               LITERAL_VALUE
                 PsiElement({)('{')
                 ELEMENT
@@ -2354,17 +2278,16 @@ GO_FILE
                   PsiElement(:)(':')
                   VALUE
                     COMPOSITE_LIT
-                      LITERAL_TYPE_EXPR
-                        MAP_TYPE
-                          PsiElement(map)('map')
-                          PsiElement([)('[')
-                          TYPE
-                            TYPE_REFERENCE_EXPRESSION
-                              PsiElement(identifier)('string')
-                          PsiElement(])(']')
-                          TYPE
-                            TYPE_REFERENCE_EXPRESSION
-                              PsiElement(identifier)('string')
+                      MAP_TYPE
+                        PsiElement(map)('map')
+                        PsiElement([)('[')
+                        TYPE
+                          TYPE_REFERENCE_EXPRESSION
+                            PsiElement(identifier)('string')
+                        PsiElement(])(']')
+                        TYPE
+                          TYPE_REFERENCE_EXPRESSION
+                            PsiElement(identifier)('string')
                       LITERAL_VALUE
                         PsiElement({)('{')
                         ELEMENT
@@ -2379,35 +2302,36 @@ GO_FILE
                 PsiElement(,)(',')
                 PsiElement(})('}')
       ASSIGNMENT_STATEMENT
-        REFERENCE_EXPRESSION
+        LEFT_HAND_EXPR_LIST
           REFERENCE_EXPRESSION
-            PsiElement(identifier)('a')
-          PsiElement(.)('.')
-          PsiElement(identifier)('Field')
+            REFERENCE_EXPRESSION
+              PsiElement(identifier)('a')
+            PsiElement(.)('.')
+            PsiElement(identifier)('Field')
         ASSIGN_OP
           PsiElement(=)('=')
         STRING_LITERAL
           PsiElement(string)('"dem"')
       ASSIGNMENT_STATEMENT
-        REFERENCE_EXPRESSION
+        LEFT_HAND_EXPR_LIST
           REFERENCE_EXPRESSION
-            PsiElement(identifier)('a')
-          PsiElement(.)('.')
-          PsiElement(identifier)('Field1')
+            REFERENCE_EXPRESSION
+              PsiElement(identifier)('a')
+            PsiElement(.)('.')
+            PsiElement(identifier)('Field1')
         ASSIGN_OP
           PsiElement(=)('=')
         COMPOSITE_LIT
-          LITERAL_TYPE_EXPR
-            MAP_TYPE
-              PsiElement(map)('map')
-              PsiElement([)('[')
-              TYPE
-                TYPE_REFERENCE_EXPRESSION
-                  PsiElement(identifier)('string')
-              PsiElement(])(']')
-              TYPE
-                TYPE_REFERENCE_EXPRESSION
-                  PsiElement(identifier)('string')
+          MAP_TYPE
+            PsiElement(map)('map')
+            PsiElement([)('[')
+            TYPE
+              TYPE_REFERENCE_EXPRESSION
+                PsiElement(identifier)('string')
+            PsiElement(])(']')
+            TYPE
+              TYPE_REFERENCE_EXPRESSION
+                PsiElement(identifier)('string')
           LITERAL_VALUE
             PsiElement({)('{')
             ELEMENT
@@ -2445,35 +2369,36 @@ GO_FILE
               PsiElement(()('(')
               PsiElement())(')')
       ASSIGNMENT_STATEMENT
-        REFERENCE_EXPRESSION
+        LEFT_HAND_EXPR_LIST
           REFERENCE_EXPRESSION
-            PsiElement(identifier)('b')
-          PsiElement(.)('.')
-          PsiElement(identifier)('Field')
+            REFERENCE_EXPRESSION
+              PsiElement(identifier)('b')
+            PsiElement(.)('.')
+            PsiElement(identifier)('Field')
         ASSIGN_OP
           PsiElement(=)('=')
         STRING_LITERAL
           PsiElement(string)('"de"')
       ASSIGNMENT_STATEMENT
-        REFERENCE_EXPRESSION
+        LEFT_HAND_EXPR_LIST
           REFERENCE_EXPRESSION
-            PsiElement(identifier)('b')
-          PsiElement(.)('.')
-          PsiElement(identifier)('Field1')
+            REFERENCE_EXPRESSION
+              PsiElement(identifier)('b')
+            PsiElement(.)('.')
+            PsiElement(identifier)('Field1')
         ASSIGN_OP
           PsiElement(=)('=')
         COMPOSITE_LIT
-          LITERAL_TYPE_EXPR
-            MAP_TYPE
-              PsiElement(map)('map')
-              PsiElement([)('[')
-              TYPE
-                TYPE_REFERENCE_EXPRESSION
-                  PsiElement(identifier)('string')
-              PsiElement(])(']')
-              TYPE
-                TYPE_REFERENCE_EXPRESSION
-                  PsiElement(identifier)('string')
+          MAP_TYPE
+            PsiElement(map)('map')
+            PsiElement([)('[')
+            TYPE
+              TYPE_REFERENCE_EXPRESSION
+                PsiElement(identifier)('string')
+            PsiElement(])(']')
+            TYPE
+              TYPE_REFERENCE_EXPRESSION
+                PsiElement(identifier)('string')
           LITERAL_VALUE
             PsiElement({)('{')
             ELEMENT
@@ -2493,9 +2418,8 @@ GO_FILE
           UNARY_EXPR
             PsiElement(*)('*')
             COMPOSITE_LIT
-              LITERAL_TYPE_EXPR
-                TYPE_REFERENCE_EXPRESSION
-                  PsiElement(identifier)('str')
+              TYPE_REFERENCE_EXPRESSION
+                PsiElement(identifier)('str')
               LITERAL_VALUE
                 PsiElement({)('{')
                 ELEMENT
@@ -2507,9 +2431,8 @@ GO_FILE
                     UNARY_EXPR
                       PsiElement(&)('&')
                       COMPOSITE_LIT
-                        LITERAL_TYPE_EXPR
-                          TYPE_REFERENCE_EXPRESSION
-                            PsiElement(identifier)('stru')
+                        TYPE_REFERENCE_EXPRESSION
+                          PsiElement(identifier)('stru')
                         LITERAL_VALUE
                           PsiElement({)('{')
                           ELEMENT
@@ -2540,17 +2463,16 @@ GO_FILE
                             PsiElement(:)(':')
                             VALUE
                               COMPOSITE_LIT
-                                LITERAL_TYPE_EXPR
-                                  MAP_TYPE
-                                    PsiElement(map)('map')
-                                    PsiElement([)('[')
-                                    TYPE
-                                      TYPE_REFERENCE_EXPRESSION
-                                        PsiElement(identifier)('string')
-                                    PsiElement(])(']')
-                                    TYPE
-                                      TYPE_REFERENCE_EXPRESSION
-                                        PsiElement(identifier)('string')
+                                MAP_TYPE
+                                  PsiElement(map)('map')
+                                  PsiElement([)('[')
+                                  TYPE
+                                    TYPE_REFERENCE_EXPRESSION
+                                      PsiElement(identifier)('string')
+                                  PsiElement(])(']')
+                                  TYPE
+                                    TYPE_REFERENCE_EXPRESSION
+                                      PsiElement(identifier)('string')
                                 LITERAL_VALUE
                                   PsiElement({)('{')
                                   ELEMENT
@@ -2586,25 +2508,26 @@ GO_FILE
               PsiElement(int)('4')
           PsiElement(;)(';')
           SIMPLE_STATEMENT
-            REFERENCE_EXPRESSION
-              PsiElement(identifier)('i')
+            LEFT_HAND_EXPR_LIST
+              REFERENCE_EXPRESSION
+                PsiElement(identifier)('i')
             PsiElement(++)('++')
         BLOCK
           PsiElement({)('{')
           ASSIGNMENT_STATEMENT
-            REFERENCE_EXPRESSION
+            LEFT_HAND_EXPR_LIST
               REFERENCE_EXPRESSION
-                PsiElement(identifier)('a')
-              PsiElement(.)('.')
-              PsiElement(identifier)('Fiel')
+                REFERENCE_EXPRESSION
+                  PsiElement(identifier)('a')
+                PsiElement(.)('.')
+                PsiElement(identifier)('Fiel')
             ASSIGN_OP
               PsiElement(=)('=')
             UNARY_EXPR
               PsiElement(&)('&')
               COMPOSITE_LIT
-                LITERAL_TYPE_EXPR
-                  TYPE_REFERENCE_EXPRESSION
-                    PsiElement(identifier)('stru')
+                TYPE_REFERENCE_EXPRESSION
+                  PsiElement(identifier)('stru')
                 LITERAL_VALUE
                   PsiElement({)('{')
                   ELEMENT
@@ -2636,17 +2559,16 @@ GO_FILE
                     PsiElement(:)(':')
                     VALUE
                       COMPOSITE_LIT
-                        LITERAL_TYPE_EXPR
-                          MAP_TYPE
-                            PsiElement(map)('map')
-                            PsiElement([)('[')
-                            TYPE
-                              TYPE_REFERENCE_EXPRESSION
-                                PsiElement(identifier)('string')
-                            PsiElement(])(']')
-                            TYPE
-                              TYPE_REFERENCE_EXPRESSION
-                                PsiElement(identifier)('string')
+                        MAP_TYPE
+                          PsiElement(map)('map')
+                          PsiElement([)('[')
+                          TYPE
+                            TYPE_REFERENCE_EXPRESSION
+                              PsiElement(identifier)('string')
+                          PsiElement(])(']')
+                          TYPE
+                            TYPE_REFERENCE_EXPRESSION
+                              PsiElement(identifier)('string')
                         LITERAL_VALUE
                           PsiElement({)('{')
                           ELEMENT
@@ -2664,15 +2586,17 @@ GO_FILE
                   PsiElement(})('}')
           PsiElement(})('}')
       ASSIGNMENT_STATEMENT
-        REFERENCE_EXPRESSION
-          PsiElement(identifier)('_')
+        LEFT_HAND_EXPR_LIST
+          REFERENCE_EXPRESSION
+            PsiElement(identifier)('_')
         ASSIGN_OP
           PsiElement(=)('=')
         REFERENCE_EXPRESSION
           PsiElement(identifier)('b')
       ASSIGNMENT_STATEMENT
-        REFERENCE_EXPRESSION
-          PsiElement(identifier)('_')
+        LEFT_HAND_EXPR_LIST
+          REFERENCE_EXPRESSION
+            PsiElement(identifier)('_')
         ASSIGN_OP
           PsiElement(=)('=')
         REFERENCE_EXPRESSION
