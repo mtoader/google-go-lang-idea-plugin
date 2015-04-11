@@ -18,6 +18,7 @@ package com.goide;
 
 import com.goide.highlighting.GoSyntaxHighlightingColors;
 import com.goide.psi.*;
+import com.goide.psi.impl.GoFieldNameImpl;
 import com.goide.psi.impl.GoPsiImplUtil;
 import com.goide.psi.impl.GoReference;
 import com.intellij.lang.annotation.AnnotationHolder;
@@ -25,6 +26,7 @@ import com.intellij.lang.annotation.Annotator;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.editor.markup.TextAttributes;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
@@ -46,7 +48,7 @@ public class GoAnnotator implements Annotator {
     }
     else if (o instanceof GoReferenceExpression) {
       PsiElement resolve = ((GoReferenceExpression)o).getReference().resolve();
-      highlightRefIfNeeded((GoReferenceExpression)o, resolve, holder);      
+      highlightRefIfNeeded((GoReferenceExpression)o, resolve, holder);
     }
     else if (o instanceof GoTypeReferenceExpression) {
       PsiElement resolve = ((GoTypeReferenceExpression)o).getReference().resolve();
@@ -63,6 +65,9 @@ public class GoAnnotator implements Annotator {
     }
     else if (o instanceof GoFieldDefinition) {
       setHighlighting(o, holder, getColor((GoFieldDefinition)o), "field");
+    }
+    else if (o instanceof GoFieldNameImpl) {
+      setHighlighting(o, holder, getColor((GoFieldNameImpl)o), "field");
     }
     else if (o instanceof GoParamDefinition) {
       setHighlighting(o, holder, getFunctionParameterColor(), "param");
@@ -131,6 +136,12 @@ public class GoAnnotator implements Annotator {
     return o.isPublic()
               ? GoSyntaxHighlightingColors.STRUCT_EXPORTED_MEMBER
               : GoSyntaxHighlightingColors.STRUCT_LOCAL_MEMBER;
+  }
+
+  private static TextAttributesKey getColor(GoFieldNameImpl o) {
+    return StringUtil.isCapitalized(o.getName())
+           ? GoSyntaxHighlightingColors.STRUCT_EXPORTED_MEMBER
+           : GoSyntaxHighlightingColors.STRUCT_LOCAL_MEMBER;
   }
 
   private static TextAttributesKey getColor(GoVarDefinition o) {
