@@ -17,6 +17,7 @@
 package com.goide.runconfig.testing.ui;
 
 import com.goide.completion.GoImportPathsCompletionProvider;
+import com.goide.runconfig.GoRunConfigurationBase;
 import com.goide.runconfig.testing.GoTestRunConfiguration;
 import com.goide.runconfig.ui.GoCommonSettingsPanel;
 import com.goide.util.GoUtil;
@@ -98,7 +99,7 @@ public class GoTestRunConfigurationEditorForm extends SettingsEditor<GoTestRunCo
 
   @Override
   protected void applyEditorTo(@NotNull GoTestRunConfiguration configuration) throws ConfigurationException {
-    configuration.setKind((GoTestRunConfiguration.Kind)myTestKindComboBox.getSelectedItem());
+    configuration.setKind((GoRunConfigurationBase.Kind)myTestKindComboBox.getSelectedItem());
     configuration.setPackage(myPackageField.getText());
     configuration.setDirectoryPath(myDirectoryField.getText());
     configuration.setFilePath(myFileField.getText());

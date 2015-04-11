@@ -52,7 +52,7 @@ public class GoTestRunConfigurationProducer extends RunConfigurationProducer<GoT
     if (module == null || !GoSdkService.getInstance(configuration.getProject()).isGoModule(module)) {
       return false;
     }
-    
+
     configuration.setModule(module);
     if (contextElement instanceof PsiDirectory) {
       configuration.setName("All in '" + ((PsiDirectory)contextElement).getName() + "'");
@@ -113,13 +113,13 @@ public class GoTestRunConfigurationProducer extends RunConfigurationProducer<GoT
         if (!GoTestFinder.isTestFile(file)) return false;
         if (!Comparing.equal(((GoFile)file).getImportPath(), configuration.getPackage())) return false;
         if (isPackageContext(contextElement) && configuration.getPattern().isEmpty()) return true;
-        
+
         String functionNameFromContext = findFunctionNameFromContext(contextElement);
-        return functionNameFromContext != null 
-               ? configuration.getPattern().equals("^" + functionNameFromContext + "$") 
+        return functionNameFromContext != null
+               ? configuration.getPattern().equals("^" + functionNameFromContext + "$")
                : configuration.getPattern().isEmpty();
       case FILE:
-        return GoTestFinder.isTestFile(file) && FileUtil.pathsEqual(configuration.getFilePath(), file.getVirtualFile().getPath()) &&
+        return file != null && FileUtil.pathsEqual(configuration.getFilePath(), file.getVirtualFile().getPath()) &&
           findFunctionNameFromContext(contextElement) == null;
     }
     return false;

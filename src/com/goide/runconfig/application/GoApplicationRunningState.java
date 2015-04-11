@@ -26,6 +26,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
+import static com.goide.runconfig.GoRunConfigurationBase.Kind;
+
 public class GoApplicationRunningState extends GoRunningState<GoApplicationConfiguration> {
   private String myTmpFilePath;
 
@@ -33,10 +35,20 @@ public class GoApplicationRunningState extends GoRunningState<GoApplicationConfi
                                    @NotNull GoApplicationConfiguration configuration) {
     super(env, module, configuration);
   }
-  
+
   @NotNull
   public String getMainFilePath() {
     return myConfiguration.getFilePath();
+  }
+
+  @NotNull
+  public String getPackage() {
+    return myConfiguration.getPackage();
+  }
+
+  @NotNull
+  public Kind getKind() {
+    return myConfiguration.getKind();
   }
 
   @NotNull
