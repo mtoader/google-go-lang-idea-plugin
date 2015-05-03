@@ -47,6 +47,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
@@ -123,7 +124,7 @@ public class GoSdkUtil {
   public static Collection<VirtualFile> getGoPathSources(@NotNull Project project, @Nullable Module module) {
     return ContainerUtil.mapNotNull(getGoPathRoots(project, module), new RetrieveSubDirectoryOrSelfFunction("src"));
   }
-  
+
   @NotNull
   public static Collection<VirtualFile> getGoPathBins(@NotNull Project project, @Nullable Module module) {
     Collection<VirtualFile> result = newLinkedHashSet(ContainerUtil.mapNotNull(getGoPathRoots(project, module),
@@ -133,9 +134,21 @@ public class GoSdkUtil {
       VirtualFile executable = VirtualFileManager.getInstance().findFileByUrl(VfsUtilCore.pathToUrl(executableGoPath));
       if (executable != null) ContainerUtil.addIfNotNull(result, executable.getParent());
     }
+
     return result;
   }
-  
+
+  @NotNull
+  public static Collection<String> mapVirtualFilesToCanonicalPaths(Collection<VirtualFile> files) {
+    Collection<String> result = new ArrayList<String>(files.size());
+
+    for (VirtualFile vfile : files) {
+      result.add(vfile.getCanonicalPath());
+    }
+
+    return result;
+  }
+
   /**
    * Retrieves root directories from GOPATH env-variable.
    * This method doesn't consider user defined libraries,
@@ -159,12 +172,12 @@ public class GoSdkUtil {
 
   @NotNull
   public static String retrieveGoPath(@NotNull Project project, @Nullable Module module) {
-    return StringUtil.join(getGoPathRoots(project, module), File.pathSeparator);
+    return StringUtil.join(mapVirtualFilesToCanonicalPaths(getGoPathRoots(project, module)), File.pathSeparator);
   }
-  
+
   @NotNull
   public static String retrieveEnvironmentPathForGo(@NotNull Project project, @Nullable Module module) {
-    return StringUtil.join(getGoPathBins(project, module), File.pathSeparator);
+    return StringUtil.join(mapVirtualFilesToCanonicalPaths(getGoPathBins(project, module)), File.pathSeparator);
   }
 
   @NotNull
