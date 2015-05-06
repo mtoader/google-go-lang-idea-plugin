@@ -43,7 +43,7 @@ public class GoTestRunConfiguration extends GoRunConfigurationBase<GoTestRunning
   private static final String DIRECTORY_ATTRIBUTE_NAME = "directory";
   private static final String PACKAGE_ATTRIBUTE_NAME = "package";
   private static final String KIND_ATTRIBUTE_NAME = "kind";
-  
+
   @NotNull private String myPackage = "";
   @NotNull private String myFilePath = "";
   @NotNull private String myDirectoryPath = "";
@@ -137,7 +137,7 @@ public class GoTestRunConfiguration extends GoRunConfigurationBase<GoTestRunning
     super.readExternal(element);
     try {
       String kindName = JDOMExternalizerUtil.getFirstChildValueAttribute(element, KIND_ATTRIBUTE_NAME);
-      myKind = kindName != null ? Kind.valueOf(kindName) : Kind.DIRECTORY; 
+      myKind = kindName != null ? Kind.valueOf(kindName) : Kind.DIRECTORY;
     }
     catch (IllegalArgumentException e) {
       myKind = Kind.DIRECTORY;
@@ -156,7 +156,7 @@ public class GoTestRunConfiguration extends GoRunConfigurationBase<GoTestRunning
   public void setPattern(@NotNull String pattern) {
     myPattern = pattern;
   }
-  
+
   @NotNull
   public Kind getKind() {
     return myKind;
@@ -191,9 +191,5 @@ public class GoTestRunConfiguration extends GoRunConfigurationBase<GoTestRunning
 
   public void setDirectoryPath(@NotNull String directoryPath) {
     myDirectoryPath = directoryPath;
-  }
-
-  public enum Kind {
-    DIRECTORY, PACKAGE, FILE
   }
 }

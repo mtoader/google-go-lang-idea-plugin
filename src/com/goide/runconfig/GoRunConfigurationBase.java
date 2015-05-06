@@ -209,4 +209,8 @@ public abstract class GoRunConfigurationBase<RunningState extends GoRunningState
   public void setWorkingDirectory(@NotNull String workingDirectory) {
     myWorkingDirectory = workingDirectory;
   }
+
+  public enum Kind {
+    DIRECTORY, PACKAGE, FILE
+  }
 }

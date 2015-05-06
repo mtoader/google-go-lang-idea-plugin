@@ -19,9 +19,11 @@ package com.goide.runconfig;
 import com.goide.GoConstants;
 import com.goide.psi.GoFile;
 import com.goide.psi.GoFunctionDeclaration;
+import com.goide.sdk.GoSdkUtil;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RuntimeConfigurationError;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizerUtil;
 import com.intellij.openapi.util.WriteExternalException;
@@ -36,9 +38,14 @@ import org.jetbrains.annotations.NotNull;
 
 
 public abstract class GoRunConfigurationWithMain<T extends GoRunningState> extends GoRunConfigurationBase<T> {
-  private static final String FILE_PATH_NAME = "file_path";
-  
+  private static final String FILE_PATH_ATTRIBUTE_NAME = "filePath";
+  private static final String PACKAGE_ATTRIBUTE_NAME = "package";
+  private static final String KIND_ATTRIBUTE_NAME = "kind";
+
   @NotNull private String myFilePath = "";
+  @NotNull private String myPackage = "";
+
+  @NotNull private Kind myKind = Kind.FILE;
 
   public GoRunConfigurationWithMain(String name, GoModuleBasedConfiguration configurationModule, ConfigurationFactory factory) {
     super(name, configurationModule, factory);
@@ -48,7 +55,15 @@ public abstract class GoRunConfigurationWithMain<T extends GoRunningState> exten
   @Override
   public void readExternal(@NotNull Element element) throws InvalidDataException {
     super.readExternal(element);
-    String filePathValue = JDOMExternalizerUtil.getFirstChildValueAttribute(element, FILE_PATH_NAME);
+    try {
+      String kindName = JDOMExternalizerUtil.getFirstChildValueAttribute(element, KIND_ATTRIBUTE_NAME);
+      myKind = kindName != null ? Kind.valueOf(kindName) : Kind.PACKAGE;
+    }
+    catch (IllegalArgumentException e) {
+      myKind = Kind.PACKAGE;
+    }
+    myPackage = StringUtil.notNullize(JDOMExternalizerUtil.getFirstChildValueAttribute(element, PACKAGE_ATTRIBUTE_NAME));
+    String filePathValue = JDOMExternalizerUtil.getFirstChildValueAttribute(element, FILE_PATH_ATTRIBUTE_NAME);
     if (filePathValue != null) {
       myFilePath = filePathValue;
     }
@@ -57,8 +72,12 @@ public abstract class GoRunConfigurationWithMain<T extends GoRunningState> exten
   @Override
   public void writeExternal(Element element) throws WriteExternalException {
     super.writeExternal(element);
-    if (StringUtil.isNotEmpty(myFilePath)) {
-      JDOMExternalizerUtil.addElementWithValueAttribute(element, FILE_PATH_NAME, myFilePath);
+    JDOMExternalizerUtil.addElementWithValueAttribute(element, KIND_ATTRIBUTE_NAME, myKind.name());
+    if (!myPackage.isEmpty()) {
+      JDOMExternalizerUtil.addElementWithValueAttribute(element, PACKAGE_ATTRIBUTE_NAME, myPackage);
+    }
+    if (!myFilePath.isEmpty()) {
+      JDOMExternalizerUtil.addElementWithValueAttribute(element, FILE_PATH_ATTRIBUTE_NAME, myFilePath);
     }
   }
 
@@ -66,20 +85,48 @@ public abstract class GoRunConfigurationWithMain<T extends GoRunningState> exten
   public void checkConfiguration() throws RuntimeConfigurationException {
     super.checkConfiguration();
 
-    VirtualFile file = VirtualFileManager.getInstance().findFileByUrl(VfsUtilCore.pathToUrl(getFilePath()));
-    if (file == null) {
-      throw new RuntimeConfigurationError("Main file is not specified");
-    }
-    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
-    if (psiFile == null || !(psiFile instanceof GoFile)) {
-      throw new RuntimeConfigurationError("Main file is invalid");
-    }
-    if (!GoConstants.MAIN.equals(((GoFile)psiFile).getPackageName())) {
-      throw new RuntimeConfigurationError("Main file has non-main package");
-    }
-    GoFunctionDeclaration mainFunction = ((GoFile)psiFile).findMainFunction();
-    if (mainFunction == null) {
-      throw new RuntimeConfigurationError("Main file doesn't contain main function");
+    switch (myKind) {
+      case PACKAGE:
+        Module module = getConfigurationModule().getModule();
+        assert module != null;
+
+        VirtualFile packageDirectory = GoSdkUtil.findFileByRelativeToLibrariesPath(myPackage, module.getProject(), module);
+        if (packageDirectory == null || !packageDirectory.isDirectory()) {
+          throw new RuntimeConfigurationError("Cannot find package '" + myPackage + "'");
+        }
+        for (VirtualFile file : packageDirectory.getChildren()) {
+          if (file == null) {
+            continue;
+          }
+          PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
+          if (psiFile == null || !(psiFile instanceof GoFile)) {
+            continue;
+          }
+          if (GoConstants.MAIN.equals(((GoFile)psiFile).getPackageName())) {
+            GoFunctionDeclaration mainFunction = ((GoFile)psiFile).findMainFunction();
+            if (mainFunction != null) {
+              return;
+            }
+          }
+        }
+        throw new RuntimeConfigurationError("Cannot find Go file with main in '" + myPackage + "'");
+      case FILE:
+        VirtualFile file = VirtualFileManager.getInstance().findFileByUrl(VfsUtilCore.pathToUrl(getFilePath()));
+        if (file == null) {
+          throw new RuntimeConfigurationError("Main file is not specified");
+        }
+        PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
+        if (psiFile == null || !(psiFile instanceof GoFile)) {
+          throw new RuntimeConfigurationError("Main file is invalid");
+        }
+        if (!GoConstants.MAIN.equals(((GoFile)psiFile).getPackageName())) {
+          throw new RuntimeConfigurationError("Main file has non-main package");
+        }
+        GoFunctionDeclaration mainFunction = ((GoFile)psiFile).findMainFunction();
+        if (mainFunction == null) {
+          throw new RuntimeConfigurationError("Main file doesn't contain main function");
+        }
+        break;
     }
   }
 
@@ -90,5 +137,23 @@ public abstract class GoRunConfigurationWithMain<T extends GoRunningState> exten
 
   public void setFilePath(@NotNull String filePath) {
     myFilePath = filePath;
+  }
+
+  @NotNull
+  public String getPackage() {
+    return myPackage;
+  }
+
+  public void setPackage(@NotNull String aPackage) {
+    myPackage = aPackage;
+  }
+
+  @NotNull
+  public Kind getKind() {
+    return myKind;
+  }
+
+  public void setKind(@NotNull Kind aKind) {
+    myKind = aKind;
   }
 }

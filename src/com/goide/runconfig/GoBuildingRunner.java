@@ -41,6 +41,8 @@ import org.jetbrains.concurrency.Promise;
 import java.io.File;
 import java.io.IOException;
 
+import static com.goide.runconfig.GoRunConfigurationBase.Kind;
+
 public class GoBuildingRunner extends AsyncGenericProgramRunner {
   private static final String ID = "GoBuildingRunner";
 
@@ -59,10 +61,10 @@ public class GoBuildingRunner extends AsyncGenericProgramRunner {
   @Override
   protected Promise<RunProfileStarter> prepare(@NotNull ExecutionEnvironment environment, @NotNull RunProfileState state)
     throws ExecutionException {
+    RunnerAndConfigurationSettings settings = environment.getRunnerAndConfigurationSettings();
     final File tmpFile;
     final String params;
     try {
-      final RunnerAndConfigurationSettings settings = environment.getRunnerAndConfigurationSettings();
       tmpFile = FileUtil.createTempFile(settings != null ? settings.getName() : "application", "go", true);
       if (!tmpFile.setExecutable(true)) {
         throw new ExecutionException("Can't make temporary file executable (" + tmpFile.getAbsolutePath());
@@ -79,10 +81,18 @@ public class GoBuildingRunner extends AsyncGenericProgramRunner {
 
     final AsyncPromise<RunProfileStarter> promise = new AsyncPromise<RunProfileStarter>();
     FileDocumentManager.getInstance().saveAllDocuments();
+
+    String runTarget = "";
+    if (((GoApplicationRunningState)state).getKind() == Kind.PACKAGE) {
+      runTarget = ((GoApplicationRunningState)state).getPackage();
+    } else {
+      runTarget = ((GoApplicationRunningState)state).getMainFilePath();
+    }
+
     ((GoApplicationRunningState)state).createCommonExecutor()
       .withParameters("build")
       .withParameterString(params)
-      .withParameters("-o", tmpFile.getAbsolutePath(), ((GoApplicationRunningState)state).getMainFilePath())
+      .withParameters("-o", tmpFile.getAbsolutePath(), runTarget)
       .showNotifications(true)
       .showOutputOnError()
       .withPresentableName("go build")
