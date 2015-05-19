@@ -56,7 +56,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class GoExecutor {  
+public class GoExecutor {
   private static final Logger LOGGER = Logger.getInstance(GoExecutor.class);
   @NotNull private final Map<String, String> myExtraEnvironment = ContainerUtil.newHashMap();
   @NotNull private final ParametersList myParameterList = new ParametersList();
@@ -75,6 +75,7 @@ public class GoExecutor {
   @Nullable private String myPresentableName;
   private OSProcessHandler myProcessHandler;
   private Collection<ProcessListener> myProcessListeners = ContainerUtil.newArrayList();
+  private int myTimeout = -1;
 
   private GoExecutor(@NotNull Project project, @Nullable Module module) {
     myProject = project;
@@ -84,7 +85,7 @@ public class GoExecutor {
   public static GoExecutor in(@NotNull Project project, @Nullable Module module) {
     return module != null ? in(module) : in(project);
   }
-  
+
   @NotNull
   public static GoExecutor in(@NotNull Project project) {
     return new GoExecutor(project, null)
@@ -131,13 +132,13 @@ public class GoExecutor {
     myGoPath = goPath;
     return this;
   }
-  
+
   @NotNull
   public GoExecutor withEnvPath(@Nullable String envPath) {
     myEnvPath = envPath;
     return this;
   }
-  
+
   public GoExecutor withProcessListener(@NotNull ProcessListener listener) {
     myProcessListeners.add(listener);
     return this;
@@ -164,6 +165,16 @@ public class GoExecutor {
   @NotNull
   public GoExecutor withParameters(@NotNull String... parameters) {
     myParameterList.addAll(parameters);
+    return this;
+  }
+
+  /**
+   * Set execution timeout in milliseconds
+   * Useful when running the process in background via runWithProcessOutput()
+   * @param timeout timeout in milliseconds
+   */
+  public GoExecutor withTimeout(int timeout) {
+    myTimeout = timeout;
     return this;
   }
 
@@ -226,7 +237,7 @@ public class GoExecutor {
       myProcessHandler.startNotify();
       ExecutionModes.SameThreadMode sameThreadMode = new ExecutionModes.SameThreadMode(getPresentableName());
       ExecutionHelper.executeExternalProcess(myProject, myProcessHandler, sameThreadMode, commandLine);
-      
+
       LOGGER.debug("Finished `" + getPresentableName() + "` with result: " + result.get());
       return result.get();
     }
@@ -306,6 +317,11 @@ public class GoExecutor {
     if (myShowNotificationsOnError) {
       showNotification("Failed to run", NotificationType.ERROR);
     }
+  }
+
+  public ProcessOutput runWithProcessOutput() throws ExecutionException {
+    CapturingProcessHandler processHandler = new CapturingProcessHandler(createCommandLine());
+    return processHandler.runProcess(myTimeout);
   }
 
   @NotNull
