@@ -33,6 +33,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Set;
 
+import static com.goide.psi.impl.GoPsiImplUtil.isIllegalUseOfTypeAsExpression;
+
 public class GoAnnotator implements Annotator {
   private static final Set<String> INT_TYPE_NAMES = Sets.newHashSet(
     "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uintptr"
@@ -184,16 +186,5 @@ public class GoAnnotator implements Annotator {
     GoTypeReferenceExpression ref = type.getTypeReferenceExpression();
     if (ref == null) return false;
     return GoPsiImplUtil.builtin(type) && INT_TYPE_NAMES.contains(ref.getText());
-  }
-
-  /**
-   * Returns {@code true} if the given element is in an invalid location for a type literal or type reference.
-   */
-  private static boolean isIllegalUseOfTypeAsExpression(@NotNull PsiElement e) {
-    PsiElement parent = PsiTreeUtil.skipParentsOfType(e, GoParenthesesExpr.class, GoUnaryExpr.class);
-    // Part of a selector such as T.method
-    if (parent instanceof GoReferenceExpression || parent instanceof GoSelectorExpr) return false;
-    // A situation like T("foo").
-    return !(parent instanceof GoCallExpr);
   }
 }
