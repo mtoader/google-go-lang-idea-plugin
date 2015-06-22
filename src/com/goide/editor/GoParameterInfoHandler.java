@@ -116,6 +116,9 @@ public class GoParameterInfoHandler implements ParameterInfoHandlerWithTabAction
     else if (resolve instanceof GoSignatureOwner) {
       context.setItemsToShow(new Object[]{resolve});
       context.showHint(argList, argList.getTextRange().getStartOffset(), this);
+    } else if (ref == null && (((GoCallExpr)parent).getExpression() instanceof GoFunctionLit)) {
+      context.setItemsToShow(new Object[]{((GoFunctionLit)((GoCallExpr)parent).getExpression())});
+      context.showHint(argList, argList.getTextRange().getStartOffset(), this);
     }
   }
 
