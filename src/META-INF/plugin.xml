@@ -55,7 +55,8 @@
   </module-components>
 
   <extensions defaultExtensionNs="com.intellij">
-    <stubIndex implementation="com.goide.stubs.index.GoAllNamesIndex"/>
+    <stubIndex implementation="com.goide.stubs.index.GoAllPublicNamesIndex"/>
+    <stubIndex implementation="com.goide.stubs.index.GoAllPrivateNamesIndex"/>
     <stubIndex implementation="com.goide.stubs.index.GoFunctionIndex"/>
     <stubIndex implementation="com.goide.stubs.index.GoTypesIndex"/>
     <stubIndex implementation="com.goide.stubs.index.GoPackagesIndex"/>
@@ -99,6 +100,7 @@
     <colorSettingsPage implementation="com.goide.highlighting.GoColorsAndFontsPage"/>
     <lang.braceMatcher language="go" implementationClass="com.goide.editor.GoBraceMatcher"/>
     <quoteHandler fileType="Go" className="com.goide.editor.GoQuoteHandler"/>
+    <editorTypedHandler implementationClass="com.goide.editor.GoTypedHandler" />
     <lang.commenter language="go" implementationClass="com.goide.GoCommenter"/>
     <lang.elementManipulator forClass="com.goide.psi.impl.GoStringLiteralImpl"
                              implementationClass="com.goide.psi.impl.manipulator.GoStringManipulator"/>
@@ -136,6 +138,7 @@
 
     <!-- sdk -->
     <sdkType implementation="com.goide.sdk.GoSdkType"/>
+    <applicationService serviceImplementation="com.goide.sdk.GoEnvironmentGoPathModificationTracker"/>
     <projectService serviceInterface="com.goide.sdk.GoSdkService" serviceImplementation="com.goide.sdk.GoSmallIDEsSdkService"
                     overrides="false"/>
     <library.presentationProvider implementation="com.goide.sdk.GoSdkLibraryPresentationProvider"/>
@@ -154,7 +157,8 @@
     <configurationType implementation="com.goide.runconfig.application.GoApplicationRunConfigurationType"/>
 
     <!-- test -->
-    <runConfigurationProducer implementation="com.goide.runconfig.testing.GoTestRunConfigurationProducer"/>
+    <runConfigurationProducer implementation="com.goide.runconfig.testing.frameworks.gotest.GotestRunConfigurationProducer"/>
+    <runConfigurationProducer implementation="com.goide.runconfig.testing.frameworks.gocheck.GocheckRunConfigurationProducer"/>
     <configurationType implementation="com.goide.runconfig.testing.GoTestRunConfigurationType"/>
     <testFinder implementation="com.goide.runconfig.testing.GoTestFinder"/>
     <testSrcLocator implementation="com.goide.runconfig.testing.GoTestLocationProvider"/>

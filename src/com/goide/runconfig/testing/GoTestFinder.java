@@ -19,7 +19,7 @@ package com.goide.runconfig.testing;
 import com.goide.GoConstants;
 import com.goide.GoFileType;
 import com.goide.psi.GoFile;
-import com.goide.psi.GoFunctionDeclaration;
+import com.goide.psi.GoFunctionOrMethodDeclaration;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -45,14 +45,18 @@ public class GoTestFinder implements TestFinder {
   public static boolean isTestFile(@Nullable VirtualFile file) {
     return file != null && file.getFileType() == GoFileType.INSTANCE && file.getNameWithoutExtension().endsWith(GoConstants.TEST_SUFFIX);
   }
-  
+
   @Nullable
-  public static String getTestFunctionName(@NotNull GoFunctionDeclaration function) {
+  public static String getTestFunctionName(@NotNull GoFunctionOrMethodDeclaration function) {
     return isTestFunctionName(function.getName()) ? StringUtil.notNullize(function.getName()) : null;
   }
-  
+
   public static boolean isTestFunctionName(@Nullable String functionName) {
     return checkPrefix(functionName, "Test");
+  }
+
+  public static boolean isExampleFunctionName(@Nullable String functionName) {
+    return checkPrefix(functionName, "Example");
   }
 
   public static boolean isBenchmarkFunctionName(@Nullable String functionName) {
@@ -100,7 +104,7 @@ public class GoTestFinder implements TestFinder {
     }
     return Collections.emptyList();
   }
-  
+
   @Override
   public boolean isTest(@NotNull PsiElement element) {
     return isTestFile(InjectedLanguageUtil.getTopLevelFile(element));

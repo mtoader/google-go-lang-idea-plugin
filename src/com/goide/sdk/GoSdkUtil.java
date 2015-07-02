@@ -18,9 +18,11 @@ package com.goide.sdk;
 
 import com.goide.GoConstants;
 import com.goide.GoEnvironmentUtil;
+import com.goide.appengine.YamlFilesModificationTracker;
 import com.goide.project.GoApplicationLibrariesService;
 import com.goide.project.GoLibrariesService;
 import com.goide.psi.GoFile;
+import com.goide.util.GoUtil;
 import com.intellij.execution.configurations.PathEnvironmentVariableUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -41,7 +43,6 @@ import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Function;
 import com.intellij.util.ObjectUtils;
-import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.text.VersionComparatorUtil;
 import org.jetbrains.annotations.Contract;
@@ -52,22 +53,16 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.intellij.util.containers.ContainerUtil.newLinkedHashSet;
 
 public class GoSdkUtil {
-  private static final Pattern GO_VERSION_PATTERN = Pattern.compile("theVersion\\s*=\\s*`go([\\d.]+)`");
+  private static final Pattern GO_VERSION_PATTERN = Pattern.compile("theVersion\\s*=\\s*`go([\\d.]+(rc\\d+)?)`");
   private static final Pattern GAE_VERSION_PATTERN = Pattern.compile("theVersion\\s*=\\s*`go([\\d.]+)( \\(appengine-[\\d.]+\\))?`");
   private static final Pattern GO_DEVEL_VERSION_PATTERN = Pattern.compile("theVersion\\s*=\\s*`(devel.*)`");
-  private static final Function<VirtualFile, String> RETRIEVE_FILE_PATH_FUNCTION = new Function<VirtualFile, String>() {
-    @Override
-    public String fun(VirtualFile file) {
-      return file.getPath();
-    }
-  };
+
 
   // todo: caching
   @Nullable
@@ -92,7 +87,17 @@ public class GoSdkUtil {
   @Nullable
   public static GoFile findBuiltinFile(@NotNull PsiElement context) {
     final Project project = context.getProject();
-    final Module module = ModuleUtilCore.findModuleForPsiElement(context);
+    Module moduleFromContext = ModuleUtilCore.findModuleForPsiElement(context);
+    if (moduleFromContext == null) {
+      for (Module module : ModuleManager.getInstance(project).getModules()) {
+        if (GoSdkService.getInstance(project).isGoModule(module)) {
+          moduleFromContext = module;
+          break;
+        }
+      }
+    }
+    
+    final Module module = moduleFromContext;
     UserDataHolder holder = ObjectUtils.notNull(module, project);
     VirtualFile file = CachedValuesManager.getManager(context.getProject()).getCachedValue(holder, new CachedValueProvider<VirtualFile>() {
       @Nullable
@@ -132,8 +137,14 @@ public class GoSdkUtil {
   }
 
   @NotNull
-  public static Collection<VirtualFile> getGoPathSources(@NotNull Project project, @Nullable Module module) {
-    return ContainerUtil.mapNotNull(getGoPathRoots(project, module), new RetrieveSubDirectoryOrSelfFunction("src"));
+  public static Collection<VirtualFile> getGoPathSources(@NotNull final Project project, @Nullable final Module module) {
+    Collection<VirtualFile> result = newLinkedHashSet();
+    if (module != null && GoSdkService.getInstance(project).isAppEngineSdk(module)) {
+      ContainerUtil.addAllNotNull(result, ContainerUtil.mapNotNull(YamlFilesModificationTracker.getYamlFiles(project, module),
+                                                                   GoUtil.RETRIEVE_FILE_PARENT_FUNCTION));
+    }
+    result.addAll(ContainerUtil.mapNotNull(getGoPathRoots(project, module), new RetrieveSubDirectoryOrSelfFunction("src")));
+    return result;
   }
 
   @NotNull
@@ -155,28 +166,17 @@ public class GoSdkUtil {
    */
   @NotNull
   public static Collection<VirtualFile> getGoPathsRootsFromEnvironment() {
-    Set<VirtualFile> result = newLinkedHashSet();
-    String goPath = GoEnvironmentUtil.retrieveGoPathFromEnvironment();
-    if (goPath != null) {
-      String home = SystemProperties.getUserHome();
-      for (String s : StringUtil.split(goPath, File.pathSeparator)) {
-        if (home != null) {
-          s = s.replaceAll("\\$HOME", home);
-        }
-        ContainerUtil.addIfNotNull(result, LocalFileSystem.getInstance().findFileByPath(s));
-      }
-    }
-    return result;
+    return GoEnvironmentGoPathModificationTracker.getGoEnvironmentGoPathRoots();
   }
 
   @NotNull
   public static String retrieveGoPath(@NotNull Project project, @Nullable Module module) {
-    return StringUtil.join(ContainerUtil.map(getGoPathRoots(project, module), RETRIEVE_FILE_PATH_FUNCTION), File.pathSeparator);
+    return StringUtil.join(ContainerUtil.map(getGoPathRoots(project, module), GoUtil.RETRIEVE_FILE_PATH_FUNCTION), File.pathSeparator);
   }
 
   @NotNull
   public static String retrieveEnvironmentPathForGo(@NotNull Project project, @Nullable Module module) {
-    return StringUtil.join(ContainerUtil.map(getGoPathBins(project, module), RETRIEVE_FILE_PATH_FUNCTION), File.pathSeparator);
+    return StringUtil.join(ContainerUtil.map(getGoPathBins(project, module), GoUtil.RETRIEVE_FILE_PATH_FUNCTION), File.pathSeparator);
   }
 
   @NotNull

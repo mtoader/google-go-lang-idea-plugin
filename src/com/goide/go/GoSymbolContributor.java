@@ -17,10 +17,11 @@
 package com.goide.go;
 
 import com.goide.psi.GoNamedElement;
-import com.goide.stubs.index.GoAllNamesIndex;
+import com.goide.stubs.index.GoAllPrivateNamesIndex;
+import com.goide.stubs.index.GoAllPublicNamesIndex;
 
 public class GoSymbolContributor extends GoGotoContributorBase<GoNamedElement> {
   public GoSymbolContributor() {
-    super(GoAllNamesIndex.ALL_NAMES, GoNamedElement.class);
+    super(GoNamedElement.class, GoAllPublicNamesIndex.ALL_PUBLIC_NAMES, GoAllPrivateNamesIndex.ALL_PRIVATE_NAMES);
   }
 }

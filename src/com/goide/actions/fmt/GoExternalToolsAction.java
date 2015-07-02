@@ -66,7 +66,7 @@ public abstract class GoExternalToolsAction extends DumbAwareAction {
     VirtualFile file = e.getRequiredData(CommonDataKeys.VIRTUAL_FILE);
     assert project != null;
     String title = StringUtil.notNullize(e.getPresentation().getText());
-    
+
     final Module module = ModuleUtilCore.findModuleForFile(file, project);
     try {
       doSomething(file, module, project, title);
@@ -77,23 +77,29 @@ public abstract class GoExternalToolsAction extends DumbAwareAction {
     }
   }
 
-  protected boolean doSomething(@NotNull VirtualFile virtualFile, @Nullable Module module, @NotNull Project project, @NotNull String title)
-    throws ExecutionException {
-      Document document = FileDocumentManager.getInstance().getDocument(virtualFile);
-      assert document != null;
-      final String filePath = virtualFile.getCanonicalPath();
-      assert filePath != null;
-
-      FileDocumentManager.getInstance().saveDocument(document);
-      GoExecutor executor = createExecutor(project, module, title, filePath);
-      if (executor != null) {
-        executor.executeWithProgress(false);
-        return true;
-      }
-      return false;
+  protected boolean doSomething(@NotNull VirtualFile virtualFile,
+                                @Nullable Module module, 
+                                @NotNull Project project, 
+                                @NotNull String title) throws ExecutionException {
+    return doSomething(virtualFile, module, project, title, false);
   }
 
-  @Nullable
+  protected boolean doSomething(@NotNull VirtualFile virtualFile,
+                                @Nullable Module module,
+                                @NotNull Project project,
+                                @NotNull String title,
+                                boolean withProgress) throws ExecutionException {
+    Document document = FileDocumentManager.getInstance().getDocument(virtualFile);
+    assert document != null;
+    final String filePath = virtualFile.getCanonicalPath();
+    assert filePath != null;
+
+    FileDocumentManager.getInstance().saveDocument(document);
+    createExecutor(project, module, title, filePath).executeWithProgress(withProgress);
+    return true;
+  }
+
+  @NotNull
   protected abstract GoExecutor createExecutor(@NotNull Project project,
                                                @Nullable Module module,
                                                @NotNull String title,

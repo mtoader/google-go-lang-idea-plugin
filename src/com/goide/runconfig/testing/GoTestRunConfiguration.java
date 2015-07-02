@@ -18,10 +18,13 @@ package com.goide.runconfig.testing;
 
 import com.goide.runconfig.GoModuleBasedConfiguration;
 import com.goide.runconfig.GoRunConfigurationBase;
+import com.goide.runconfig.testing.frameworks.gotest.GotestFramework;
 import com.goide.runconfig.testing.ui.GoTestRunConfigurationEditorForm;
 import com.goide.sdk.GoSdkUtil;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.testframework.TestConsoleProperties;
+import com.intellij.execution.testframework.sm.runner.OutputToGeneralTestEventsConverter;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
@@ -43,6 +46,7 @@ public class GoTestRunConfiguration extends GoRunConfigurationBase<GoTestRunning
   private static final String DIRECTORY_ATTRIBUTE_NAME = "directory";
   private static final String PACKAGE_ATTRIBUTE_NAME = "package";
   private static final String KIND_ATTRIBUTE_NAME = "kind";
+  private static final String FRAMEWORK_ATTRIBUTE_NAME = "framework";
 
   @NotNull private String myPackage = "";
   @NotNull private String myFilePath = "";
@@ -50,12 +54,22 @@ public class GoTestRunConfiguration extends GoRunConfigurationBase<GoTestRunning
 
   @NotNull private String myPattern = "";
   @NotNull private Kind myKind = Kind.DIRECTORY;
+  private GoTestFramework myTestFramework = GotestFramework.INSTANCE;
 
   public GoTestRunConfiguration(@NotNull Project project, String name, @NotNull ConfigurationType configurationType) {
     super(name, new GoModuleBasedConfiguration(project), configurationType.getConfigurationFactories()[0]);
   }
 
+  public OutputToGeneralTestEventsConverter createTestEventsConverter(@NotNull TestConsoleProperties consoleProperties) {
+    return myTestFramework.createTestEventsConverter(consoleProperties);
+  }
+
   @NotNull
+  @Override
+  protected GoTestRunningState newRunningState(ExecutionEnvironment env, Module module) {
+    return myTestFramework.newRunningState(env, module, this);
+  }
+
   @Override
   protected ModuleBasedConfiguration createInstance() {
     return new GoTestRunConfiguration(getProject(), getName(), GoTestRunConfigurationType.getInstance());
@@ -67,16 +81,13 @@ public class GoTestRunConfiguration extends GoRunConfigurationBase<GoTestRunning
     return new GoTestRunConfigurationEditorForm(getProject());
   }
 
-  @NotNull
-  @Override
-  protected GoTestRunningState newRunningState(@NotNull ExecutionEnvironment env, @NotNull Module module) {
-    return new GoTestRunningState(env, module, this);
-  }
-
   @Override
   public void checkConfiguration() throws RuntimeConfigurationException {
     super.checkConfiguration();
     GoModuleBasedConfiguration configurationModule = getConfigurationModule();
+    if (!myTestFramework.isAvailable(configurationModule.getModule())) {
+      throw new RuntimeConfigurationError("Framework `" + myTestFramework.getName() + "` is not available in selected module");
+    }
     switch (myKind) {
       case DIRECTORY:
         if (!FileUtil.isAncestor(getWorkingDirectory(), myDirectoryPath, false)) {
@@ -117,6 +128,7 @@ public class GoTestRunConfiguration extends GoRunConfigurationBase<GoTestRunning
   @Override
   public void writeExternal(Element element) throws WriteExternalException {
     super.writeExternal(element);
+    JDOMExternalizerUtil.addElementWithValueAttribute(element, FRAMEWORK_ATTRIBUTE_NAME, myTestFramework.getName());
     JDOMExternalizerUtil.addElementWithValueAttribute(element, KIND_ATTRIBUTE_NAME, myKind.name());
     if (!myPackage.isEmpty()) {
       JDOMExternalizerUtil.addElementWithValueAttribute(element, PACKAGE_ATTRIBUTE_NAME, myPackage);
@@ -146,6 +158,7 @@ public class GoTestRunConfiguration extends GoRunConfigurationBase<GoTestRunning
     myDirectoryPath = StringUtil.notNullize(JDOMExternalizerUtil.getFirstChildValueAttribute(element, DIRECTORY_ATTRIBUTE_NAME));
     myFilePath = StringUtil.notNullize(JDOMExternalizerUtil.getFirstChildValueAttribute(element, FILE_PATH_ATTRIBUTE_NAME));
     myPattern = StringUtil.notNullize(JDOMExternalizerUtil.getFirstChildValueAttribute(element, PATTERN_ATTRIBUTE_NAME));
+    myTestFramework = GoTestFramework.fromName(JDOMExternalizerUtil.getFirstChildValueAttribute(element, FRAMEWORK_ATTRIBUTE_NAME));
   }
 
   @NotNull
@@ -191,6 +204,15 @@ public class GoTestRunConfiguration extends GoRunConfigurationBase<GoTestRunning
 
   public void setDirectoryPath(@NotNull String directoryPath) {
     myDirectoryPath = directoryPath;
+  }
+
+  public void setTestFramework(@NotNull GoTestFramework testFramework) {
+    myTestFramework = testFramework;
+  }
+
+  @NotNull
+  public GoTestFramework getTestFramework() {
+    return myTestFramework;
   }
 
   public enum Kind {

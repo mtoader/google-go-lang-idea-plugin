@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 Sergey Ignatov, Alexander Zolotov
+ * Copyright 2013-2015 Sergey Ignatov, Alexander Zolotov, Mihai Toader, Florin Patan
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,19 @@
 
 package com.goide.appengine.run;
 
+import com.goide.appengine.YamlFilesModificationTracker;
+import com.goide.runconfig.GoRunUtil;
 import com.goide.runconfig.ui.GoCommonSettingsPanel;
+import com.goide.util.GoUtil;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.TextFieldWithHistoryWithBrowseButton;
 import com.intellij.ui.components.JBTextField;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -31,9 +38,12 @@ public class GoAppEngineRunConfigurationEditor extends SettingsEditor<GoAppEngin
   private JBTextField myHostField;
   private JBTextField myPortField;
   private GoCommonSettingsPanel myCommonSettingsPanel;
+  private JBTextField myAdminPortField;
+  private TextFieldWithHistoryWithBrowseButton myConfigFileField;
 
   public GoAppEngineRunConfigurationEditor(@NotNull final Project project) {
     super(null);
+    initConfigFileField(project);
     myCommonSettingsPanel.init(project);
   }
 
@@ -41,6 +51,8 @@ public class GoAppEngineRunConfigurationEditor extends SettingsEditor<GoAppEngin
   protected void resetEditorFrom(@NotNull GoAppEngineRunConfiguration configuration) {
     myHostField.setText(StringUtil.notNullize(configuration.getHost()));
     myPortField.setText(StringUtil.notNullize(configuration.getPort()));
+    myAdminPortField.setText(StringUtil.notNullize(configuration.getAdminPort()));
+    myConfigFileField.getChildComponent().setText(StringUtil.notNullize(configuration.getConfigFile()));
     myCommonSettingsPanel.resetEditorFrom(configuration);
   }
 
@@ -48,6 +60,8 @@ public class GoAppEngineRunConfigurationEditor extends SettingsEditor<GoAppEngin
   protected void applyEditorTo(@NotNull GoAppEngineRunConfiguration configuration) throws ConfigurationException {
     configuration.setHost(StringUtil.nullize(myHostField.getText().trim()));
     configuration.setPort(StringUtil.nullize(myPortField.getText().trim()));
+    configuration.setAdminPort(StringUtil.nullize(myAdminPortField.getText().trim()));
+    configuration.setConfigFile(StringUtil.nullize(myConfigFileField.getText().trim()));
     myCommonSettingsPanel.applyEditorTo(configuration);
   }
 
@@ -60,5 +74,16 @@ public class GoAppEngineRunConfigurationEditor extends SettingsEditor<GoAppEngin
   @Override
   protected void disposeEditor() {
     myComponent.setVisible(false);
+  }
+
+  private void initConfigFileField(@NotNull Project project) {
+    GoRunUtil.installFileChooser(project, myConfigFileField, false, new Condition<VirtualFile>() {
+      @Override
+      public boolean value(VirtualFile file) {
+        return "yaml".equals(file.getExtension());
+      }
+    });
+    myConfigFileField.getChildComponent().setHistory(ContainerUtil.map2List(
+      YamlFilesModificationTracker.getYamlFiles(project, null), GoUtil.RETRIEVE_FILE_PATH_FUNCTION));
   }
 }

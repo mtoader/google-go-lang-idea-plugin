@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 Sergey Ignatov, Alexander Zolotov
+ * Copyright 2013-2015 Sergey Ignatov, Alexander Zolotov, Mihai Toader, Florin Patan
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,30 @@
 
 package com.goide.tree;
 
+import com.goide.GoIcons;
 import com.goide.psi.*;
 import com.goide.psi.impl.GoPsiImplUtil;
 import com.intellij.ide.structureView.*;
-import com.intellij.ide.util.treeView.smartTree.Sorter;
-import com.intellij.ide.util.treeView.smartTree.TreeElement;
+import com.intellij.ide.util.ActionShortcutProvider;
+import com.intellij.ide.util.FileStructureNodeProvider;
+import com.intellij.ide.util.treeView.smartTree.*;
 import com.intellij.lang.PsiStructureViewFactory;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.NavigationItem;
+import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.util.Iconable;
 import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class GoStructureViewFactory implements PsiStructureViewFactory {
@@ -54,9 +61,18 @@ public class GoStructureViewFactory implements PsiStructureViewFactory {
   }
 
   public static class Model extends StructureViewModelBase implements StructureViewModel.ElementInfoProvider {
+
+    public static final List<NodeProvider> PROVIDERS = ContainerUtil.<NodeProvider>newSmartList(new TreeElementFileStructureNodeProvider());
+
     public Model(@NotNull PsiFile psiFile) {
       super(psiFile, new Element(psiFile));
       withSuitableClasses(GoFile.class).withSorters(ExportabilitySorter.INSTANCE, Sorter.ALPHA_SORTER);
+    }
+
+    @NotNull
+    @Override
+    public Filter[] getFilters() {
+      return new Filter[] {new GoPrivateMembersFilter()};
     }
 
     @Override
@@ -67,6 +83,63 @@ public class GoStructureViewFactory implements PsiStructureViewFactory {
     @Override
     public boolean isAlwaysLeaf(StructureViewTreeElement structureViewTreeElement) {
       return false;
+    }
+
+    @NotNull
+    @Override
+    public Collection<NodeProvider> getNodeProviders() {
+      return PROVIDERS;
+    }
+
+    private static class TreeElementFileStructureNodeProvider implements FileStructureNodeProvider<TreeElement>, ActionShortcutProvider {
+      public static final String ID = "Show package structure";
+
+      @NotNull
+      @Override
+      public ActionPresentation getPresentation() {
+        return new ActionPresentationData(ID, null, GoIcons.PACKAGE);
+      }
+
+      @NotNull
+      @Override
+      public String getName() {
+        return ID;
+      }
+
+      @NotNull
+      @Override
+      public Collection<TreeElement> provideNodes(@NotNull TreeElement node) {
+        PsiElement psi = node instanceof Element ? ((Element)node).myElement : null;
+        if (psi instanceof GoFile) {
+          GoFile orig = (GoFile)psi;
+          List<TreeElement> result = ContainerUtil.newSmartList();
+          for (GoFile f : GoPsiImplUtil.getAllPackageFiles(orig)) {
+            if (f != orig) {
+              ContainerUtil.addAll(result, new Element(f).getChildren());
+            }
+          }
+          return result;
+        }
+        return Collections.emptyList();
+      }
+
+      @NotNull
+      @Override
+      public String getCheckBoxText() {
+        return ID;
+      }
+
+      @NotNull
+      @Override
+      public Shortcut[] getShortcut() {
+        throw new IncorrectOperationException("see getActionIdForShortcut()");
+      }
+
+      @NotNull
+      @Override
+      public String getActionIdForShortcut() {
+        return "FileStructurePopup";
+      }
     }
   }
 
@@ -120,23 +193,20 @@ public class GoStructureViewFactory implements PsiStructureViewFactory {
         for (GoConstDefinition o : ((GoFile)myElement).getConstants()) result.add(new Element(o));
         for (GoVarDefinition o : ((GoFile)myElement).getVars()) result.add(new Element(o));
         for (GoFunctionDeclaration o : ((GoFile)myElement).getFunctions()) result.add(new Element(o));
-        for (GoMethodDeclaration o : ((GoFile)myElement).getMethods()) result.add(new Element(o));
       }
       else if (myElement instanceof GoTypeSpec) {
-        GoType type = ((GoTypeSpec)myElement).getType();
+        GoTypeSpec typeSpec = (GoTypeSpec)myElement;
+        GoType type = (typeSpec).getType();
+        for (GoMethodDeclaration m : GoPsiImplUtil.getMethods(typeSpec)) result.add(new Element(m));
         if (type instanceof GoStructType) {
           for (GoFieldDeclaration field : ((GoStructType)type).getFieldDeclarationList()) {
-            for (GoFieldDefinition definition : field.getFieldDefinitionList()) {
-              result.add(new Element(definition));
-            }
+            for (GoFieldDefinition definition : field.getFieldDefinitionList()) result.add(new Element(definition));
             GoAnonymousFieldDefinition anon = field.getAnonymousFieldDefinition();
-             if (anon != null) result.add(new Element(anon));
+            if (anon != null) result.add(new Element(anon));
           }
         }
         else if (type instanceof GoInterfaceType) {
-          for (GoMethodSpec spec : ((GoInterfaceType)type).getMethodSpecList()) {
-            result.add(new Element(spec));
-          }
+          for (GoMethodSpec m : ((GoInterfaceType)type).getMethodSpecList()) result.add(new Element(m));
         }
       }
       return result.toArray(new TreeElement[result.size()]);
@@ -147,12 +217,10 @@ public class GoStructureViewFactory implements PsiStructureViewFactory {
       String separator = ": ";      
       if (myElement instanceof GoFile) return ((GoFile)myElement).getName();
       else if (myElement instanceof GoFunctionOrMethodDeclaration) {
-        GoType type = myElement instanceof GoMethodDeclaration ? ((GoMethodDeclaration)myElement).getReceiver().getType() : null;
-        String receiver = type != null ? type.getText() + "." : "";
         GoSignature signature = ((GoFunctionOrMethodDeclaration)myElement).getSignature();
         String signatureText = signature != null ? signature.getText() : "";
         PsiElement id = ((GoFunctionOrMethodDeclaration)myElement).getIdentifier();
-        return receiver + (id != null ? id.getText() : "") + signatureText;
+        return (id != null ? id.getText() : "") + signatureText;
       }
       else if (myElement instanceof GoTypeSpec) {
         GoType type = ((GoTypeSpec)myElement).getType();
@@ -178,7 +246,7 @@ public class GoStructureViewFactory implements PsiStructureViewFactory {
     @Override
     public Icon getIcon(boolean open) {
       if (!myElement.isValid()) return null;
-      return myElement.getIcon(0);
+      return myElement.getIcon(Iconable.ICON_FLAG_VISIBILITY);
     }
   }
 }

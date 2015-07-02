@@ -30,9 +30,14 @@ import com.goide.util.GoUtil;
 import com.intellij.extapi.psi.PsiFileBase;
 import com.intellij.lang.parser.GeneratedParserUtilBase;
 import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.Conditions;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
+import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubTree;
 import com.intellij.psi.tree.IElementType;
@@ -61,7 +66,14 @@ public class GoFile extends PsiFileBase {
   public String getImportPath() {
     return GoSdkUtil.getImportPath(getParent());
   }
-  
+
+  @NotNull
+  @Override
+  public SearchScope getUseScope() {
+    Module module = ModuleUtilCore.findModuleForPsiElement(this);
+    return module != null ? GoUtil.moduleScope(getProject(), module) : super.getUseScope();
+  }
+
   @Nullable
   public GoPackageClause getPackage() {
     GoFileStub stub = getStub();
@@ -72,13 +84,8 @@ public class GoFile extends PsiFileBase {
     return CachedValuesManager.getCachedValue(this, new CachedValueProvider<GoPackageClause>() {
       @Override
       public Result<GoPackageClause> compute() {
-        List<GoPackageClause> packageClauses = calc(new Condition<PsiElement>() {
-          @Override
-          public boolean value(PsiElement element) {
-            return GoPackageClause.class.isInstance(element);
-          }
-        });
-        return Result.create(ContainerUtil.getFirstItem(packageClauses), GoFile.this);
+        GoPackageClause packageClauses = calcFirst(Conditions.<PsiElement>instanceOf(GoPackageClause.class));
+        return Result.create(packageClauses, GoFile.this);
       }
     });
   }
@@ -347,6 +354,23 @@ public class GoFile extends PsiFileBase {
       }
     });
     return result;
+  }
+  
+  @Nullable
+  private <T extends PsiElement> T calcFirst(@NotNull final Condition<PsiElement> condition) {
+    final Ref<T> result = Ref.create(null);
+    processChildrenDummyAware(this, new Processor<PsiElement>() {
+      @Override
+      public boolean process(PsiElement e) {
+        if (condition.value(e)) {
+          //noinspection unchecked
+          result.set((T)e);
+          return false;
+        }
+        return true;
+      }
+    });
+    return result.get();
   }
 
   @NotNull

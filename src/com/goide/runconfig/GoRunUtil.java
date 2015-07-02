@@ -21,15 +21,20 @@ import com.goide.GoFileType;
 import com.goide.psi.GoFile;
 import com.goide.psi.GoPackageClause;
 import com.intellij.execution.actions.ConfigurationContext;
+import com.intellij.ide.scratch.ScratchFileType;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.FileIndexFacade;
+import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.ui.TextBrowseFolderListener;
+import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileSystemItem;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.Contract;
@@ -38,7 +43,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class GoRunUtil {
   private GoRunUtil() {
-    
   }
 
   @Contract("null -> false")
@@ -69,6 +73,14 @@ public class GoRunUtil {
     if (psiElement == null || !psiElement.isValid()) {
       return null;
     }
+
+    FileIndexFacade indexFacade = FileIndexFacade.getInstance(psiElement.getProject());
+    PsiFileSystemItem psiFile = psiElement instanceof PsiFileSystemItem ? (PsiFileSystemItem)psiElement : psiElement.getContainingFile();
+    VirtualFile file = psiFile.getVirtualFile();
+    if (file.getFileType() != ScratchFileType.INSTANCE && (!indexFacade.isInContent(file) || indexFacade.isExcludedFile(file))) {
+      return null;
+    }
+
     return psiElement;
   }
 
@@ -84,7 +96,7 @@ public class GoRunUtil {
       }
     });
   }
-  
+
   public static boolean isMainGoFile(@Nullable PsiFile psiFile) {
     if (psiFile != null && psiFile instanceof GoFile) {
       return GoConstants.MAIN.equals(((GoFile)psiFile).getPackageName()) && ((GoFile)psiFile).hasMainFunction();
@@ -92,14 +104,12 @@ public class GoRunUtil {
     return false;
   }
 
-  public static void installFileChooser(@NotNull Project project,
-                                        @NotNull TextFieldWithBrowseButton field,
-                                        boolean directory) {
+  public static void installFileChooser(@NotNull Project project, @NotNull ComponentWithBrowseButton field, boolean directory) {
     installFileChooser(project, field, directory, null);
   }
 
   public static void installFileChooser(@NotNull Project project,
-                                        @NotNull TextFieldWithBrowseButton field,
+                                        @NotNull ComponentWithBrowseButton field,
                                         boolean directory,
                                         @Nullable Condition<VirtualFile> fileFilter) {
     FileChooserDescriptor chooseDirectoryDescriptor = directory
@@ -108,6 +118,14 @@ public class GoRunUtil {
     chooseDirectoryDescriptor.setRoots(project.getBaseDir());
     chooseDirectoryDescriptor.setShowFileSystemRoots(false);
     chooseDirectoryDescriptor.withFileFilter(fileFilter);
-    field.addBrowseFolderListener(new TextBrowseFolderListener(chooseDirectoryDescriptor));
+    if (field instanceof TextFieldWithBrowseButton) {
+      ((TextFieldWithBrowseButton)field).addBrowseFolderListener(new TextBrowseFolderListener(chooseDirectoryDescriptor, project));
+    }
+    else {
+      //noinspection unchecked
+      field.addBrowseFolderListener(project, new ComponentWithBrowseButton.BrowseFolderActionListener(null, null, field, project,
+                                                                                                      chooseDirectoryDescriptor,
+                                                                                                      TextComponentAccessor.TEXT_FIELD_WITH_HISTORY_WHOLE_TEXT));
+    }
   }
 }

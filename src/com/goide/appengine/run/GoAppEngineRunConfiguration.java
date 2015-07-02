@@ -1,3 +1,19 @@
+/*
+ * Copyright 2013-2015 Sergey Ignatov, Alexander Zolotov, Mihai Toader, Florin Patan
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.goide.appengine.run;
 
 import com.goide.runconfig.GoModuleBasedConfiguration;
@@ -12,6 +28,7 @@ import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizerUtil;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.PathUtil;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,9 +36,13 @@ import org.jetbrains.annotations.Nullable;
 public class GoAppEngineRunConfiguration extends GoRunConfigurationBase<GoAppEngineRunningState> {
   private static final String HOST_NAME = "HOST";
   private static final String PORT_NAME = "PORT";
+  private static final String ADMIN_PORT_NAME = "ADMIN_PORT";
+  private static final String CONFIG_FILE = "CONFIG";
 
   @Nullable private String myHost;
   @Nullable private String myPort;
+  @Nullable private String myAdminPort;
+  @Nullable private String myConfigFile;
 
   public GoAppEngineRunConfiguration(@NotNull Project project, String name, @NotNull ConfigurationType configurationType) {
     super(name, new GoModuleBasedConfiguration(project), configurationType.getConfigurationFactories()[0]);
@@ -44,12 +65,32 @@ public class GoAppEngineRunConfiguration extends GoRunConfigurationBase<GoAppEng
   public void setPort(@Nullable String port) {
     myPort = port;
   }
+  
+  @Nullable
+  public String getAdminPort() {
+    return myAdminPort;
+  }
+
+  public void setAdminPort(@Nullable String adminPort) {
+    myAdminPort = adminPort;
+  }
+  
+  @Nullable
+  public String getConfigFile() {
+    return myConfigFile;
+  }
+
+  public void setConfigFile(@Nullable String configFile) {
+    myConfigFile = configFile;
+  }
 
   @Override
   public void readExternal(@NotNull Element element) throws InvalidDataException {
     super.readExternal(element);
     myHost = JDOMExternalizerUtil.getFirstChildValueAttribute(element, HOST_NAME);
     myPort = JDOMExternalizerUtil.getFirstChildValueAttribute(element, PORT_NAME);
+    myAdminPort = JDOMExternalizerUtil.getFirstChildValueAttribute(element, ADMIN_PORT_NAME);
+    myConfigFile = JDOMExternalizerUtil.getFirstChildValueAttribute(element, CONFIG_FILE);
   }
 
   @Override
@@ -59,7 +100,13 @@ public class GoAppEngineRunConfiguration extends GoRunConfigurationBase<GoAppEng
       JDOMExternalizerUtil.addElementWithValueAttribute(element, HOST_NAME, myHost);
     }
     if (StringUtil.isNotEmpty(myPort)) {
-      JDOMExternalizerUtil.addElementWithValueAttribute(element, PORT_NAME, String.valueOf(myPort));
+      JDOMExternalizerUtil.addElementWithValueAttribute(element, PORT_NAME, myPort);
+    }
+    if (StringUtil.isNotEmpty(myAdminPort)) {
+      JDOMExternalizerUtil.addElementWithValueAttribute(element, ADMIN_PORT_NAME, myAdminPort);
+    }
+    if (StringUtil.isNotEmpty(myConfigFile)) {
+      JDOMExternalizerUtil.addElementWithValueAttribute(element, CONFIG_FILE, myConfigFile);
     }
   }
 
@@ -74,10 +121,18 @@ public class GoAppEngineRunConfiguration extends GoRunConfigurationBase<GoAppEng
       }
     }
 
-    if (StringUtil.isNotEmpty(myPort)) {
-      int port = StringUtil.parseInt(myPort, -1);
-      if (port < 0 || port > Short.MAX_VALUE * 2) {
-        throw new RuntimeConfigurationError("Invalid port");
+    checkPortValue(myPort, "Invalid port");
+    checkPortValue(myAdminPort, "Invalid admin port");
+    if (myConfigFile != null && !"yaml".equals(PathUtil.getFileExtension(myConfigFile))) {
+      throw new RuntimeConfigurationException("Config file is not YAML");
+    }
+  }
+
+  private static void checkPortValue(@Nullable String port, @NotNull String errorMessage) throws RuntimeConfigurationError {
+    if (StringUtil.isNotEmpty(port)) {
+      int intPort = StringUtil.parseInt(port, -1);
+      if (intPort < 0 || intPort > Short.MAX_VALUE * 2) {
+        throw new RuntimeConfigurationError(errorMessage);
       }
     }
   }

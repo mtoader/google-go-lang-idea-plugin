@@ -62,7 +62,11 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
     setConsoleBuilder(consoleBuilder);
 
     GoTestConsoleProperties consoleProperties = new GoTestConsoleProperties(myConfiguration, executor);
-    ConsoleView consoleView = SMTestRunnerConnectionUtil.createAndAttachConsole("Go", processHandler, consoleProperties, getEnvironment());
+    // todo: replace with simple create console
+    ConsoleView consoleView = SMTestRunnerConnectionUtil.createConsoleWithCustomLocator(myConfiguration.getTestFramework().getName(),
+                                                                                        consoleProperties, getEnvironment(),
+                                                                                        new GoTestLocationProvider());
+    consoleView.attachToProcess(processHandler);
     consoleView.addMessageFilter(new GoConsoleFilter(myConfiguration.getProject(), myModule, myConfiguration.getWorkingDirectory()));
 
     DefaultExecutionResult executionResult = new DefaultExecutionResult(consoleView, processHandler);
@@ -86,9 +90,11 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
           executor.withParameters("./...");
           executor.withWorkDirectory(myConfiguration.getDirectoryPath());
         }
+        addFilterParameter(executor, myConfiguration.getPattern());
         break;
       case PACKAGE:
         executor.withParameters(myConfiguration.getPackage());
+        addFilterParameter(executor, myConfiguration.getPattern());
         break;
       case FILE:
         String filePath = myConfiguration.getFilePath();
@@ -107,23 +113,27 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
         }
 
         executor.withParameters(importPath);
-        Collection<String> testNames = ContainerUtil.newLinkedHashSet();
-        for (GoFunctionDeclaration function : ((GoFile)file).getFunctions()) {
-          ContainerUtil.addIfNotNull(testNames, GoTestFinder.getTestFunctionName(function));
-        }
-        addFilterParameter(executor, "^" + StringUtil.join(testNames, "|") + "$");
+        addFilterParameter(executor, buildFilePattern((GoFile)file));
         break;
     }
-    String pattern = myConfiguration.getPattern();
-    addFilterParameter(executor, pattern);
 
     if (myCoverageFilePath != null) {
       executor.withParameters("-coverprofile=" + myCoverageFilePath, "-covermode=count");
     }
+
     return executor;
   }
 
-  private static void addFilterParameter(@NotNull GoExecutor executor, String pattern) {
+  @NotNull
+  protected String buildFilePattern(GoFile file) {
+    Collection<String> testNames = ContainerUtil.newLinkedHashSet();
+    for (GoFunctionDeclaration function : file.getFunctions()) {
+      ContainerUtil.addIfNotNull(testNames, GoTestFinder.getTestFunctionName(function));
+    }
+    return "^" + StringUtil.join(testNames, "|") + "$";
+  }
+
+  protected void addFilterParameter(@NotNull GoExecutor executor, String pattern) {
     if (StringUtil.isNotEmpty(pattern)) {
       executor.withParameters("-run", pattern);
     }
