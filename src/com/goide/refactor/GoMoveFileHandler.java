@@ -125,7 +125,21 @@ public class GoMoveFileHandler extends MoveFileHandler {
     GoFile goFile = (GoFile)file;
     final PsiDirectory containingDirectory = file.getContainingDirectory();
     if (containingDirectory != null) {
-      GoPackageClause newPackage = GoDirectoryService.getPackage(containingDirectory);
+      PsiFile[] files = containingDirectory.getFiles();
+      GoPackageClause newPackage = null;
+      if(files.length > 0) {
+        for(PsiFile aFile : files) {
+          // a .equals() for the file itself would be better here, instead of relying on the name.
+          // the name check is needed because the list of files already contains the moved file.
+          if(aFile instanceof GoFile && !aFile.getName().equals(file.getName())) {
+            newPackage = ((GoFile)aFile).getPackage();
+            break;
+          }
+        }
+      }
+      if(newPackage == null) {
+        newPackage = GoDirectoryService.getPackage(containingDirectory);
+      }
       GoPackageClause p = goFile.getPackage();
       if (p != null) {
         p.replace(newPackage);
