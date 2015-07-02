@@ -21,21 +21,29 @@ import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 
 public class GoMoveFileTest extends GoCodeInsightFixtureTestCase {
+  public void testMoveFilePackageNameNotDirectoryName() {
+    String testName = getTestName(true);
+    myFixture.copyFileToProject(testName + "/from/a.go");
+    myFixture.copyFileToProject(testName + "/to/b.go");
+    myFixture.moveFile(testName + "/from/a.go", testName + "/to");
+    myFixture.checkResultByFile(testName + "/to/a.go", testName + "/to/a_after.go", true);
+  }
   public void testMoveFile() throws Throwable {
     /*myFixture.configureByFiles(
       "/from/a.go",
       "/to/b.go",
       "/usage/c.go"
     );*/
-    myFixture.copyFileToProject("from/a.go");
-    myFixture.copyFileToProject("to/b.go");
-    myFixture.copyFileToProject("usage/c.go");
-    myFixture.moveFile("from/a.go", "to", "to/b.go", "usage/c.go");
+    String testName = getTestName(true);
+    myFixture.copyFileToProject(testName + "/from/a.go");
+    myFixture.copyFileToProject(testName + "/to/b.go");
+    myFixture.copyFileToProject(testName + "/usage/c.go");
+    myFixture.moveFile(testName + "/from/a.go", testName + "/to", testName + "/to/b.go", testName + "/usage/c.go");
     /*myFixture.testRename("/from/a.go", "/to/a_after.go", "/to/a.go",
                          "/to/b.go", "/usage/c.go");*/
-    myFixture.checkResultByFile("refactoring/to/a.go", "refactoring/to/a_after.go", true);
-    myFixture.checkResultByFile("refactoring/to/b.go", "refactoring/to/b_after.go", true);
-    myFixture.checkResultByFile("refactoring/usage/c.go", "refactoring/usage/c_after.go", true);
+    myFixture.checkResultByFile(testName + "/to/a.go", testName + "/to/a_after.go", true);
+    myFixture.checkResultByFile(testName + "/to/b.go", testName + "/to/b_after.go", true);
+    myFixture.checkResultByFile(testName + "/usage/c.go", testName + "/usage/c_after.go", true);
   }
 
   /**
