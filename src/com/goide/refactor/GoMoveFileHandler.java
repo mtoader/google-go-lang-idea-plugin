@@ -30,6 +30,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.file.PsiDirectoryImpl;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.refactoring.move.moveFilesOrDirectories.MoveFileHandler;
 import com.intellij.refactoring.util.MoveRenameUsageInfo;
@@ -56,23 +57,28 @@ public class GoMoveFileHandler extends MoveFileHandler {
   public void prepareMovedFile(PsiFile file, PsiDirectory directory, Map<PsiElement, PsiElement> map) {
   }
 
-  public static UsageInfo[] findUsages(final PsiElement element,
+  public static UsageInfo[] findUsages(final GoFile file,
                                        boolean searchInStringsAndComments,
                                        boolean searchInNonGoFiles,
                                        final String newQName) {
-    PsiManager manager = element.getManager();
+    //PsiManager manager = file.getManager();
+    //GlobalSearchScope projectsScope = GlobalSearchScope.projectScope(manager.getProject());
+
     ArrayList<UsageInfo> results = new ArrayList<UsageInfo>();
     Set<PsiReference> foundReferences = new HashSet<PsiReference>();
-    GlobalSearchScope projectsScope = GlobalSearchScope.projectScope(manager.getProject());
-    for(PsiReference reference : ReferencesSearch.search(element, projectsScope, false)) {
+
+    GoPackageClause packageClause = file.getPackage();
+    List<GoFunctionDeclaration> funcs = file.getFunctions();
+    SearchScope scope = packageClause.getUseScope();
+    for(PsiReference reference : ReferencesSearch.search(packageClause.getPackage(), scope, false)) {
       if(foundReferences.contains(reference)) {
         continue;
       }
       TextRange range = reference.getRangeInElement();
-      results.add(new MoveRenameUsageInfo(reference.getElement(), reference, range.getStartOffset(), range.getEndOffset(), element, false));
+      results.add(new MoveRenameUsageInfo(reference.getElement(), reference, range.getStartOffset(), range.getEndOffset(), file, false));
       foundReferences.add(reference);
     }
-    findNonCodeUsages(searchInStringsAndComments, searchInNonGoFiles, element, newQName, results);
+    findNonCodeUsages(searchInStringsAndComments, searchInNonGoFiles, file, newQName, results);
     return results.toArray(new UsageInfo[results.size()]);
   }
 
@@ -81,9 +87,9 @@ public class GoMoveFileHandler extends MoveFileHandler {
                                        final PsiElement element,
                                        final String newQName,
                                        ArrayList<UsageInfo> results) {
-    final String stringToSearch = getStringToSearch(element);
+    /*final String stringToSearch = getStringToSearch(element);
     if (stringToSearch == null) return;
-    TextOccurrencesUtil.findNonCodeUsages(element, stringToSearch, searchInStringsAndComments, searchInNonGoFiles, newQName, results);
+    TextOccurrencesUtil.findNonCodeUsages(element, stringToSearch, searchInStringsAndComments, searchInNonGoFiles, newQName, results);*/
   }
 
   private static String getStringToSearch(PsiElement element) {
@@ -109,10 +115,10 @@ public class GoMoveFileHandler extends MoveFileHandler {
     final List<UsageInfo> result = new ArrayList<UsageInfo>();
     final GoPackageClause newParentPackage = GoDirectoryService.getPackage(newParent);
     final String qualifiedName = newParentPackage.getText();
-    for (GoFunctionDeclaration func : ((GoFile)file).getFunctions()) {
-      Collections.addAll(result, findUsages(func, searchInComments, searchInNonGoFiles,
-                                            StringUtil.getQualifiedName(qualifiedName, func.getName())));
-    }
+    //for (GoFunctionDeclaration func : ((GoFile)file).getFunctions()) {
+      Collections.addAll(result, findUsages((GoFile)file, searchInComments, searchInNonGoFiles,
+                                            StringUtil.getQualifiedName(qualifiedName, file.getName())));
+    //}
     return result.isEmpty() ? null : result;
   }
 
