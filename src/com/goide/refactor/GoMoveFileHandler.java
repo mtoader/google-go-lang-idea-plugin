@@ -22,6 +22,7 @@ import com.goide.psi.GoFunctionDeclaration;
 import com.goide.psi.GoPackageClause;
 import com.goide.psi.impl.GoElementFactory;
 import com.goide.psi.impl.GoPackageClauseImpl;
+import com.goide.util.GoUtil;
 import com.intellij.codeInsight.ChangeContextUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.TextRange;
@@ -123,16 +124,17 @@ public class GoMoveFileHandler extends MoveFileHandler {
   @Override
   public void updateMovedFile(PsiFile file) throws IncorrectOperationException {
     GoFile goFile = (GoFile)file;
+    String packageName = goFile.getPackageName();
     final PsiDirectory containingDirectory = file.getContainingDirectory();
     if (containingDirectory != null) {
-      PsiFile[] files = containingDirectory.getFiles();
+      Collection<String> packages = GoUtil.getAllPackagesInDirectory(containingDirectory);
       GoPackageClause newPackage = null;
-      if(files.length > 0) {
-        for(PsiFile aFile : files) {
-          // a .equals() for the file itself would be better here, instead of relying on the name.
-          // the name check is needed because the list of files already contains the moved file.
-          if(aFile instanceof GoFile && !aFile.getName().equals(file.getName())) {
-            newPackage = ((GoFile)aFile).getPackage();
+      if(packages.size() > 0) {
+        for(String pName : packages) {
+          // simply take first package non equal package in the containing directory because we're not sure
+          // that the package name equals the directory name.
+          if(packageName != pName) {
+            newPackage = GoElementFactory.createPackageClause(file.getProject(), pName);
             break;
           }
         }

@@ -20,6 +20,8 @@ import com.goide.GoCodeInsightFixtureTestCase;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 
+import java.io.IOException;
+
 public class GoMoveFileTest extends GoCodeInsightFixtureTestCase {
   public void testMoveFilePackageNameNotDirectoryName() {
     String testName = getTestName(true);
@@ -28,6 +30,17 @@ public class GoMoveFileTest extends GoCodeInsightFixtureTestCase {
     myFixture.moveFile(testName + "/from/a.go", testName + "/to");
     myFixture.checkResultByFile(testName + "/to/a.go", testName + "/to/a_after.go", true);
   }
+
+  public void testMoveFileEmptyDirectory() throws IOException {
+    String testName = getTestName(true);
+    myFixture.copyFileToProject(testName + "/from/a.go");
+
+    myFixture.getTempDirFixture().findOrCreateDir(testName + "/to");
+
+    myFixture.moveFile(testName + "/from/a.go", testName + "/to");
+    myFixture.checkResultByFile(testName + "/to/a.go", testName + "/to/a_after.go", true);
+  }
+
   public void testMoveFile() throws Throwable {
     /*myFixture.configureByFiles(
       "/from/a.go",
