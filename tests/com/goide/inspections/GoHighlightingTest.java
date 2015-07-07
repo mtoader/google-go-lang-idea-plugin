@@ -48,7 +48,9 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
       GoReturnInspection.class,
       GoFunctionCallInspection.class,
       GoDeferGoInspection.class,
-      GoReservedWordUsedAsName.class
+      GoReservedWordUsedAsName.class,
+      GoMultiplePackagesInspection.class,
+      GoCGOInTestInspection.class
     );
   }
 
@@ -131,7 +133,7 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
 
   public void testDuplicatesNoLocalResolveForTest() {
     myFixture.configureByText("a.go", "package i; type P struct { v1 int }");
-    myFixture.configureByText("b.go", "package i_test; import ( \".\" ); func <warning>f</warning>() { print(i.P{}.<error>v1</error>) }");
+    myFixture.configureByText("b.go", "<error>package i_test</error>; import ( \".\" ); func <warning>f</warning>() { print(i.P{}.<error>v1</error>) }");
     myFixture.checkHighlighting();
   }
 
@@ -181,7 +183,7 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
     myFixture.checkHighlighting();
   }
 
-  public void testPackageWithTestPrefix() throws Throwable {
+  public void _testPackageWithTestPrefix() throws Throwable {
     VirtualFile file = WriteCommandAction.runWriteCommandAction(myFixture.getProject(), new ThrowableComputable<VirtualFile, Throwable>() {
       @Override
       public VirtualFile compute() throws Throwable {
@@ -192,6 +194,34 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
     });
     GoModuleLibrariesService.getInstance(myFixture.getModule()).setLibraryRootUrls(file.getParent().getParent().getUrl());
     myFixture.configureFromExistingVirtualFile(file);
+    myFixture.checkHighlighting();
+  }
+
+  public void testMultiplePackages() {
+    myFixture.addFileToProject("a.go", "package a");
+    myFixture.configureByText("b.go", "<error>package b</error>");
+    myFixture.checkHighlighting();
+  }
+
+  public void testDocumentationPackage() {
+    myFixture.addFileToProject("a.go", "package a");
+    myFixture.configureByText("docs.go", "package documentation");
+    myFixture.checkHighlighting();
+  }
+
+  public void testTestPackage() {
+    myFixture.addFileToProject("a.go", "package a");
+    myFixture.configureByText("a_test.go", "package a_test");
+    myFixture.checkHighlighting();
+  }
+
+  public void testCGOImportInTestFile() {
+    myFixture.configureByText("a_test.go", "package a; import<error>\"C\"</error>;");
+    myFixture.checkHighlighting();
+  }
+
+  public void testCGOImportInNonTestFile() {
+    myFixture.configureByText("a.go", "package a; import \"C\"");
     myFixture.checkHighlighting();
   }
 
