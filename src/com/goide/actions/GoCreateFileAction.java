@@ -27,11 +27,9 @@ import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.fileTemplates.FileTemplateUtil;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,8 +45,8 @@ public class GoCreateFileAction extends CreateFileFromTemplateAction implements 
     FileTemplate template = FileTemplateManager.getInstance(dir.getProject()).getInternalTemplate(templateName);
     Properties properties = new Properties();
     Collection<String> packages = GoUtil.getAllPackagesInDirectory(dir);
-    String packageName = packages.isEmpty() ? GoPsiImplUtil.makePackageNameValid(ContainerUtil.getLastItem(StringUtil.split(dir.getName(), "-"))) : ArrayUtil.toStringArray(packages)[0];
-    if (name.endsWith(GoConstants.TEST_SUFFIX_WITH_EXTENSION) || name.endsWith(GoConstants.TEST_SUFFIX)) {
+    String packageName = packages.isEmpty() ? GoPsiImplUtil.getLocalPackageName(dir.getName()) : ContainerUtil.getFirstItem(packages);
+    if (name.endsWith(GoConstants.TEST_SUFFIX) || name.endsWith(GoConstants.TEST_SUFFIX_WITH_EXTENSION)) {
       packageName += GoConstants.TEST_SUFFIX;
     }
     properties.setProperty(PACKAGE, packageName);
