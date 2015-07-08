@@ -16,7 +16,10 @@
 
 package com.goide.actions;
 
+import com.goide.GoConstants;
 import com.goide.GoIcons;
+import com.goide.psi.impl.GoPsiImplUtil;
+import com.goide.util.GoUtil;
 import com.intellij.ide.actions.CreateFileFromTemplateAction;
 import com.intellij.ide.actions.CreateFileFromTemplateDialog;
 import com.intellij.ide.fileTemplates.FileTemplate;
@@ -28,12 +31,14 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.Properties;
 
-public class GoCreateFileAction extends CreateFileFromTemplateAction implements DumbAware { // todo: rewrite with package support?
+public class GoCreateFileAction extends CreateFileFromTemplateAction implements DumbAware {
   private static final String NEW_GO_FILE = "New Go File";
   private static final String PACKAGE = "PACKAGE";
 
@@ -41,7 +46,12 @@ public class GoCreateFileAction extends CreateFileFromTemplateAction implements 
   protected PsiFile createFile(String name, @NotNull String templateName, @NotNull PsiDirectory dir) {
     FileTemplate template = FileTemplateManager.getInstance(dir.getProject()).getInternalTemplate(templateName);
     Properties properties = new Properties();
-    properties.setProperty(PACKAGE, ContainerUtil.getLastItem(StringUtil.split(dir.getName(), "-")));
+    Collection<String> packages = GoUtil.getAllPackagesInDirectory(dir);
+    String packageName = packages.isEmpty() ? GoPsiImplUtil.makePackageNameValid(ContainerUtil.getLastItem(StringUtil.split(dir.getName(), "-"))) : ArrayUtil.toStringArray(packages)[0];
+    if (name.endsWith(GoConstants.TEST_SUFFIX_WITH_EXTENSION) || name.endsWith(GoConstants.TEST_SUFFIX)) {
+      packageName += GoConstants.TEST_SUFFIX;
+    }
+    properties.setProperty(PACKAGE, packageName);
     try {
       PsiElement element = FileTemplateUtil.createFromTemplate(template, name, properties, dir);
       if (element instanceof PsiFile) return (PsiFile)element;
