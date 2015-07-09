@@ -16,6 +16,7 @@
 
 package com.goide.actions;
 
+import com.goide.GoDirectoryService;
 import com.goide.GoIcons;
 import com.intellij.ide.actions.CreateFileFromTemplateAction;
 import com.intellij.ide.actions.CreateFileFromTemplateDialog;
@@ -41,7 +42,7 @@ public class GoCreateFileAction extends CreateFileFromTemplateAction implements 
   protected PsiFile createFile(String name, @NotNull String templateName, @NotNull PsiDirectory dir) {
     FileTemplate template = FileTemplateManager.getInstance(dir.getProject()).getInternalTemplate(templateName);
     Properties properties = new Properties();
-    properties.setProperty(PACKAGE, ContainerUtil.getLastItem(StringUtil.split(dir.getName(), "-")));
+    properties.setProperty(PACKAGE, GoDirectoryService.getPackageName(dir));
     try {
       PsiElement element = FileTemplateUtil.createFromTemplate(template, name, properties, dir);
       if (element instanceof PsiFile) return (PsiFile)element;
