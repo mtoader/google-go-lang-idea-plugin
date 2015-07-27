@@ -241,7 +241,7 @@
   <actions>
     <action id="Go.NewGoFile" class="com.goide.actions.GoCreateFileAction"
             text="Go File" description="Create new Go file">
-      <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>
+      <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFromTemplate"/>
     </action>
 
     <action id="GoShowTypeInternalAction"
