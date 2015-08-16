@@ -1,3 +1,19 @@
+/*
+ * Copyright 2013-2015 Sergey Ignatov, Alexander Zolotov, Mihai Toader, Florin Patan
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 // This is a generated file. Not intended for manual editing.
 package com.goide.parser;
 
@@ -2858,24 +2874,40 @@ public class GoParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // ExpressionsOrVariables? range Expression
+  // range Expression | ExpressionsOrVariables range Expression
   public static boolean RangeClause(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "RangeClause")) return false;
-    boolean r, p;
+    boolean r;
     Marker m = enter_section_(b, l, _NONE_, "<range clause>");
     r = RangeClause_0(b, l + 1);
-    r = r && consumeToken(b, RANGE);
-    p = r; // pin = 2
+    if (!r) r = RangeClause_1(b, l + 1);
+    exit_section_(b, l, m, RANGE_CLAUSE, r, false, null);
+    return r;
+  }
+
+  // range Expression
+  private static boolean RangeClause_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "RangeClause_0")) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, null);
+    r = consumeToken(b, RANGE);
+    p = r; // pin = 1
     r = r && Expression(b, l + 1, -1);
-    exit_section_(b, l, m, RANGE_CLAUSE, r, p, null);
+    exit_section_(b, l, m, null, r, p, null);
     return r || p;
   }
 
-  // ExpressionsOrVariables?
-  private static boolean RangeClause_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "RangeClause_0")) return false;
-    ExpressionsOrVariables(b, l + 1);
-    return true;
+  // ExpressionsOrVariables range Expression
+  private static boolean RangeClause_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "RangeClause_1")) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, null);
+    r = ExpressionsOrVariables(b, l + 1);
+    p = r; // pin = 1
+    r = r && report_error_(b, consumeToken(b, RANGE));
+    r = p && Expression(b, l + 1, -1) && r;
+    exit_section_(b, l, m, null, r, p, null);
+    return r || p;
   }
 
   /* ********************************************************** */
