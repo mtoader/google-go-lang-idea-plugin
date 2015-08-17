@@ -26,12 +26,10 @@ public class GoOptimizeImportsOnTheFlyTest extends GoCodeInsightFixtureTestCase 
     super.setUp();
     setUpProjectSdk();
     ((CodeInsightTestFixtureImpl)myFixture).canChangeDocumentDuringHighlighting(true);
-    GoCodeInsightSettings.getInstance().setOptimizeImportsOnTheFly(true);
   }
 
   @Override
   protected void tearDown() throws Exception {
-    GoCodeInsightSettings.getInstance().setOptimizeImportsOnTheFly(false);
     super.tearDown();
   }
 
