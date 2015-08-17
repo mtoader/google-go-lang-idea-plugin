@@ -22,17 +22,17 @@ import com.intellij.testFramework.LightProjectDescriptor;
 
 public class GoTestSignaturesInspectionTest extends GoQuickFixTestBase {
   @Override
-  protected void tearDown() throws Exception {
-    GoCodeInsightSettings.getInstance().setOptimizeImportsOnTheFly(true);
-    super.tearDown();
-  }
-
-  @Override
   protected void setUp() throws Exception {
     super.setUp();
     setUpProjectSdk();
     myFixture.enableInspections(GoTestSignaturesInspection.class);
     GoCodeInsightSettings.getInstance().setOptimizeImportsOnTheFly(false);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    GoCodeInsightSettings.getInstance().setOptimizeImportsOnTheFly(true);
+    super.tearDown();
   }
 
   @Override

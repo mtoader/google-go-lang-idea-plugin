@@ -18,6 +18,7 @@ package com.goide.codeInsight.imports;
 
 import com.intellij.codeInsight.daemon.impl.DefaultHighlightInfoProcessor;
 import com.intellij.codeInsight.daemon.impl.ProgressableTextEditorHighlightingPass;
+import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -27,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class GoOptimizeImportsPass extends ProgressableTextEditorHighlightingPass {
   @NotNull private final PsiFile myFile;
+  private Runnable myRunnableFix;
 
   public GoOptimizeImportsPass(@NotNull Project project, @NotNull PsiFile file, @NotNull Editor editor) {
     super(project, editor.getDocument(), "Go Optimize Imports Pass", file, editor, file.getTextRange(), false,
@@ -36,12 +38,15 @@ public class GoOptimizeImportsPass extends ProgressableTextEditorHighlightingPas
 
   @Override
   protected void collectInformationWithProgress(@NotNull ProgressIndicator progress) {
+    myRunnableFix = new GoImportOptimizer().processFile(myFile);
     progress.checkCanceled();
   }
 
   @Override
   protected void applyInformationWithProgress() {
-    final Runnable runnable = new GoImportOptimizer().processFile(myFile);
-    DocumentUtil.writeInRunUndoTransparentAction(runnable);
+    final Project project = myFile.getProject();
+    UndoManager undoManager = UndoManager.getInstance(project);
+    if (undoManager.isUndoInProgress() || undoManager.isRedoInProgress()) return;
+    DocumentUtil.writeInRunUndoTransparentAction(myRunnableFix);
   }
 }
