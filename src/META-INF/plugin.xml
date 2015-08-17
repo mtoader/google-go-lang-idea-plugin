@@ -52,6 +52,13 @@
     </component>
   </module-components>
 
+  <project-components>
+    <component>
+      <implementation-class>com.goide.codeInsight.imports.GoOptimizeImportsPassFactory</implementation-class>
+      <skipForDefaultProject/>
+    </component>
+  </project-components>
+
   <extensions defaultExtensionNs="com.intellij">
     <stubIndex implementation="com.goide.stubs.index.GoAllPublicNamesIndex"/>
     <stubIndex implementation="com.goide.stubs.index.GoAllPrivateNamesIndex"/>

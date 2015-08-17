@@ -37,6 +37,7 @@ import java.util.Arrays;
 
 public class GoAutoImportConfigurable implements SearchableConfigurable {
   private JCheckBox myCbShowImportPopup;
+  private JCheckBox myCbOptimizeImportsOnTheFly;
   private JCheckBox myCbAddUnambiguousImports;
   private JBList myExcludePackagesList;
   private DefaultListModel myExcludePackagesModel;
@@ -58,8 +59,10 @@ public class GoAutoImportConfigurable implements SearchableConfigurable {
   public JComponent createComponent() {
     FormBuilder builder = FormBuilder.createFormBuilder();
     myCbShowImportPopup = new JCheckBox(ApplicationBundle.message("checkbox.show.import.popup"));
+    myCbOptimizeImportsOnTheFly = new JCheckBox(ApplicationBundle.message("checkbox.optimize.imports.on.the.fly"));
     myCbAddUnambiguousImports = new JCheckBox(ApplicationBundle.message("checkbox.add.unambiguous.imports.on.the.fly"));
     builder.addComponent(myCbShowImportPopup);
+    builder.addComponent(myCbOptimizeImportsOnTheFly);
     builder.addComponent(myCbAddUnambiguousImports);
 
     myExcludePackagesList = new JBList();
@@ -94,6 +97,7 @@ public class GoAutoImportConfigurable implements SearchableConfigurable {
   @Override
   public boolean isModified() {
     return myCodeInsightSettings.isShowImportPopup() != myCbShowImportPopup.isSelected() ||
+           myCodeInsightSettings.isOptimizeImportsOnTheFly() != myCbOptimizeImportsOnTheFly.isSelected() ||
            myCodeInsightSettings.isAddUnambiguousImportsOnTheFly() != myCbAddUnambiguousImports.isSelected() ||
            !Arrays.equals(getExcludedPackages(), myExcludedSettings.getExcludedPackages());
   }
@@ -101,6 +105,7 @@ public class GoAutoImportConfigurable implements SearchableConfigurable {
   @Override
   public void apply() throws ConfigurationException {
     myCodeInsightSettings.setShowImportPopup(myCbShowImportPopup.isSelected());
+    myCodeInsightSettings.setOptimizeImportsOnTheFly(myCbOptimizeImportsOnTheFly.isSelected());
     myCodeInsightSettings.setAddUnambiguousImportsOnTheFly(myCbAddUnambiguousImports.isSelected());
     myExcludedSettings.setExcludedPackages(getExcludedPackages());
   }
@@ -108,6 +113,7 @@ public class GoAutoImportConfigurable implements SearchableConfigurable {
   @Override
   public void reset() {
     myCbShowImportPopup.setSelected(myCodeInsightSettings.isShowImportPopup());
+    myCbOptimizeImportsOnTheFly.setSelected(myCodeInsightSettings.isOptimizeImportsOnTheFly());
     myCbAddUnambiguousImports.setSelected(myCodeInsightSettings.isAddUnambiguousImportsOnTheFly());
 
     myExcludePackagesModel = new DefaultListModel();
