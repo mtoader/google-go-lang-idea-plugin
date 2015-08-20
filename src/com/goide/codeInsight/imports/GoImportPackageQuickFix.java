@@ -33,6 +33,7 @@ import com.intellij.codeInspection.LocalQuickFixAndIntentionActionOnPsiElement;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.project.Project;
@@ -220,7 +221,7 @@ public class GoImportPackageQuickFix extends LocalQuickFixAndIntentionActionOnPs
       CommandProcessor.getInstance().runUndoTransparentAction(new Runnable() {
         @Override
         public void run() {
-          ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          WriteCommandAction.runWriteCommandAction(file.getProject(), new Runnable() {
             @Override
             public void run() {
               if (!isAvailable()) return;
