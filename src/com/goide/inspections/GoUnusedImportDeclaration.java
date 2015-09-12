@@ -24,17 +24,16 @@ import com.intellij.codeInspection.*;
 import com.intellij.lang.ImportOptimizer;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
+import com.intellij.util.containers.LinkedMultiMap;
 import com.intellij.util.containers.MultiMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class GoUnusedImportDeclaration extends GoInspectionBase {
   @Nullable private final static LocalQuickFix OPTIMIZE_QUICK_FIX = new LocalQuickFixBase("Optimize imports") {
@@ -69,7 +68,7 @@ public class GoUnusedImportDeclaration extends GoInspectionBase {
       problemsHolder.registerProblem(duplicatedImportSpec, "Redeclared import", ProblemHighlightType.GENERIC_ERROR, OPTIMIZE_QUICK_FIX);
     }
 
-    for (Map.Entry<String, Collection<GoImportSpec>> specs : importMap.entrySet()) {
+    for (Map.Entry<String, Collection<GoImportSpec>> specs : getImportNameMap(file).entrySet()) {
       Iterator<GoImportSpec> imports = specs.getValue().iterator();
       imports.next();
       while (imports.hasNext()) {
@@ -102,5 +101,21 @@ public class GoUnusedImportDeclaration extends GoInspectionBase {
         }
       }
     });
+  }
+
+  private static MultiMap<String, GoImportSpec> getImportNameMap(@NotNull GoFile file) {
+    MultiMap<String, GoImportSpec> result = LinkedMultiMap.create();
+    for (GoImportSpec importSpec : file.getImports()) {
+      String alias = importSpec.getAlias();
+      if (alias == null) {
+        List<String> components = StringUtil.split(importSpec.getPath(), "/");
+        if (!components.isEmpty()) {
+          result.putValue(components.get(components.size() - 1), importSpec);
+        }
+      } else if (!".".equals(alias) && !"_".equals(alias)) {
+        result.putValue(alias, importSpec);
+      }
+    }
+    return result;
   }
 }
