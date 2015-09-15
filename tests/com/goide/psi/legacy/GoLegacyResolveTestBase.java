@@ -17,7 +17,7 @@
 package com.goide.psi.legacy;
 
 import com.goide.GoCodeInsightFixtureTestCase;
-import com.goide.project.GoModuleLibrariesService;
+import com.goide.project.GoModulePackagesService;
 import com.goide.psi.GoFile;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -69,7 +69,7 @@ public abstract class GoLegacyResolveTestBase extends GoCodeInsightFixtureTestCa
       }
     }
     VirtualFile dirToTest = myFixture.getTempDirFixture().getFile(".");
-    GoModuleLibrariesService.getInstance(myFixture.getModule()).setLibraryRootUrls(dirToTest.getUrl());
+    GoModulePackagesService.getInstance(myFixture.getModule()).setLibraryRootUrls(dirToTest.getUrl());
     doDirectoryTest(dirToTest);
   }
 

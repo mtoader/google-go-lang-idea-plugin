@@ -18,8 +18,8 @@ package com.goide.inspections;
 
 import com.goide.GoFileType;
 import com.goide.GoLanguage;
-import com.goide.project.GoLibrariesService;
-import com.goide.project.GoModuleLibrariesInitializer;
+import com.goide.project.GoPathService;
+import com.goide.project.GoModulePackagesInitializer;
 import com.goide.sdk.GoSdkService;
 import com.goide.sdk.GoSdkUtil;
 import com.intellij.ProjectTopics;
@@ -57,7 +57,7 @@ public class WrongSdkConfigurationNotificationProvider extends EditorNotificatio
         notifications.updateAllNotifications();
       }
     });
-    connection.subscribe(GoLibrariesService.LIBRARIES_TOPIC, new GoLibrariesService.LibrariesListener() {
+    connection.subscribe(GoPathService.GOPATH_TOPIC, new GoPathService.LibrariesListener() {
       @Override
       public void librariesChanged(@NotNull Collection<String> newRootUrls) {
         notifications.updateAllNotifications();
@@ -113,10 +113,10 @@ public class WrongSdkConfigurationNotificationProvider extends EditorNotificatio
   private static EditorNotificationPanel createEmptyGoPathPanel(@NotNull final Project project) {
     EditorNotificationPanel panel = new EditorNotificationPanel();
     panel.setText("GOPATH is empty");
-    panel.createActionLabel("Configure Go Libraries", new Runnable() {
+    panel.createActionLabel("Configure Go Packages", new Runnable() {
       @Override
       public void run() {
-        GoModuleLibrariesInitializer.showModulesConfigurable(project);
+        GoModulePackagesInitializer.showModulesConfigurable(project);
       }
     });
     return panel;

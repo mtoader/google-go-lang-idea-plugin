@@ -16,8 +16,8 @@
 
 package com.goide.configuration;
 
-import com.goide.project.GoApplicationLibrariesService;
-import com.goide.project.GoLibrariesService;
+import com.goide.project.GoApplicationPackagesService;
+import com.goide.project.GoPathService;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
@@ -46,17 +46,17 @@ import java.util.Set;
 
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createMultipleFoldersDescriptor;
 
-public class GoLibrariesConfigurable implements SearchableConfigurable, Configurable.NoScroll {
+public class GoPathConfigurable implements SearchableConfigurable, Configurable.NoScroll {
   @NotNull private final String myDisplayName;
-  private final GoLibrariesService<?> myLibrariesService;
+  private final GoPathService<?> myGoPathService;
   private final String[] myReadOnlyPaths;
   private final JBCheckBox myUseEnvGoPathCheckBox = new JBCheckBox("Use GOPATH that's defined in system environment");
   private final JPanel myPanel = new JPanel(new BorderLayout());
   private final CollectionListModel<ListItem> myListModel = new CollectionListModel<ListItem>();
 
-  public GoLibrariesConfigurable(@NotNull String displayName, @NotNull GoLibrariesService librariesService, String... readOnlyPaths) {
+  public GoPathConfigurable(@NotNull String displayName, @NotNull GoPathService gopathService, String... readOnlyPaths) {
     myDisplayName = displayName;
-    myLibrariesService = librariesService;
+    myGoPathService = gopathService;
     myReadOnlyPaths = readOnlyPaths;
 
     final JBList filesList = new JBList(myListModel);
@@ -134,7 +134,7 @@ public class GoLibrariesConfigurable implements SearchableConfigurable, Configur
       })
       .disableUpDownActions();
     myPanel.add(decorator.createPanel(), BorderLayout.CENTER);
-    if (librariesService instanceof GoApplicationLibrariesService) {
+    if (gopathService instanceof GoApplicationPackagesService) {
       myUseEnvGoPathCheckBox.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(@NotNull ActionEvent event) {
@@ -165,17 +165,17 @@ public class GoLibrariesConfigurable implements SearchableConfigurable, Configur
 
   @Override
   public boolean isModified() {
-    return !getUserDefinedUrls().equals(ContainerUtil.newHashSet(myLibrariesService.getLibraryRootUrls())) ||
-           ((myLibrariesService instanceof GoApplicationLibrariesService) &&
-            (((GoApplicationLibrariesService)myLibrariesService).isUseGoPathFromSystemEnvironment() !=
+    return !getUserDefinedUrls().equals(ContainerUtil.newHashSet(myGoPathService.getLibraryRootUrls())) ||
+           ((myGoPathService instanceof GoApplicationPackagesService) &&
+            (((GoApplicationPackagesService)myGoPathService).isUseGoPathFromSystemEnvironment() !=
              myUseEnvGoPathCheckBox.isSelected()));
   }
 
   @Override
   public void apply() throws ConfigurationException {
-    myLibrariesService.setLibraryRootUrls(getUserDefinedUrls());
-    if (myLibrariesService instanceof GoApplicationLibrariesService) {
-      ((GoApplicationLibrariesService)myLibrariesService).setUseGoPathFromSystemEnvironment(myUseEnvGoPathCheckBox.isSelected());
+    myGoPathService.setLibraryRootUrls(getUserDefinedUrls());
+    if (myGoPathService instanceof GoApplicationPackagesService) {
+      ((GoApplicationPackagesService)myGoPathService).setUseGoPathFromSystemEnvironment(myUseEnvGoPathCheckBox.isSelected());
     }
   }
 
@@ -183,15 +183,15 @@ public class GoLibrariesConfigurable implements SearchableConfigurable, Configur
   public void reset() {
     myListModel.removeAll();
     resetLibrariesFromEnvironment();
-    for (String url : myLibrariesService.getLibraryRootUrls()) {
+    for (String url : myGoPathService.getLibraryRootUrls()) {
       myListModel.add(new ListItem(url, false));
     }
   }
 
   private void resetLibrariesFromEnvironment() {
-    if (myLibrariesService instanceof GoApplicationLibrariesService) {
-      myUseEnvGoPathCheckBox.setSelected(((GoApplicationLibrariesService)myLibrariesService).isUseGoPathFromSystemEnvironment());
-      if (((GoApplicationLibrariesService)myLibrariesService).isUseGoPathFromSystemEnvironment()) {
+    if (myGoPathService instanceof GoApplicationPackagesService) {
+      myUseEnvGoPathCheckBox.setSelected(((GoApplicationPackagesService)myGoPathService).isUseGoPathFromSystemEnvironment());
+      if (((GoApplicationPackagesService)myGoPathService).isUseGoPathFromSystemEnvironment()) {
         addReadOnlyPaths();
       }
       else {

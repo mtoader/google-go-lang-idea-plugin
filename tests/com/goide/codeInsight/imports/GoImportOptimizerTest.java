@@ -17,7 +17,7 @@
 package com.goide.codeInsight.imports;
 
 import com.goide.GoCodeInsightFixtureTestCase;
-import com.goide.project.GoModuleLibrariesService;
+import com.goide.project.GoModulePackagesService;
 import com.intellij.codeInsight.actions.OptimizeImportsAction;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.application.ApplicationManager;
@@ -58,7 +58,7 @@ public class GoImportOptimizerTest extends GoCodeInsightFixtureTestCase {
         return pack;
       }
     });
-    GoModuleLibrariesService.getInstance(myFixture.getModule()).setLibraryRootUrls(file.getParent().getUrl());
+    GoModulePackagesService.getInstance(myFixture.getModule()).setLibraryRootUrls(file.getParent().getUrl());
     doTest(); 
   }
 

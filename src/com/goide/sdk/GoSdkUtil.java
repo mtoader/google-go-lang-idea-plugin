@@ -19,8 +19,8 @@ package com.goide.sdk;
 import com.goide.GoConstants;
 import com.goide.GoEnvironmentUtil;
 import com.goide.appengine.YamlFilesModificationTracker;
-import com.goide.project.GoApplicationLibrariesService;
-import com.goide.project.GoLibrariesService;
+import com.goide.project.GoApplicationPackagesService;
+import com.goide.project.GoPathService;
 import com.goide.psi.GoFile;
 import com.goide.util.GoUtil;
 import com.intellij.execution.configurations.PathEnvironmentVariableUtil;
@@ -129,10 +129,10 @@ public class GoSdkUtil {
   @NotNull
   private static Collection<VirtualFile> getGoPathRoots(@NotNull Project project, @Nullable Module module) {
     Collection<VirtualFile> roots = ContainerUtil.newArrayList();
-    if (GoApplicationLibrariesService.getInstance().isUseGoPathFromSystemEnvironment()) {
+    if (GoApplicationPackagesService.getInstance().isUseGoPathFromSystemEnvironment()) {
       roots.addAll(getGoPathsRootsFromEnvironment());
     }
-    roots.addAll(module != null ? GoLibrariesService.getUserDefinedLibraries(module) : GoLibrariesService.getUserDefinedLibraries(project));
+    roots.addAll(module != null ? GoPathService.getUserDefinedLibraries(module) : GoPathService.getUserDefinedLibraries(project));
     return roots;
   }
 
@@ -370,7 +370,7 @@ public class GoSdkUtil {
 
   @NotNull
   public static Collection<Object> getSdkAndLibrariesCacheDependencies(@NotNull Project project, @Nullable Module module, Object... extra) {
-    Collection<Object> dependencies = ContainerUtil.<Object>newArrayList(GoLibrariesService.getModificationTrackers(project, module));
+    Collection<Object> dependencies = ContainerUtil.<Object>newArrayList(GoPathService.getModificationTrackers(project, module));
     ContainerUtil.addAllNotNull(dependencies, GoSdkService.getInstance(project));
     ContainerUtil.addAllNotNull(dependencies, extra);
     return dependencies;

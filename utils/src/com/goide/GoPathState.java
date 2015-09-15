@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
-public class GoLibrariesState {
+public class GoPathState {
   @NotNull private Collection<String> myUrls = ContainerUtil.newArrayList();
 
   @NotNull

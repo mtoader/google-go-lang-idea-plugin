@@ -17,20 +17,20 @@
 package com.goide.project;
 
 import com.goide.GoConstants;
-import com.goide.GoLibrariesState;
-import com.intellij.openapi.components.State;
-import com.intellij.openapi.components.Storage;
-import com.intellij.openapi.components.StoragePathMacros;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleServiceManager;
+import com.goide.GoPathState;
+import com.intellij.openapi.components.*;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 @State(
   name = GoConstants.GO_LIBRARIES_SERVICE_NAME,
-  storages = @Storage(file = StoragePathMacros.MODULE_FILE)
+  storages = {
+    @Storage(id = "default", file = StoragePathMacros.PROJECT_FILE),
+    @Storage(id = "dir", file = StoragePathMacros.PROJECT_CONFIG_DIR + "/" + GoConstants.GO_LIBRARIES_CONFIG_FILE, scheme = StorageScheme.DIRECTORY_BASED)
+  }
 )
-public class GoModuleLibrariesService extends GoLibrariesService<GoLibrariesState> {
-  public static GoModuleLibrariesService getInstance(@NotNull Module module) {
-    return ModuleServiceManager.getService(module, GoModuleLibrariesService.class);
+public class GoProjectPackagesService extends GoPathService<GoPathState> {
+  public static GoProjectPackagesService getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, GoProjectPackagesService.class);
   }
 }

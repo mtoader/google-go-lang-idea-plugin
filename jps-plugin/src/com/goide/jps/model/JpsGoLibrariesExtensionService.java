@@ -16,7 +16,7 @@
 
 package com.goide.jps.model;
 
-import com.goide.GoLibrariesState;
+import com.goide.GoPathState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.JpsGlobal;
@@ -30,20 +30,20 @@ public abstract class JpsGoLibrariesExtensionService {
     return JpsServiceManager.getInstance().getService(JpsGoLibrariesExtensionService.class);
   }
 
-  public abstract void setModuleLibrariesState(@NotNull JpsGoModuleProperties properties, @Nullable GoLibrariesState state);
+  public abstract void setModuleLibrariesState(@NotNull JpsGoModuleProperties properties, @Nullable GoPathState state);
   
   @NotNull
-  public abstract GoLibrariesState getModuleLibrariesState(@NotNull JpsSimpleElement<JpsGoModuleProperties> properties);
+  public abstract GoPathState getModuleLibrariesState(@NotNull JpsSimpleElement<JpsGoModuleProperties> properties);
 
-  public abstract void setProjectLibrariesState(@NotNull JpsProject project, @Nullable GoLibrariesState state);
-
-  @NotNull
-  public abstract GoLibrariesState getProjectLibrariesState(@NotNull JpsProject project);
-
-  public abstract void setApplicationLibrariesState(@NotNull JpsGlobal global, @Nullable GoLibrariesState state);
+  public abstract void setProjectLibrariesState(@NotNull JpsProject project, @Nullable GoPathState state);
 
   @NotNull
-  public abstract GoLibrariesState getApplicationLibrariesState(@NotNull JpsGlobal global);
+  public abstract GoPathState getProjectLibrariesState(@NotNull JpsProject project);
+
+  public abstract void setApplicationLibrariesState(@NotNull JpsGlobal global, @Nullable GoPathState state);
+
+  @NotNull
+  public abstract GoPathState getApplicationLibrariesState(@NotNull JpsGlobal global);
 
   @NotNull
   public abstract String retrieveGoPath(@NotNull JpsTypedModule<JpsSimpleElement<JpsGoModuleProperties>> module);

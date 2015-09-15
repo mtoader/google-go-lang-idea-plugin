@@ -17,7 +17,7 @@
 package com.goide.completion;
 
 import com.goide.GoCodeInsightFixtureTestCase;
-import com.goide.project.GoModuleLibrariesService;
+import com.goide.project.GoModulePackagesService;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.lookup.Lookup;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -36,7 +36,7 @@ public abstract class GoCompletionTestBase extends GoCodeInsightFixtureTestCase 
   protected void setUp() throws Exception {
     super.setUp();
     String url = myFixture.getTempDirFixture().getFile("..").getUrl();
-    GoModuleLibrariesService.getInstance(myModule).setLibraryRootUrls(url);
+    GoModulePackagesService.getInstance(myModule).setLibraryRootUrls(url);
   }
 
   @Override

@@ -17,7 +17,7 @@
 package com.goide.runconfig;
 
 import com.goide.GoCodeInsightFixtureTestCase;
-import com.goide.project.GoApplicationLibrariesService;
+import com.goide.project.GoApplicationPackagesService;
 import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.filters.OpenFileHyperlinkInfo;
@@ -39,7 +39,7 @@ public class GoConsoleFilterTest extends GoCodeInsightFixtureTestCase {
     super.setUp();
     VirtualFile workingDirectory = createTestRoot("workingDirectory");
     VirtualFile goPath = createTestRoot("goPath");
-    GoApplicationLibrariesService.getInstance().setLibraryRootUrls(goPath.getUrl());
+    GoApplicationPackagesService.getInstance().setLibraryRootUrls(goPath.getUrl());
     myFilter = new GoConsoleFilter(myFixture.getProject(), myFixture.getModule(), workingDirectory.getUrl());
   }
 

@@ -16,7 +16,7 @@
 
 package com.goide;
 
-import com.goide.project.GoApplicationLibrariesService;
+import com.goide.project.GoApplicationPackagesService;
 import com.goide.sdk.GoSdkType;
 import com.goide.sdk.GoSdkUtil;
 import com.intellij.openapi.application.ApplicationManager;
@@ -41,7 +41,7 @@ abstract public class GoCodeInsightFixtureTestCase extends LightPlatformCodeInsi
   @Override
   protected void tearDown() throws Exception {
     try {
-      GoApplicationLibrariesService.getInstance().setLibraryRootUrls();
+      GoApplicationPackagesService.getInstance().setLibraryRootUrls();
     }
     finally {
       super.tearDown();

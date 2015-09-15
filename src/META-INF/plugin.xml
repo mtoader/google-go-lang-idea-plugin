@@ -48,7 +48,7 @@
 
   <module-components>
     <component>
-      <implementation-class>com.goide.project.GoModuleLibrariesInitializer</implementation-class>
+      <implementation-class>com.goide.project.GoModulePackagesInitializer</implementation-class>
     </component>
   </module-components>
 
@@ -67,9 +67,9 @@
     <internalFileTemplate name="Go File"/>
 
     <!-- project -->
-    <applicationService serviceImplementation="com.goide.project.GoApplicationLibrariesService"/>
-    <projectService serviceImplementation="com.goide.project.GoProjectLibrariesService"/>
-    <moduleService serviceImplementation="com.goide.project.GoModuleLibrariesService"/>
+    <applicationService serviceImplementation="com.goide.project.GoApplicationPackagesService"/>
+    <projectService serviceImplementation="com.goide.project.GoProjectPackagesService"/>
+    <moduleService serviceImplementation="com.goide.project.GoModulePackagesService"/>
     <projectConfigurable groupId="language" provider="com.goide.configuration.GoConfigurableProvider" dynamic="true"
                          bundle="do.not.touch.this.attribute"/>
 
