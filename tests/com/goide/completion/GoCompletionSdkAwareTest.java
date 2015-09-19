@@ -339,4 +339,16 @@ public class GoCompletionSdkAwareTest extends GoCompletionSdkAwareTestBase {
     assertTrue(strings != null && !strings.contains("fuzz"));
   }
 
+  public void testImportWithExistingImports() {
+    myFixture.configureByText("a.go", "package pack\n" +
+                                      "import \"html\"\n" +
+                                      "func a() { fmt.Printl<caret> }");
+    myFixture.completeBasic();
+    myFixture.checkResult("package pack\n" +
+                          "import (\n" +
+                          "\t\"html\"\n" +
+                          "\t\"fmt\"\n" +
+                          ")\n" +
+                          "func a() { fmt.Println() }");
+  }
 }

@@ -140,4 +140,21 @@ public class GoReferenceImporterTest extends GoCodeInsightFixtureTestCase {
     myFixture.configureByText("a.go", "package foo; func a() { fmt.Print<caret> }");
     assertNotEmpty(myFixture.getLookupElementStrings());
   }
+
+  public void testImportFormatted() {
+    DaemonCodeAnalyzerSettings.getInstance().setImportHintEnabled(true);
+    updateSettings(true, true);
+    myFixture.configureByText("a.go", "package foo\n" +
+                                      "import \"html\"\n" +
+                                      "\n" +
+                                      "func a() { fmt.Println() }");
+    myFixture.doHighlighting();
+    myFixture.doHighlighting();
+    myFixture.checkResult("package foo\n" +
+                          "import (\n" +
+                          "\t\"html\"\n" +
+                          "\t\"fmt\"\n" +
+                          ")\n\n" +
+                          "func a() { fmt.Println() }");
+  }
 }
