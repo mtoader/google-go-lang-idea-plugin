@@ -19,6 +19,7 @@ package com.goide.dlv;
 import com.goide.GoIcons;
 import com.goide.dlv.protocol.DlvApi;
 import com.goide.dlv.protocol.DlvRequest;
+import com.goide.highlighting.GoSyntaxHighlightingColors;
 import com.goide.psi.*;
 import com.intellij.debugger.impl.DebuggerUtilsEx;
 import com.intellij.icons.AllIcons;
@@ -40,8 +41,6 @@ import com.intellij.xdebugger.XDebuggerUtil;
 import com.intellij.xdebugger.XSourcePosition;
 import com.intellij.xdebugger.evaluation.XDebuggerEvaluator;
 import com.intellij.xdebugger.frame.*;
-import com.intellij.xdebugger.frame.presentation.XNumericValuePresentation;
-import com.intellij.xdebugger.frame.presentation.XStringValuePresentation;
 import com.intellij.xdebugger.frame.presentation.XValuePresentation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -148,20 +147,65 @@ class DlvStackFrame extends XStackFrame {
           node.setPresentation(icon, presentation, false);
           return;
         }
+
+        if (variable.type.startsWith("struct struct")) {
+          String type = variable.type.replace("struct struct", "struct").trim();
+          String value = variable.value.replace(type,  "").trim();
+          node.setPresentation(icon, type, value, false);
+          return;
+        }
+
+        if (variable.type.startsWith("struct []")) {
+          String type = variable.type.replace("struct []", "[]").trim();
+          String value = variable.value.replaceAll("(.*\\scap:\\s\\d+,\\s)",  "").trim();
+          node.setPresentation(icon, type, value, false);
+          return;
+        }
+
         node.setPresentation(icon, variable.type, variable.value, false);
       }
 
       @Nullable
       private XValuePresentation getPresentation() {
-        String type = variable.type;
+        final String type = variable.type;
         final String value = variable.value;
-        if (NUMBERS.contains(type)) return new XNumericValuePresentation(value);
-        if ("struct string".equals(type)) return new XStringValuePresentation(value);
+        if (NUMBERS.contains(type)) return new XValuePresentation() {
+          @Nullable
+          @Override
+          public String getType() {
+            return type;
+          }
+
+          @Override
+          public void renderValue(@NotNull XValueTextRenderer renderer) {
+            renderer.renderNumericValue(value);
+          }
+        };
+
+        if ("struct string".equals(type)) return new XValuePresentation() {
+          @Nullable
+          @Override
+          public String getType() {
+            return "string";
+          }
+
+          @Override
+          public void renderValue(@NotNull XValueTextRenderer renderer) {
+            renderer.renderStringValue(value);
+          }
+        };
+
         if ("bool".equals(type)) {
           return new XValuePresentation() {
+            @NotNull
+            @Override
+            public String getType() {
+              return type;
+            }
+
             @Override
             public void renderValue(@NotNull XValueTextRenderer renderer) {
-              renderer.renderValue(value);
+              renderer.renderValue(value, GoSyntaxHighlightingColors.BUILTIN_TYPE_REFERENCE);
             }
           };
         }
