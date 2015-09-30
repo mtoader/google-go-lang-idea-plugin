@@ -16,9 +16,9 @@
 
 package com.goide.configuration;
 
-import com.goide.project.GoApplicationLibrariesService;
-import com.goide.project.GoModuleLibrariesService;
-import com.goide.project.GoProjectLibrariesService;
+import com.goide.project.GoApplicationPackagesService;
+import com.goide.project.GoModulePackagesService;
+import com.goide.project.GoProjectPackagesService;
 import com.goide.sdk.GoSdkService;
 import com.goide.sdk.GoSdkUtil;
 import com.intellij.application.options.ModuleAwareProjectConfigurable;
@@ -47,10 +47,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
-public class GoLibrariesConfigurableProvider extends ConfigurableProvider {
+public class GoPathConfigurableProvider extends ConfigurableProvider {
   @NotNull private final Project myProject;
 
-  public GoLibrariesConfigurableProvider(@NotNull Project project) {
+  public GoPathConfigurableProvider(@NotNull Project project) {
     myProject = project;
   }
 
@@ -116,10 +116,10 @@ public class GoLibrariesConfigurableProvider extends ConfigurableProvider {
               return file.getUrl();
             }
           });
-        result.add(new GoLibrariesConfigurable("Global libraries", GoApplicationLibrariesService.getInstance(), urlsFromEnv));
+        result.add(new GoPathConfigurable("Global GOPATH", GoApplicationPackagesService.getInstance(), urlsFromEnv));
         if (!myProject.isDefault()) {
-          result.add(new GoLibrariesConfigurable("Project libraries", GoProjectLibrariesService.getInstance(myProject)));
-          result.add(new ModuleAwareProjectConfigurable(myProject, "Module libraries", "Module libraries") {
+          result.add(new GoPathConfigurable("Project GOPATH", GoProjectPackagesService.getInstance(myProject)));
+          result.add(new ModuleAwareProjectConfigurable(myProject, "Module GOPATH", "Module GOPATH") {
             @Override
             protected boolean isSuitableForModule(@NotNull Module module) {
               return !myProject.isDisposed() && GoSdkService.getInstance(myProject).isGoModule(module);
@@ -128,7 +128,7 @@ public class GoLibrariesConfigurableProvider extends ConfigurableProvider {
             @NotNull
             @Override
             protected UnnamedConfigurable createModuleConfigurable(@NotNull Module module) {
-              return new GoLibrariesConfigurable("Module libraries", GoModuleLibrariesService.getInstance(module));
+              return new GoPathConfigurable("Module GOPATH", GoModulePackagesService.getInstance(module));
             }
           });
         }
@@ -139,7 +139,7 @@ public class GoLibrariesConfigurableProvider extends ConfigurableProvider {
       @Nls
       @Override
       public String getDisplayName() {
-        return "Go Libraries";
+        return "Gopath";
       }
 
       @Nullable

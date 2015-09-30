@@ -17,7 +17,7 @@
 package com.goide.jps.model;
 
 import com.goide.GoConstants;
-import com.goide.GoLibrariesState;
+import com.goide.GoPathState;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +44,7 @@ public class JpsGoModuleType extends JpsElementTypeBase<JpsSimpleElement<JpsGoMo
       public JpsSimpleElement<JpsGoModuleProperties> loadProperties(@Nullable Element componentElement) {
         JpsSimpleElement<JpsGoModuleProperties> result = INSTANCE.createDefaultProperties();
         if (componentElement != null) {
-          GoLibrariesState librariesState = XmlSerializer.deserialize(componentElement, GoLibrariesState.class);
+          GoPathState librariesState = XmlSerializer.deserialize(componentElement, GoPathState.class);
           JpsGoLibrariesExtensionService.getInstance().setModuleLibrariesState(result.getData(), librariesState);
         }
         return result;

@@ -17,7 +17,7 @@
 package com.goide.project;
 
 import com.goide.GoConstants;
-import com.goide.GoLibrariesState;
+import com.goide.GoPathState;
 import com.goide.sdk.GoSdkUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -30,15 +30,15 @@ import org.jetbrains.annotations.NotNull;
   name = GoConstants.GO_LIBRARIES_SERVICE_NAME,
   storages = @Storage(file = StoragePathMacros.APP_CONFIG + "/" + GoConstants.GO_LIBRARIES_CONFIG_FILE)
 )
-public class GoApplicationLibrariesService extends GoLibrariesService<GoApplicationLibrariesService.GoApplicationLibrariesState> {
+public class GoApplicationPackagesService extends GoPathService<GoApplicationPackagesService.GoApplicationPathState> {
   @NotNull
   @Override
-  protected GoApplicationLibrariesState createState() {
-    return new GoApplicationLibrariesState();
+  protected GoApplicationPathState createState() {
+    return new GoApplicationPathState();
   }
 
-  public static GoApplicationLibrariesService getInstance() {
-    return ServiceManager.getService(GoApplicationLibrariesService.class);
+  public static GoApplicationPackagesService getInstance() {
+    return ServiceManager.getService(GoApplicationPackagesService.class);
   }
 
   public boolean isUseGoPathFromSystemEnvironment() {
@@ -50,12 +50,12 @@ public class GoApplicationLibrariesService extends GoLibrariesService<GoApplicat
       myState.setUseGoPathFromSystemEnvironment(useGoPathFromSystemEnvironment);
       if (!GoSdkUtil.getGoPathsRootsFromEnvironment().isEmpty()) {
         incModificationCount();
-        ApplicationManager.getApplication().getMessageBus().syncPublisher(LIBRARIES_TOPIC).librariesChanged(getLibraryRootUrls());
+        ApplicationManager.getApplication().getMessageBus().syncPublisher(GOPATH_TOPIC).librariesChanged(getLibraryRootUrls());
       }
     }
   }
 
-  public static class GoApplicationLibrariesState extends GoLibrariesState {
+  public static class GoApplicationPathState extends GoPathState {
     private boolean myUseGoPathFromSystemEnvironment = true;
 
     public boolean isUseGoPathFromSystemEnvironment() {

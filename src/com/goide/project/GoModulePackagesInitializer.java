@@ -17,7 +17,7 @@
 package com.goide.project;
 
 import com.goide.GoConstants;
-import com.goide.configuration.GoLibrariesConfigurableProvider;
+import com.goide.configuration.GoPathConfigurableProvider;
 import com.goide.sdk.GoSdkService;
 import com.goide.sdk.GoSdkUtil;
 import com.goide.util.GoUtil;
@@ -56,9 +56,9 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
 
-public class GoModuleLibrariesInitializer implements ModuleComponent {
+public class GoModulePackagesInitializer implements ModuleComponent {
   private static final String GO_LIB_NAME = "GOPATH";
-  private static final Logger LOG = Logger.getInstance(GoModuleLibrariesInitializer.class);
+  private static final Logger LOG = Logger.getInstance(GoModulePackagesInitializer.class);
   private static final String GO_LIBRARIES_NOTIFICATION_HAD_BEEN_SHOWN = "go.libraries.notification.had.been.shown";
   private static final int UPDATE_DELAY = 300;
   private static boolean isTestingMode = false;
@@ -114,7 +114,7 @@ public class GoModuleLibrariesInitializer implements ModuleComponent {
     });
   }
 
-  public GoModuleLibrariesInitializer(@NotNull Module module) {
+  public GoModulePackagesInitializer(@NotNull Module module) {
     myModule = module;
     myAlarm = ApplicationManager.getApplication().isUnitTestMode() ? new Alarm() : new Alarm(Alarm.ThreadToUse.POOLED_THREAD, myModule);
     myConnection = myModule.getMessageBus().connect();
@@ -132,7 +132,7 @@ public class GoModuleLibrariesInitializer implements ModuleComponent {
           scheduleUpdate();
         }
       });
-      myConnection.subscribe(GoLibrariesService.LIBRARIES_TOPIC, new GoLibrariesService.LibrariesListener() {
+      myConnection.subscribe(GoPathService.GOPATH_TOPIC, new GoPathService.LibrariesListener() {
         @Override
         public void librariesChanged(@NotNull Collection<String> newRootUrls) {
           scheduleUpdate();
@@ -291,8 +291,8 @@ public class GoModuleLibrariesInitializer implements ModuleComponent {
 
     if (!shownAlready) {
       Notification notification = GoConstants.GO_NOTIFICATION_GROUP.createNotification("GOPATH was detected",
-                                                         "We've detected some libraries from your GOPATH.\n" +
-                                                         "You may want to add extra libraries in <a href='configure'>Go Libraries configuration</a>.",
+                                                         "We've detected Go packages from your GOPATH.\n" +
+                                                         "You may want to add extra packages in <a href='configure'>Gopath configuration</a>.",
                                                          NotificationType.INFORMATION, new NotificationListener.Adapter() {
         @Override
         protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
@@ -308,7 +308,7 @@ public class GoModuleLibrariesInitializer implements ModuleComponent {
   public static void showModulesConfigurable(@NotNull Project project) {
     ApplicationManager.getApplication().assertIsDispatchThread();
     if (!project.isDisposed()) {
-      Configurable configurable = new GoLibrariesConfigurableProvider(project).createConfigurable(true);
+      Configurable configurable = new GoPathConfigurableProvider(project).createConfigurable(true);
       if (configurable != null) {
         ShowSettingsUtil.getInstance().editConfigurable(project, configurable);
       }
@@ -349,7 +349,7 @@ public class GoModuleLibrariesInitializer implements ModuleComponent {
   private class UpdateRequest implements Runnable {
     public void run() {
       final Project project = myModule.getProject();
-      if (GoSdkService.getInstance(project).isGoModule(GoModuleLibrariesInitializer.this.myModule)) {
+      if (GoSdkService.getInstance(project).isGoModule(GoModulePackagesInitializer.this.myModule)) {
         synchronized (myLastHandledRoots) {
           final Collection<VirtualFile> libraryRoots = ContainerUtil.newHashSet();
           for (VirtualFile packages : GoSdkUtil.getGoPathSources(project, myModule)) {
@@ -366,7 +366,7 @@ public class GoModuleLibrariesInitializer implements ModuleComponent {
             ApplicationManager.getApplication().invokeLater(new Runnable() {
               @Override
               public void run() {
-                if (!myModule.isDisposed() && GoSdkService.getInstance(project).isGoModule(GoModuleLibrariesInitializer.this.myModule)) {
+                if (!myModule.isDisposed() && GoSdkService.getInstance(project).isGoModule(GoModulePackagesInitializer.this.myModule)) {
                   attachLibraries(libraryRoots, excludedRoots);
                 }
               }
@@ -387,7 +387,7 @@ public class GoModuleLibrariesInitializer implements ModuleComponent {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
-              if (!myModule.isDisposed() && GoSdkService.getInstance(project).isGoModule(GoModuleLibrariesInitializer.this.myModule)) {
+              if (!myModule.isDisposed() && GoSdkService.getInstance(project).isGoModule(GoModulePackagesInitializer.this.myModule)) {
                 removeLibraryIfNeeded();
               }
             }

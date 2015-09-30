@@ -16,20 +16,20 @@
 
 package com.goide.jps.model;
 
-import com.goide.GoLibrariesState;
+import com.goide.GoPathState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class JpsGoModuleProperties {
   @NotNull
-  private GoLibrariesState myLibrariesState = new GoLibrariesState();
+  private GoPathState myLibrariesState = new GoPathState();
 
   @NotNull
-  public GoLibrariesState getLibrariesState() {
+  public GoPathState getLibrariesState() {
     return myLibrariesState;
   }
 
-  public void setLibrariesState(@Nullable GoLibrariesState librariesState) {
-    myLibrariesState = librariesState != null ? librariesState : new GoLibrariesState();
+  public void setLibrariesState(@Nullable GoPathState librariesState) {
+    myLibrariesState = librariesState != null ? librariesState : new GoPathState();
   }
 }

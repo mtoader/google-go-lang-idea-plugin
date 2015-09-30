@@ -16,7 +16,7 @@
 
 package com.goide.project;
 
-import com.goide.GoLibrariesState;
+import com.goide.GoPathState;
 import com.goide.sdk.GoSdkUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
@@ -37,8 +37,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
-public abstract class GoLibrariesService<T extends GoLibrariesState> extends SimpleModificationTracker implements PersistentStateComponent<T> {
-  public static final Topic<LibrariesListener> LIBRARIES_TOPIC = new Topic<LibrariesListener>("libraries changes", LibrariesListener.class);
+public abstract class GoPathService<T extends GoPathState> extends SimpleModificationTracker implements PersistentStateComponent<T> {
+  public static final Topic<LibrariesListener> GOPATH_TOPIC = new Topic<LibrariesListener>("GOPATH changes", LibrariesListener.class);
   protected final T myState = createState();
 
   @NotNull
@@ -55,13 +55,13 @@ public abstract class GoLibrariesService<T extends GoLibrariesState> extends Sim
   @NotNull
   protected T createState() {
     //noinspection unchecked
-    return (T)new GoLibrariesState();
+    return (T)new GoPathState();
   }
 
   @NotNull
   public static Collection<? extends VirtualFile> getUserDefinedLibraries(@NotNull Module module) {
     Set<VirtualFile> result = ContainerUtil.newLinkedHashSet();
-    result.addAll(goRootsFromUrls(GoModuleLibrariesService.getInstance(module).getLibraryRootUrls()));
+    result.addAll(goRootsFromUrls(GoModulePackagesService.getInstance(module).getLibraryRootUrls()));
     result.addAll(getUserDefinedLibraries(module.getProject()));
     return result;
   }
@@ -69,32 +69,34 @@ public abstract class GoLibrariesService<T extends GoLibrariesState> extends Sim
   @NotNull
   public static Collection<? extends VirtualFile> getUserDefinedLibraries(@NotNull Project project) {
     Set<VirtualFile> result = ContainerUtil.newLinkedHashSet();
-    result.addAll(goRootsFromUrls(GoProjectLibrariesService.getInstance(project).getLibraryRootUrls()));
+    result.addAll(goRootsFromUrls(GoProjectPackagesService.getInstance(project).getLibraryRootUrls()));
     result.addAll(getUserDefinedLibraries());
     return result;
   }
 
   @NotNull
   public static Collection<? extends VirtualFile> getUserDefinedLibraries() {
-    return goRootsFromUrls(GoApplicationLibrariesService.getInstance().getLibraryRootUrls());
+    return goRootsFromUrls(GoApplicationPackagesService.getInstance().getLibraryRootUrls());
   }
 
   @NotNull
   public static ModificationTracker[] getModificationTrackers(@NotNull Project project, @Nullable Module module) {
     return module != null
-           ? new ModificationTracker[]{GoModuleLibrariesService.getInstance(module), GoProjectLibrariesService.getInstance(module.getProject()), GoApplicationLibrariesService.getInstance()}
-           : new ModificationTracker[]{GoProjectLibrariesService.getInstance(project), GoApplicationLibrariesService.getInstance()};
+           ? new ModificationTracker[]{GoModulePackagesService.getInstance(module), GoProjectPackagesService
+      .getInstance(module.getProject()), GoApplicationPackagesService
+      .getInstance()}
+           : new ModificationTracker[]{GoProjectPackagesService.getInstance(project), GoApplicationPackagesService.getInstance()};
   }
-  
+
   public void setLibraryRootUrls(@NotNull String... libraryRootUrls) {
     setLibraryRootUrls(Arrays.asList(libraryRootUrls));
   }
-  
+
   public void setLibraryRootUrls(@NotNull Collection<String> libraryRootUrls) {
     if (!myState.getUrls().equals(libraryRootUrls)) {
       myState.setUrls(libraryRootUrls);
       incModificationCount();
-      ApplicationManager.getApplication().getMessageBus().syncPublisher(LIBRARIES_TOPIC).librariesChanged(libraryRootUrls);
+      ApplicationManager.getApplication().getMessageBus().syncPublisher(GOPATH_TOPIC).librariesChanged(libraryRootUrls);
     }
   }
 

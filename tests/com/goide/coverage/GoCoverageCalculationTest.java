@@ -17,7 +17,7 @@
 package com.goide.coverage;
 
 import com.goide.GoCodeInsightFixtureTestCase;
-import com.goide.project.GoModuleLibrariesService;
+import com.goide.project.GoModulePackagesService;
 import com.goide.runconfig.testing.coverage.GoCoverageAnnotator;
 import com.goide.runconfig.testing.coverage.GoCoverageProjectData;
 import com.goide.runconfig.testing.coverage.GoCoverageRunner;
@@ -33,7 +33,7 @@ public class GoCoverageCalculationTest extends GoCodeInsightFixtureTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    GoModuleLibrariesService.getInstance(myModule).setLibraryRootUrls(getRoot().getUrl());
+    GoModulePackagesService.getInstance(myModule).setLibraryRootUrls(getRoot().getUrl());
   }
 
   public void testCoverage() throws IOException {

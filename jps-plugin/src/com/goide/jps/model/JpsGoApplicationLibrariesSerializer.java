@@ -17,7 +17,7 @@
 package com.goide.jps.model;
 
 import com.goide.GoConstants;
-import com.goide.GoLibrariesState;
+import com.goide.GoPathState;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,7 @@ public class JpsGoApplicationLibrariesSerializer extends JpsGlobalExtensionSeria
 
   @Override
   public void loadExtension(@NotNull JpsGlobal global, @NotNull Element componentTag) {
-    GoLibrariesState librariesState = XmlSerializer.deserialize(componentTag, GoLibrariesState.class);
+    GoPathState librariesState = XmlSerializer.deserialize(componentTag, GoPathState.class);
     JpsGoLibrariesExtensionService.getInstance().setApplicationLibrariesState(global, librariesState);
   }
 

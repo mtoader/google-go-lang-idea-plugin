@@ -17,7 +17,7 @@
 package com.goide.jps.model;
 
 import com.goide.GoEnvironmentUtil;
-import com.goide.GoLibrariesState;
+import com.goide.GoPathState;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.util.Function;
@@ -38,38 +38,38 @@ public class JpsGoLibrariesExtensionServiceImpl extends JpsGoLibrariesExtensionS
   private static final JpsElementChildRole<JpsGoLibraries> LIBRARIES_ROLE = JpsElementChildRoleBase.create("go.libraries.role");
 
   @Override
-  public void setModuleLibrariesState(@NotNull JpsGoModuleProperties properties, @Nullable GoLibrariesState state) {
+  public void setModuleLibrariesState(@NotNull JpsGoModuleProperties properties, @Nullable GoPathState state) {
     properties.setLibrariesState(state);
   }
 
   @NotNull
   @Override
-  public GoLibrariesState getModuleLibrariesState(@NotNull JpsSimpleElement<JpsGoModuleProperties> properties) {
+  public GoPathState getModuleLibrariesState(@NotNull JpsSimpleElement<JpsGoModuleProperties> properties) {
     return properties.getData().getLibrariesState();
   }
 
   @Override
-  public void setProjectLibrariesState(@NotNull JpsProject project, @Nullable GoLibrariesState state) {
+  public void setProjectLibrariesState(@NotNull JpsProject project, @Nullable GoPathState state) {
     project.getContainer().setChild(LIBRARIES_ROLE, new JpsGoLibraries(state));
   }
 
   @NotNull
   @Override
-  public GoLibrariesState getProjectLibrariesState(@NotNull JpsProject project) {
+  public GoPathState getProjectLibrariesState(@NotNull JpsProject project) {
     final JpsGoLibraries child = project.getContainer().getChild(LIBRARIES_ROLE);
-    return child != null ? child.getState() : new GoLibrariesState();
+    return child != null ? child.getState() : new GoPathState();
   }
 
   @Override
-  public void setApplicationLibrariesState(@NotNull JpsGlobal global, @Nullable GoLibrariesState state) {
+  public void setApplicationLibrariesState(@NotNull JpsGlobal global, @Nullable GoPathState state) {
     global.getContainer().setChild(LIBRARIES_ROLE, new JpsGoLibraries(state));
   }
 
   @NotNull
   @Override
-  public GoLibrariesState getApplicationLibrariesState(@NotNull JpsGlobal global) {
+  public GoPathState getApplicationLibrariesState(@NotNull JpsGlobal global) {
     final JpsGoLibraries child = global.getContainer().getChild(LIBRARIES_ROLE);
-    return child != null ? child.getState() : new GoLibrariesState();
+    return child != null ? child.getState() : new GoPathState();
   }
 
   @NotNull

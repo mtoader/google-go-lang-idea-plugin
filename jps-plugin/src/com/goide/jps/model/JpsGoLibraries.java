@@ -16,7 +16,7 @@
 
 package com.goide.jps.model;
 
-import com.goide.GoLibrariesState;
+import com.goide.GoPathState;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,23 +24,23 @@ import org.jetbrains.jps.model.ex.JpsElementBase;
 
 public class JpsGoLibraries extends JpsElementBase<JpsGoLibraries> {
   @NotNull
-  private GoLibrariesState myState = new GoLibrariesState();
+  private GoPathState myState = new GoPathState();
 
-  public JpsGoLibraries(@Nullable GoLibrariesState state) {
+  public JpsGoLibraries(@Nullable GoPathState state) {
     if (state != null) {
       myState = state;
     }
   }
 
   @NotNull
-  public GoLibrariesState getState() {
+  public GoPathState getState() {
     return myState;
   }
 
   @NotNull
   @Override
   public JpsGoLibraries createCopy() {
-    GoLibrariesState newState = new GoLibrariesState();
+    GoPathState newState = new GoPathState();
     XmlSerializerUtil.copyBean(myState, newState);
     return new JpsGoLibraries(newState);
   }

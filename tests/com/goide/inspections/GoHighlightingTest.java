@@ -18,7 +18,7 @@ package com.goide.inspections;
 
 import com.goide.GoCodeInsightFixtureTestCase;
 import com.goide.inspections.unresolved.*;
-import com.goide.project.GoModuleLibrariesService;
+import com.goide.project.GoModulePackagesService;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -121,7 +121,7 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
     myFixture.getTempDirFixture().createFile("root1/src/to_import/unique/foo.go", "package unique; func Foo() {}");
     myFixture.getTempDirFixture().findOrCreateDir("root1/src/to_import/shared");
     myFixture.getTempDirFixture().findOrCreateDir("root2/src/to_import/shared");
-    GoModuleLibrariesService.getInstance(myFixture.getModule()).setLibraryRootUrls(root1.getUrl(), root2.getUrl());
+    GoModulePackagesService.getInstance(myFixture.getModule()).setLibraryRootUrls(root1.getUrl(), root2.getUrl());
     doTest();
   }
 
@@ -223,7 +223,7 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
                                                         "package pack2_test; import \"testing\"; func TestTest(t *testing.T) {<error>pack1_test</error>.Test()}");
       }
     });
-    GoModuleLibrariesService.getInstance(myFixture.getModule()).setLibraryRootUrls(file.getParent().getParent().getUrl());
+    GoModulePackagesService.getInstance(myFixture.getModule()).setLibraryRootUrls(file.getParent().getParent().getUrl());
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting();
   }
@@ -237,7 +237,7 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
                                                         "package pack2_test; import `pack1`; import \"testing\"; func TestTest(t *testing.T) {pack1_test.Test()}");
       }
     });
-    GoModuleLibrariesService.getInstance(myFixture.getModule()).setLibraryRootUrls(file.getParent().getParent().getUrl());
+    GoModulePackagesService.getInstance(myFixture.getModule()).setLibraryRootUrls(file.getParent().getParent().getUrl());
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting();
   }
@@ -289,7 +289,7 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
                                                  "package main; import p \"pack1\"; import <error>p \"pack2\"</error>; func main() { p.Foo() }");
       }
     });
-    GoModuleLibrariesService.getInstance(myFixture.getModule()).setLibraryRootUrls(file.getParent().getParent().getUrl());
+    GoModulePackagesService.getInstance(myFixture.getModule()).setLibraryRootUrls(file.getParent().getParent().getUrl());
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting();
   }
@@ -303,7 +303,7 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
                                                         "package main; import \"pack\"; import <error>\"pack\"</error>; func main() { pack.Foo() }");
       }
     });
-    GoModuleLibrariesService.getInstance(myFixture.getModule()).setLibraryRootUrls(file.getParent().getParent().getUrl());
+    GoModulePackagesService.getInstance(myFixture.getModule()).setLibraryRootUrls(file.getParent().getParent().getUrl());
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting();
   }
@@ -318,7 +318,7 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
                                                         "package main; import \"a/pack\"; import <error>\"b/pack\"</error>; func main() { pack.Foo() }");
       }
     });
-    GoModuleLibrariesService.getInstance(myFixture.getModule()).setLibraryRootUrls(file.getParent().getParent().getUrl());
+    GoModulePackagesService.getInstance(myFixture.getModule()).setLibraryRootUrls(file.getParent().getParent().getUrl());
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting();
   }
@@ -339,7 +339,7 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
                                                         "package main; import \"a\"; import \"b\"; func main() { a.Foo(); b.Bar(); }");
       }
     });
-    GoModuleLibrariesService.getInstance(myFixture.getModule()).setLibraryRootUrls(file.getParent().getParent().getUrl());
+    GoModulePackagesService.getInstance(myFixture.getModule()).setLibraryRootUrls(file.getParent().getParent().getUrl());
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting();
   }
@@ -356,7 +356,7 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
                                                         "package main; import _ \"a/pack\"; import _ \"b/pack\"; import . \"c/pack\"; import . \"d/pack\"; func main() { Bar(); Baz() }");
       }
     });
-    GoModuleLibrariesService.getInstance(myFixture.getModule()).setLibraryRootUrls(file.getParent().getParent().getUrl());
+    GoModulePackagesService.getInstance(myFixture.getModule()).setLibraryRootUrls(file.getParent().getParent().getUrl());
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting();
   }

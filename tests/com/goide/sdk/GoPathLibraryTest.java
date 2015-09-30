@@ -18,8 +18,8 @@ package com.goide.sdk;
 
 import com.goide.GoCodeInsightFixtureTestCase;
 import com.goide.GoModuleType;
-import com.goide.project.GoApplicationLibrariesService;
-import com.goide.project.GoModuleLibrariesInitializer;
+import com.goide.project.GoApplicationPackagesService;
+import com.goide.project.GoModulePackagesInitializer;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -54,7 +54,7 @@ public class GoPathLibraryTest extends GoCodeInsightFixtureTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    GoModuleLibrariesInitializer.setTestingMode(getTestRootDisposable());
+    GoModulePackagesInitializer.setTestingMode(getTestRootDisposable());
   }
 
   /**
@@ -66,7 +66,7 @@ public class GoPathLibraryTest extends GoCodeInsightFixtureTestCase {
   public void testAddGoPathAsLibrary() throws IOException {
     VirtualFile goPath = VfsUtil.findFileByIoFile(FileUtil.createTempDirectory("go", "path"), true);
     VirtualFile goPathContent = goPath.createChildDirectory(this, "src").createChildData(this, "test.go");
-    GoApplicationLibrariesService.getInstance().setLibraryRootUrls(goPath.getUrl());
+    GoApplicationPackagesService.getInstance().setLibraryRootUrls(goPath.getUrl());
     assertLibrary(Collections.singletonList(goPathContent.getUrl()), "temp:///src");
   }
 
@@ -83,7 +83,7 @@ public class GoPathLibraryTest extends GoCodeInsightFixtureTestCase {
     VirtualFile contentRoot = src.createChildDirectory(this, "contentRoot");
     VirtualFile notContentRoot = src.createChildDirectory(this, "notContentRoot");
     addContentRoot(contentRoot);
-    GoApplicationLibrariesService.getInstance().setLibraryRootUrls(goPath.getUrl());
+    GoApplicationPackagesService.getInstance().setLibraryRootUrls(goPath.getUrl());
     assertLibrary(Collections.singletonList(notContentRoot.getUrl()), "temp:///src", contentRoot.getUrl());
   }
 
@@ -106,7 +106,7 @@ public class GoPathLibraryTest extends GoCodeInsightFixtureTestCase {
     VirtualFile otherGoPathContent = otherGoPath.createChildDirectory(this, "src").createChildData(this, "test.go");
 
     addContentRoot(contentRoot);
-    GoApplicationLibrariesService.getInstance().setLibraryRootUrls(goPath.getUrl(), otherGoPath.getUrl());
+    GoApplicationPackagesService.getInstance().setLibraryRootUrls(goPath.getUrl(), otherGoPath.getUrl());
     assertLibrary(Collections.singletonList(otherGoPathContent.getUrl()), "temp:///src", contentRoot.getUrl());
   }
 
@@ -122,7 +122,7 @@ public class GoPathLibraryTest extends GoCodeInsightFixtureTestCase {
     VirtualFile src = goPath.createChildDirectory(this, "src");
     VirtualFile testData = src.createChildDirectory(this, "testdata");
     VirtualFile notTestData = src.createChildDirectory(this, "notTestdata");
-    GoApplicationLibrariesService.getInstance().setLibraryRootUrls(goPath.getUrl());
+    GoApplicationPackagesService.getInstance().setLibraryRootUrls(goPath.getUrl());
     assertLibrary(Arrays.asList(testData.getUrl(), notTestData.getUrl()), "temp:///src", testData.getUrl());
   }
 
@@ -137,7 +137,7 @@ public class GoPathLibraryTest extends GoCodeInsightFixtureTestCase {
     VirtualFile goPath = VfsUtil.findFileByIoFile(FileUtil.createTempDirectory("go", "path"), true);
     VirtualFile goPathContent = goPath.createChildDirectory(this, "src").createChildDirectory(this, "subdir");
 
-    GoApplicationLibrariesService.getInstance().setLibraryRootUrls(goPath.getUrl());
+    GoApplicationPackagesService.getInstance().setLibraryRootUrls(goPath.getUrl());
     assertLibrary(Collections.singletonList(goPathContent.getUrl()), "temp:///src");
 
     VirtualFile contentRoot = goPathContent.createChildDirectory(this, "contentRoot");
@@ -155,7 +155,7 @@ public class GoPathLibraryTest extends GoCodeInsightFixtureTestCase {
   public void testUpdateLibraryOnAddingDataToExistingGoPath() throws IOException {
     VirtualFile file = VfsUtil.findFileByIoFile(FileUtil.createTempDirectory("go", "test"), true);
     VirtualFile subdir = file.createChildDirectory(this, "src").createChildDirectory(this, "subdir");
-    GoApplicationLibrariesService.getInstance().setLibraryRootUrls(file.getUrl());
+    GoApplicationPackagesService.getInstance().setLibraryRootUrls(file.getUrl());
     assertLibrary(Collections.singletonList(subdir.getUrl()), "temp:///src");
 
     VirtualFile newDirectory = subdir.createChildDirectory(this, "testdata");
@@ -176,7 +176,7 @@ public class GoPathLibraryTest extends GoCodeInsightFixtureTestCase {
   private void assertLibrary(Collection<String> libUrls, String... exclusionUrls) {
     UIUtil.dispatchAllInvocationEvents();
 
-    GoModuleLibrariesInitializer initializer = myModule.getComponent(GoModuleLibrariesInitializer.class);
+    GoModulePackagesInitializer initializer = myModule.getComponent(GoModulePackagesInitializer.class);
     ModuleRootManager model = ModuleRootManager.getInstance(myModule);
     LibraryOrderEntry libraryOrderEntry = OrderEntryUtil.findLibraryOrderEntry(model, initializer.getLibraryName());
     if (libUrls.isEmpty()) {
