@@ -88,6 +88,9 @@ test {
     exceptionFormat = 'full'
   }
 }
+if (System.getenv("TEAMCITY_VERSION") != null) {
+    test.ignoreFailures = true
+}
 
 task preparePerformanceTestData << {
   downloadAndUnzip('https://storage.googleapis.com/golang/go1.4.2.src.tar.gz', 'go', 'go')
