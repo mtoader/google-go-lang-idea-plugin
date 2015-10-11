@@ -16,6 +16,7 @@
 
 package com.goide.inspections;
 
+import com.goide.codeInsight.imports.GoCodeInsightSettings;
 import com.goide.quickfix.GoQuickFixTestBase;
 import com.intellij.testFramework.LightProjectDescriptor;
 
@@ -25,6 +26,13 @@ public class GoTestSignaturesInspectionTest extends GoQuickFixTestBase {
     super.setUp();
     setUpProjectSdk();
     myFixture.enableInspections(GoTestSignaturesInspection.class);
+    GoCodeInsightSettings.getInstance().setOptimizeImportsOnTheFly(false);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    GoCodeInsightSettings.getInstance().setOptimizeImportsOnTheFly(true);
+    super.tearDown();
   }
 
   @Override

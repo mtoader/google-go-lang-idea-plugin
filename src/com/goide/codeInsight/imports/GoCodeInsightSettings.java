@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 )
 public class GoCodeInsightSettings implements PersistentStateComponent<GoCodeInsightSettings> {
   private boolean myShowImportPopup = true;
+  private boolean myOptimizeImportsOnTheFly = true;
   private boolean myAddUnambiguousImportsOnTheFly = true;
 
   public static GoCodeInsightSettings getInstance() {
@@ -50,6 +51,14 @@ public class GoCodeInsightSettings implements PersistentStateComponent<GoCodeIns
 
   public void setShowImportPopup(boolean showImportPopup) {
     myShowImportPopup = showImportPopup;
+  }
+
+  public boolean isOptimizeImportsOnTheFly() {
+    return myOptimizeImportsOnTheFly;
+  }
+
+  public void setOptimizeImportsOnTheFly(boolean optimizeImportsOnTheFly) {
+    myOptimizeImportsOnTheFly = optimizeImportsOnTheFly;
   }
 
   public boolean isAddUnambiguousImportsOnTheFly() {

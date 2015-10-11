@@ -17,6 +17,7 @@
 package com.goide.inspections;
 
 import com.goide.GoCodeInsightFixtureTestCase;
+import com.goide.codeInsight.imports.GoCodeInsightSettings;
 import com.goide.inspections.unresolved.*;
 import com.goide.project.GoModuleLibrariesService;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -55,6 +56,13 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
       GoTestSignaturesInspection.class,
       GoAssignmentNilWithoutExplicitTypeInspection.class
     );
+    GoCodeInsightSettings.getInstance().setOptimizeImportsOnTheFly(false);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    GoCodeInsightSettings.getInstance().setOptimizeImportsOnTheFly(true);
+    super.tearDown();
   }
 
   private void doTest() {
