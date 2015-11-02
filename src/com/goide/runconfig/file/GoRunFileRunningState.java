@@ -23,6 +23,8 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+
 public class GoRunFileRunningState extends GoRunningState<GoRunFileConfiguration> {
   public GoRunFileRunningState(@NotNull ExecutionEnvironment env, @NotNull Module module, GoRunFileConfiguration configuration) {
     super(env, module, configuration);
@@ -30,6 +32,12 @@ public class GoRunFileRunningState extends GoRunningState<GoRunFileConfiguration
 
   @Override
   protected GoExecutor patchExecutor(@NotNull GoExecutor executor) throws ExecutionException {
+    if (isDebug()) {
+      File dlv = dlv();
+      return executor.withExePath(dlv.getAbsolutePath())
+        .withParameters("--listen=localhost:" + myDebugPort, "--headless=true", "exec", myOutputFilePath, "--");
+    }
+
     return executor
       .withParameters("run")
       .withParameterString(myConfiguration.getGoToolParams())
