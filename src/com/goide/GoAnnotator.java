@@ -17,6 +17,7 @@
 package com.goide;
 
 import com.goide.psi.*;
+import com.goide.psi.impl.GoFieldNameImpl;
 import com.goide.psi.impl.GoPsiImplUtil;
 import com.goide.psi.impl.GoReference;
 import com.intellij.lang.annotation.AnnotationHolder;
@@ -24,6 +25,7 @@ import com.intellij.lang.annotation.Annotator;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.editor.markup.TextAttributes;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
@@ -65,6 +67,9 @@ public class GoAnnotator implements Annotator {
     }
     else if (o instanceof GoFieldDefinition) {
       setHighlighting(o, holder, getColor((GoFieldDefinition)o), "field");
+    }
+    else if (o instanceof GoFieldNameImpl) {
+      setHighlighting(o, holder, getColor((GoFieldNameImpl)o), "field");
     }
     else if (o instanceof GoParamDefinition) {
       setHighlighting(o, holder, FUNCTION_PARAMETER, "param");
@@ -130,6 +135,12 @@ public class GoAnnotator implements Annotator {
 
   private static TextAttributesKey getColor(GoFieldDefinition o) {
     return o.isPublic() ? STRUCT_EXPORTED_MEMBER : STRUCT_LOCAL_MEMBER;
+  }
+
+  private static TextAttributesKey getColor(GoFieldNameImpl o) {
+    return StringUtil.isCapitalized(o.getName())
+           ? GoSyntaxHighlightingColors.STRUCT_EXPORTED_MEMBER
+           : GoSyntaxHighlightingColors.STRUCT_LOCAL_MEMBER;
   }
 
   private static TextAttributesKey getColor(GoVarDefinition o) {
