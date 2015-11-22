@@ -192,6 +192,9 @@ func main() {
     for b, i := (M{}), 10; i < 10; i++ {
         fmt.Println(v)
     }
+    for b, i := { // error
+        fmt.Println(v)
+    }
 }
 
 type name struct {

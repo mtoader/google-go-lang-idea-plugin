@@ -640,8 +640,11 @@ public class GoPsiImplUtil {
   private static GoType processRangeClause(@NotNull GoVarDefinition o, @NotNull GoRangeClause parent, @Nullable ResolveState context) {
     List<GoExpression> exprs = parent.getExpressionList();
     GoExpression last = ContainerUtil.getLastItem(exprs);
-    int rangeOffset = parent.getRange().getTextOffset();
-    last = last != null && last.getTextOffset() > rangeOffset ? last : null;
+    PsiElement range = parent.getRange();
+    if (range != null) {
+      int rangeOffset = range.getTextOffset();
+      last = last != null && last.getTextOffset() > rangeOffset ? last : null;
+    }
 
     if (last != null) {
       List<GoVarDefinition> varList = parent.getVarDefinitionList();
