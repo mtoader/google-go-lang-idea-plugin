@@ -1,0 +1,42 @@
+<!--
+  ~ Copyright 2013-2015 Sergey Ignatov, Alexander Zolotov, Florin Patan
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- TODO florin: revisit this with some proper urls -->
+
+<component>
+  <company name="Go plugin authors" url="https://www.jetbrains.com/?fromIDE"/>
+  <version major="5" minor="0" eap="true"/>
+  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__"/>
+  <logo url="/goide_logo.png" textcolor="313131" progressColor="20d688" progressY="281" progressTailIcon="/community_progress_tail.png"/>
+  <about url="/goide_about.png" logoX="300" logoY="265" logoW="75" logoH="30" foreground="313131"
+         copyrightForeground="313131" linkColor="1f29b2"/>
+  <icon size32="/GoIDE32.png" size16="/GoIDE16.png" ico="GoIDE.ico"/>
+  <package code="__PACKAGE_CODE__"/>
+  <names product="GoIDE" fullname="GoIDE" script="goide"/>
+  <install-over minbuild="0" maxbuild="0" version="1.x"/>
+
+  <welcome-screen logo-url="/GoIDEWelcomeScreen.png"/>
+
+  <plugins url="http://plugins.jetbrains.com/"/>
+  <update-urls check="http://www.jetbrains.com/updates/updates.xml"
+               patches="http://download.jetbrains.com/Go/"/>
+
+  <feedback eap-url="https://www.jetbrains.com/feedback/feedback.jsp?product=GoIDE&amp;build=$BUILD&amp;timezone=$TIMEZONE&amp;eval=$EVAL"
+            release-url="https://www.jetbrains.com/feedback/feedback.jsp?product=GoIDE&amp;build=$BUILD&amp;timezone=$TIMEZONE&amp;eval=$EVAL"/>
+  <help file="goidehelp.jar" root="goide"/>
+  <third-party url="https://confluence.jetbrains.com/display/GoIDE/Third-Party+Software+Used+by+GoIDE"/>
+  <jetbrains-tv url="http://www.youtube.com/user/JetBrainsTV/search?query=GoIDE"/>
+</component>

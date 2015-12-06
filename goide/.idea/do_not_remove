@@ -1,0 +1,2 @@
+This is needed because IdeaProjectLoader.guessHome is looking for a .idea folder when determining where the project home is.
+However we are inside of a plugin, not IDEA itself, so we want this to be our home. 
