@@ -48,7 +48,7 @@ GO_FILE
               PsiElement(identifier)('foo')
             ARGUMENT_LIST
               PsiElement(()('(')
-              PsiErrorElement:')' or <expression> expected, got 'if'
+              PsiErrorElement:')', <expression> or <literal type expr> expected, got 'if'
                 <empty list>
       IF_STATEMENT
         PsiElement(if)('if')
@@ -76,7 +76,7 @@ GO_FILE
               PsiElement(identifier)('bar')
             ARGUMENT_LIST
               PsiElement(()('(')
-              PsiErrorElement:')' or <expression> expected, got ','
+              PsiErrorElement:')', <expression> or <literal type expr> expected, got ','
                 <empty list>
           PsiElement(,)(',')
       PsiElement())(')')

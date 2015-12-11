@@ -377,7 +377,7 @@ public class GoParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // '(' [ ExpressionArgList '...'? ','? ] ')'
+  // '(' [ ExpressionOrTypeArgList '...'? ','? ] ')'
   public static boolean ArgumentList(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ArgumentList")) return false;
     if (!nextTokenIs(b, LPAREN)) return false;
@@ -391,19 +391,19 @@ public class GoParser implements PsiParser, LightPsiParser {
     return r || p;
   }
 
-  // [ ExpressionArgList '...'? ','? ]
+  // [ ExpressionOrTypeArgList '...'? ','? ]
   private static boolean ArgumentList_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ArgumentList_1")) return false;
     ArgumentList_1_0(b, l + 1);
     return true;
   }
 
-  // ExpressionArgList '...'? ','?
+  // ExpressionOrTypeArgList '...'? ','?
   private static boolean ArgumentList_1_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ArgumentList_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = ExpressionArgList(b, l + 1);
+    r = ExpressionOrTypeArgList(b, l + 1);
     r = r && ArgumentList_1_0_1(b, l + 1);
     r = r && ArgumentList_1_0_2(b, l + 1);
     exit_section_(b, m, null, r);
@@ -1549,6 +1549,224 @@ public class GoParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // Expression
+  //   | LiteralTypeExpr
+  static boolean ExpressionOrType(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ExpressionOrType")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = Expression(b, l + 1, -1);
+    if (!r) r = LiteralTypeExpr(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // ExpressionOrTypeWithRecover2 (',' (ExpressionOrTypeWithRecover2 | &')'))*
+  static boolean ExpressionOrTypeArgList(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ExpressionOrTypeArgList")) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_);
+    r = ExpressionOrTypeWithRecover2(b, l + 1);
+    p = r; // pin = 1
+    r = r && ExpressionOrTypeArgList_1(b, l + 1);
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
+  }
+
+  // (',' (ExpressionOrTypeWithRecover2 | &')'))*
+  private static boolean ExpressionOrTypeArgList_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ExpressionOrTypeArgList_1")) return false;
+    int c = current_position_(b);
+    while (true) {
+      if (!ExpressionOrTypeArgList_1_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "ExpressionOrTypeArgList_1", c)) break;
+      c = current_position_(b);
+    }
+    return true;
+  }
+
+  // ',' (ExpressionOrTypeWithRecover2 | &')')
+  private static boolean ExpressionOrTypeArgList_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ExpressionOrTypeArgList_1_0")) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_);
+    r = consumeToken(b, COMMA);
+    p = r; // pin = 1
+    r = r && ExpressionOrTypeArgList_1_0_1(b, l + 1);
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
+  }
+
+  // ExpressionOrTypeWithRecover2 | &')'
+  private static boolean ExpressionOrTypeArgList_1_0_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ExpressionOrTypeArgList_1_0_1")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = ExpressionOrTypeWithRecover2(b, l + 1);
+    if (!r) r = ExpressionOrTypeArgList_1_0_1_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // &')'
+  private static boolean ExpressionOrTypeArgList_1_0_1_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ExpressionOrTypeArgList_1_0_1_1")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _AND_);
+    r = consumeToken(b, RPAREN);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '&^' | '&^=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '...' | '/' | '/=' | ':' | ';' | '<' | '<-' | '<<' | '<<=' | '<=' | '<NL>' | '=' | '==' | '>' | '>=' | '>>' | '>>=' | '[' | ']' | '^' | '^=' | 'type' | '{' | '|' | '|=' | '||' | '}' | break | case | chan | char | const | continue | decimali | default | defer | else | fallthrough | float | floati | for | func | go | goto | hex | identifier | if | int | interface | map | oct | return | select | string | raw_string | struct | switch | var)
+  static boolean ExpressionOrTypeListRecover(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ExpressionOrTypeListRecover")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_);
+    r = !ExpressionOrTypeListRecover_0(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // '!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '&^' | '&^=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '...' | '/' | '/=' | ':' | ';' | '<' | '<-' | '<<' | '<<=' | '<=' | '<NL>' | '=' | '==' | '>' | '>=' | '>>' | '>>=' | '[' | ']' | '^' | '^=' | 'type' | '{' | '|' | '|=' | '||' | '}' | break | case | chan | char | const | continue | decimali | default | defer | else | fallthrough | float | floati | for | func | go | goto | hex | identifier | if | int | interface | map | oct | return | select | string | raw_string | struct | switch | var
+  private static boolean ExpressionOrTypeListRecover_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ExpressionOrTypeListRecover_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, NOT);
+    if (!r) r = consumeToken(b, NOT_EQ);
+    if (!r) r = consumeToken(b, REMAINDER);
+    if (!r) r = consumeToken(b, REMAINDER_ASSIGN);
+    if (!r) r = consumeToken(b, COND_AND);
+    if (!r) r = consumeToken(b, BIT_AND);
+    if (!r) r = consumeToken(b, BIT_AND_ASSIGN);
+    if (!r) r = consumeToken(b, BIT_CLEAR);
+    if (!r) r = consumeToken(b, BIT_CLEAR_ASSIGN);
+    if (!r) r = consumeToken(b, LPAREN);
+    if (!r) r = consumeToken(b, RPAREN);
+    if (!r) r = consumeToken(b, MUL);
+    if (!r) r = consumeToken(b, MUL_ASSIGN);
+    if (!r) r = consumeToken(b, PLUS);
+    if (!r) r = consumeToken(b, PLUS_PLUS);
+    if (!r) r = consumeToken(b, PLUS_ASSIGN);
+    if (!r) r = consumeToken(b, COMMA);
+    if (!r) r = consumeToken(b, MINUS);
+    if (!r) r = consumeToken(b, MINUS_MINUS);
+    if (!r) r = consumeToken(b, MINUS_ASSIGN);
+    if (!r) r = consumeToken(b, TRIPLE_DOT);
+    if (!r) r = consumeToken(b, QUOTIENT);
+    if (!r) r = consumeToken(b, QUOTIENT_ASSIGN);
+    if (!r) r = consumeToken(b, COLON);
+    if (!r) r = consumeToken(b, SEMICOLON);
+    if (!r) r = consumeToken(b, LESS);
+    if (!r) r = consumeToken(b, SEND_CHANNEL);
+    if (!r) r = consumeToken(b, SHIFT_LEFT);
+    if (!r) r = consumeToken(b, SHIFT_LEFT_ASSIGN);
+    if (!r) r = consumeToken(b, LESS_OR_EQUAL);
+    if (!r) r = consumeToken(b, SEMICOLON_SYNTHETIC);
+    if (!r) r = consumeToken(b, ASSIGN);
+    if (!r) r = consumeToken(b, EQ);
+    if (!r) r = consumeToken(b, GREATER);
+    if (!r) r = consumeToken(b, GREATER_OR_EQUAL);
+    if (!r) r = consumeToken(b, SHIFT_RIGHT);
+    if (!r) r = consumeToken(b, SHIFT_RIGHT_ASSIGN);
+    if (!r) r = consumeToken(b, LBRACK);
+    if (!r) r = consumeToken(b, RBRACK);
+    if (!r) r = consumeToken(b, BIT_XOR);
+    if (!r) r = consumeToken(b, BIT_XOR_ASSIGN);
+    if (!r) r = consumeToken(b, TYPE_);
+    if (!r) r = consumeToken(b, LBRACE);
+    if (!r) r = consumeToken(b, BIT_OR);
+    if (!r) r = consumeToken(b, BIT_OR_ASSIGN);
+    if (!r) r = consumeToken(b, COND_OR);
+    if (!r) r = consumeToken(b, RBRACE);
+    if (!r) r = consumeToken(b, BREAK);
+    if (!r) r = consumeToken(b, CASE);
+    if (!r) r = consumeToken(b, CHAN);
+    if (!r) r = consumeToken(b, CHAR);
+    if (!r) r = consumeToken(b, CONST);
+    if (!r) r = consumeToken(b, CONTINUE);
+    if (!r) r = consumeToken(b, DECIMALI);
+    if (!r) r = consumeToken(b, DEFAULT);
+    if (!r) r = consumeToken(b, DEFER);
+    if (!r) r = consumeToken(b, ELSE);
+    if (!r) r = consumeToken(b, FALLTHROUGH);
+    if (!r) r = consumeToken(b, FLOAT);
+    if (!r) r = consumeToken(b, FLOATI);
+    if (!r) r = consumeToken(b, FOR);
+    if (!r) r = consumeToken(b, FUNC);
+    if (!r) r = consumeToken(b, GO);
+    if (!r) r = consumeToken(b, GOTO);
+    if (!r) r = consumeToken(b, HEX);
+    if (!r) r = consumeToken(b, IDENTIFIER);
+    if (!r) r = consumeToken(b, IF);
+    if (!r) r = consumeToken(b, INT);
+    if (!r) r = consumeToken(b, INTERFACE);
+    if (!r) r = consumeToken(b, MAP);
+    if (!r) r = consumeToken(b, OCT);
+    if (!r) r = consumeToken(b, RETURN);
+    if (!r) r = consumeToken(b, SELECT);
+    if (!r) r = consumeToken(b, STRING);
+    if (!r) r = consumeToken(b, RAW_STRING);
+    if (!r) r = consumeToken(b, STRUCT);
+    if (!r) r = consumeToken(b, SWITCH);
+    if (!r) r = consumeToken(b, VAR);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // ExpressionOrType
+  static boolean ExpressionOrTypeWithRecover(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ExpressionOrTypeWithRecover")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_);
+    r = ExpressionOrType(b, l + 1);
+    exit_section_(b, l, m, r, false, ExpressionOrTypeListRecover_parser_);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // <<withOn "PAR" ExpressionOrTypeWithRecover>> | (!() ExpressionOrType)
+  static boolean ExpressionOrTypeWithRecover2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ExpressionOrTypeWithRecover2")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_);
+    r = withOn(b, l + 1, "PAR", ExpressionOrTypeWithRecover_parser_);
+    if (!r) r = ExpressionOrTypeWithRecover2_1(b, l + 1);
+    exit_section_(b, l, m, r, false, ExpressionOrTypeListRecover_parser_);
+    return r;
+  }
+
+  // !() ExpressionOrType
+  private static boolean ExpressionOrTypeWithRecover2_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ExpressionOrTypeWithRecover2_1")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = ExpressionOrTypeWithRecover2_1_0(b, l + 1);
+    r = r && ExpressionOrType(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // !()
+  private static boolean ExpressionOrTypeWithRecover2_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ExpressionOrTypeWithRecover2_1_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_);
+    r = !ExpressionOrTypeWithRecover2_1_0_0(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // ()
+  private static boolean ExpressionOrTypeWithRecover2_1_0_0(PsiBuilder b, int l) {
+    return true;
+  }
+
+  /* ********************************************************** */
+  // Expression
   static boolean ExpressionWithRecover(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ExpressionWithRecover")) return false;
     boolean r;
@@ -2344,6 +2562,17 @@ public class GoParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, LEFT_HAND_EXPR_LIST, "<left hand expr list>");
     r = ExpressionList(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // LiteralTypeExprInner
+  public static boolean LiteralTypeExpr(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "LiteralTypeExpr")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, LITERAL_TYPE_EXPR, "<literal type expr>");
+    r = LiteralTypeExprInner(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -4353,7 +4582,7 @@ public class GoParser implements PsiParser, LightPsiParser {
   // 4: BINARY(MulExpr)
   // 5: PREFIX(UnaryExpr)
   // 6: ATOM(ConversionExpr)
-  // 7: ATOM(CompositeLit) ATOM(OperandName) POSTFIX(BuiltinCallExpr) POSTFIX(CallExpr) POSTFIX(TypeAssertionExpr) BINARY(SelectorExpr) POSTFIX(IndexOrSliceExpr) ATOM(Literal) ATOM(LiteralTypeExpr) ATOM(FunctionLit)
+  // 7: ATOM(CompositeLit) ATOM(OperandName) POSTFIX(BuiltinCallExpr) POSTFIX(CallExpr) POSTFIX(TypeAssertionExpr) BINARY(SelectorExpr) POSTFIX(IndexOrSliceExpr) ATOM(Literal) ATOM(FunctionLit)
   // 8: ATOM(ParenthesesExpr)
   public static boolean Expression(PsiBuilder b, int l, int g) {
     if (!recursion_guard_(b, l, "Expression")) return false;
@@ -4365,7 +4594,6 @@ public class GoParser implements PsiParser, LightPsiParser {
     if (!r) r = CompositeLit(b, l + 1);
     if (!r) r = OperandName(b, l + 1);
     if (!r) r = Literal(b, l + 1);
-    if (!r) r = LiteralTypeExpr(b, l + 1);
     if (!r) r = FunctionLit(b, l + 1);
     if (!r) r = ParenthesesExpr(b, l + 1);
     p = r;
@@ -4643,16 +4871,6 @@ public class GoParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // LiteralTypeExprInner
-  public static boolean LiteralTypeExpr(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "LiteralTypeExpr")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NONE_, LITERAL_TYPE_EXPR, "<literal type expr>");
-    r = LiteralTypeExprInner(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
   // func Signature Block
   public static boolean FunctionLit(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "FunctionLit")) return false;
@@ -4696,6 +4914,16 @@ public class GoParser implements PsiParser, LightPsiParser {
   final static Parser ExpressionListRecover_parser_ = new Parser() {
     public boolean parse(PsiBuilder b, int l) {
       return ExpressionListRecover(b, l + 1);
+    }
+  };
+  final static Parser ExpressionOrTypeListRecover_parser_ = new Parser() {
+    public boolean parse(PsiBuilder b, int l) {
+      return ExpressionOrTypeListRecover(b, l + 1);
+    }
+  };
+  final static Parser ExpressionOrTypeWithRecover_parser_ = new Parser() {
+    public boolean parse(PsiBuilder b, int l) {
+      return ExpressionOrTypeWithRecover(b, l + 1);
     }
   };
   final static Parser ExpressionWithRecover_parser_ = new Parser() {
