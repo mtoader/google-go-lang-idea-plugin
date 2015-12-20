@@ -64,8 +64,8 @@ func main() {
         oldCh := (*(chan *[]byte))((nil))
         if oldCh != nil && cap(*oldCh) != 0 {
         }
-	foo(cap<error descr="not enough arguments in call to cap">()</error>)
-	foo(cap<error descr="too many arguments in call to cap">(capTest1, capTest2)</error>)
+	foo(<error descr="not enough arguments in call to cap">cap</error>())
+	foo(<error descr="too many arguments in call to cap">cap</error>(capTest1, capTest2))
 	foo(cap(capTest1))
 	foo(cap(<error descr="Invalid argument for cap">capTest2</error>))
 	foo(cap(capTest3))
