@@ -67,7 +67,8 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
       GoPlaceholderCountInspection.class,
       GoEmbeddedInterfacePointerInspection.class,
       GoStructInitializationInspection.class,
-      GoMethodOnNonLocalTypeInspection.class
+      GoMethodOnNonLocalTypeInspection.class,
+      GoSuggestPackageNameInspection.class
     );
   }
 
@@ -344,6 +345,10 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
     myFixture.testHighlighting(true, false, true, getTestName(true) + ".go");
   }
 
+  public void testSuggestPackageName() {
+    myFixture.testHighlighting(true, false, true, getTestName(true) + ".go");
+  }
+
   public void testUnitializedStructInitialization() {
     myFixture.testHighlighting(true, false, true, getTestName(true) + ".go");
   }
@@ -357,7 +362,7 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
     myFixture.configureByText("a.go", "package a; import \"C\"");
     myFixture.checkHighlighting();
   }
-  
+
   @SuppressWarnings("ConstantConditions")
   public void testDoNotHighlightCodeFromIgnoredImportPaths() throws Throwable {
     final VirtualFile tmp = WriteCommandAction.runWriteCommandAction(myFixture.getProject(), new ThrowableComputable<VirtualFile, Throwable>() {

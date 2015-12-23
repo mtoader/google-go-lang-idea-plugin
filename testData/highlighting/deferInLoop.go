@@ -1,4 +1,4 @@
-package deferinloop
+<weak_warning>package deferinloop</weak_warning>
 
 func noop() {}
 

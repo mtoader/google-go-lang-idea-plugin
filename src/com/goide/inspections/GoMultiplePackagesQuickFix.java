@@ -50,7 +50,10 @@ public class GoMultiplePackagesQuickFix extends LocalQuickFixAndIntentionActionO
   private boolean myIsOneTheFly;
   private static String myTestingPackageName;
 
-  protected GoMultiplePackagesQuickFix(@NotNull PsiElement element, @NotNull String packageName, Collection<String> packages, boolean isOnTheFly) {
+  protected GoMultiplePackagesQuickFix(@NotNull PsiElement element,
+                                       @NotNull String packageName,
+                                       Collection<String> packages,
+                                       boolean isOnTheFly) {
     super(element);
     myPackages = packages;
     myPackageName = packageName;
@@ -102,6 +105,13 @@ public class GoMultiplePackagesQuickFix extends LocalQuickFixAndIntentionActionO
                                 myTestingPackageName != null ? myTestingPackageName : myPackageName);
       return;
     }
+
+    if (myPackages.size() == 1) {
+      renamePackagesInDirectory(project, file.getContainingDirectory(),
+                                myTestingPackageName != null ? myTestingPackageName : myPackageName);
+      return;
+    }
+
     final JBList list = new JBList(myPackages);
     list.installCellRenderer(new NotNullFunction<Object, JComponent>() {
       @NotNull
@@ -127,7 +137,9 @@ public class GoMultiplePackagesQuickFix extends LocalQuickFixAndIntentionActionO
   @NotNull
   @Override
   public String getText() {
-    return "Rename packages" + (myIsOneTheFly ? "" : " to " + myPackageName);
+    return "Rename " +
+           (myPackages.size() == 1 ? "package" : "packages") +
+           (myIsOneTheFly && myPackages.size() != 1 ? "" : " to " + myPackageName);
   }
 
   @NotNull
