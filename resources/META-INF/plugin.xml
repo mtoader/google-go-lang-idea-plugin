@@ -215,9 +215,9 @@
                      groupName="Redeclared symbols" enabledByDefault="true" level="ERROR"
                      implementationClass="com.goide.inspections.GoRedeclareImportAsFunctionInspection"/>
     <!-- /redeclare inspections -->
-    
+
     <!-- code style issues -->
-    <localInspection language="go" displayName="Comment of exported element starts with incorrect name" groupPath="Go" 
+    <localInspection language="go" displayName="Comment of exported element starts with incorrect name" groupPath="Go"
                      groupName="Code style issues" enabledByDefault="true" level="WEAK WARNING"
                      implementationClass="com.goide.inspections.GoCommentStartInspection"/>
     <localInspection language="go" displayName="Exported element should have its own declaration" groupPath="Go"
@@ -244,6 +244,9 @@
     <localInspection language="go" displayName="Defer in loop" groupPath="Go"
                      groupName="Control flow issues" enabledByDefault="true" level="WEAK WARNING"
                      implementationClass="com.goide.inspections.GoDeferInLoop"/>
+    <localInspection language="go" displayName="Assignment count mismatch"  groupPath="Go"
+                     groupName="Control flow issues" enabledByDefault="true" level="ERROR"
+                     implementationClass="com.goide.inspections.GoAssignmentCountMismatchInspection"/>
     <!-- /control flow issues -->
 
     <!-- general -->
@@ -259,9 +262,6 @@
     <localInspection language="go" displayName="Incorrect variadic parameter" groupPath="Go"
                      groupName="General" enabledByDefault="true" level="ERROR"
                      implementationClass="com.goide.inspections.GoFunctionVariadicParameterInspection"/>
-    <localInspection language="go" displayName="Incorrect variable declaration" groupPath="Go"
-                     groupName="General" enabledByDefault="true" level="ERROR"
-                     implementationClass="com.goide.inspections.GoVarDeclarationInspection"/>
     <localInspection language="go" displayName="No new variables on left side of :=" groupPath="Go"
                      groupName="General" enabledByDefault="true" level="ERROR"
                      implementationClass="com.goide.inspections.GoNoNewVariablesInspection"/>
