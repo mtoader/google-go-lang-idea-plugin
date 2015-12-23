@@ -137,6 +137,7 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
   public void testCyclicDefinition()          { doTest(); }
   public void testEmbeddedInterfacePointer()  { doTest(); }
   public void testPlaceholderCount()          { doTest(); }
+  public void testDeclaredButNotUsed()        { doTest(); }
 
   public void testRelativeImportIgnoringDirectories() throws IOException {
     myFixture.getTempDirFixture().findOrCreateDir("to_import/testdata");
@@ -357,7 +358,7 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
     myFixture.configureByText("a.go", "package a; import \"C\"");
     myFixture.checkHighlighting();
   }
-  
+
   @SuppressWarnings("ConstantConditions")
   public void testDoNotHighlightCodeFromIgnoredImportPaths() throws Throwable {
     final VirtualFile tmp = WriteCommandAction.runWriteCommandAction(myFixture.getProject(), new ThrowableComputable<VirtualFile, Throwable>() {
