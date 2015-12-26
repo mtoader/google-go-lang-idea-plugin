@@ -1,0 +1,98 @@
+{
+
+  parserClass='com.goide.gotemplate.parser.GoTemplateParser'
+  parserUtilClass="com.goide.gotemplate.parser.GoTemplateParserUtil"
+
+
+  elementTypeHolderClass='com.goide.gotemplate.GoTemplateTypes'
+  elementTypeClass='com.goide.gotemplate.psi.GoTemplateCompositeElementType'
+  tokenTypeClass='com.goide.gotemplate.psi.GoTemplateTokenType'
+
+  psiClassPrefix='GoTemplate'
+  psiImplClassSuffix='Impl'
+  psiPackage='com.goide.gotemplate.psi'
+  psiImplPackage='com.goide.gotemplate.psi.impl'
+  //psiImplUtilClass="com.goide.gotemplate.psi.impl.GoPsiImplUtil"
+  //parserUtilClass="com.goide.gotemplate.parser.GoParserUtil"
+  extends(".*Expr")=Expression
+  extends(".*Statement")=Statement
+  consumeTokenMethod(".*Expr")="consumeTokenFast"
+
+  tokens=[
+    COMMENT              =  ''
+    LDOUBLE_BRACE        =  '{{'
+    RDOUBLE_BRACE        =  '}}'
+    LBRACE               =  '{'
+    RBRACE               =  '}'
+    LPAREN               =  '('
+    RPAREN               =  ')'
+    EQ                   =  '=='
+    ASSIGN               =  '='
+    NOT_EQ               =  '!='
+    NOT                  =  '!'
+    COND_OR              =  '||'
+    COND_AND             =  '&&'
+    BIT_OR               =  '|'
+    LESS_OR_EQUAL        =  '<='
+    LESS                 =  '<'
+    GREATER_OR_EQUAL     =  '>='
+    GREATER              =  '>'
+    VAR_ASSIGN           =  ':='
+    DOT                  =  '.'
+    COMMA                =  ','
+    IF                   =  'if'
+    END                  =  'end'
+    ELSE                 =  'else'
+    BLOCK                =  'block'
+    TEMPLATE             =  'template'
+    RANGE                =  'range'
+    WITH                 =  'with'
+   ]
+   pin("OrExpr|AndExpr|ConditionalExpr|IfStatement|EndStatement|ElseStatement|BlockStatement|WithStatement|TemplateStatement|RangeStatement")=2
+
+}
+
+File ::= StatementList
+
+StatementList ::= StatementsGroup*
+private StatementsGroup ::= TEXT+ | IfStatement | BlockStatement | TemplateStatement | RangeStatement | WithStatement | PipelineStatement
+fake Statement ::=
+
+FieldChain ::= '.' IDENT FieldChain?
+FieldChainExpr ::= (LiteralExpr|ParenthesesExpr)? FieldChain
+
+Expression ::=        OrExpr
+                    | AndExpr
+                    | ConditionalExpr
+                    | FieldChainExpr
+                    | LiteralExpr
+                    | ParenthesesExpr
+
+private rel_op ::= '==' | '!=' | '<' | '<=' | '>' | '>='
+
+OrExpr ::= Expression '||' Expression
+AndExpr ::= Expression '&&' Expression
+LiteralExpr ::= Literal
+ConditionalExpr ::= Expression rel_op Expression
+
+Literal ::= LocalIdentLiteral | NumberLiteral | IdentLiteral | StringLiteral
+
+StringLiteral ::= RAW_STRING|STRING
+IdentLiteral ::= IDENT|'.'
+NumberLiteral ::= NUMBER
+LocalIdentLiteral ::= VAR_IDENT
+ParenthesesExpr ::= '(' Pipeline ')' {pin=1}
+
+
+Pipeline      ::= Expression Expression*  Pipe? {pin=1}
+Pipe          ::= '|' Expression+ Pipe? {pin=1}
+
+IfStatement   ::= '{{' 'if' Pipeline '}}' StatementList (EndStatement|ElseStatement)
+ElseStatement ::= '{{' 'else' '}}' StatementList EndStatement
+EndStatement  ::= '{{' 'end' '}}'
+TemplateStatement ::= '{{' 'template' Pipeline '}}'
+RangeStatement ::= '{{' 'range' RangeAssign? Pipeline '}}' StatementList EndStatement
+RangeAssign ::= Expression (',' Expression)? ':=' {pin=3}
+BlockStatement ::= '{{' 'block' Pipeline '}}' StatementList EndStatement
+WithStatement ::= '{{' 'with' Pipeline '}}' StatementList EndStatement
+PipelineStatement ::= '{{' Pipeline '}}' { pin=2 }
