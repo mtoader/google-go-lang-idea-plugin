@@ -27,4 +27,10 @@ public class GoTemplateTemplateStatementImpl extends GoTemplateStatementImpl imp
     return findChildByClass(GoTemplatePipeline.class);
   }
 
+  @Override
+  @Nullable
+  public GoTemplateStringLiteral getStringLiteral() {
+    return findChildByClass(GoTemplateStringLiteral.class);
+  }
+
 }

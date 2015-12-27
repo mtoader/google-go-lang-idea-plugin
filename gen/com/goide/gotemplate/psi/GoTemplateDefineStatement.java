@@ -5,10 +5,13 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface GoTemplateTemplateStatement extends GoTemplateStatement {
+public interface GoTemplateDefineStatement extends GoTemplateStatement {
 
   @Nullable
-  GoTemplatePipeline getPipeline();
+  GoTemplateEndStatement getEndStatement();
+
+  @Nullable
+  GoTemplateStatementList getStatementList();
 
   @Nullable
   GoTemplateStringLiteral getStringLiteral();

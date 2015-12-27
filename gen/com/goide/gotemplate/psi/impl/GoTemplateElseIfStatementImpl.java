@@ -10,33 +10,33 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.goide.gotemplate.GoTemplateTypes.*;
 import com.goide.gotemplate.psi.*;
 
-public class GoTemplateWithStatementImpl extends GoTemplateStatementImpl implements GoTemplateWithStatement {
+public class GoTemplateElseIfStatementImpl extends GoTemplateStatementImpl implements GoTemplateElseIfStatement {
 
-  public GoTemplateWithStatementImpl(ASTNode node) {
+  public GoTemplateElseIfStatementImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof GoTemplateVisitor) ((GoTemplateVisitor)visitor).visitWithStatement(this);
+    if (visitor instanceof GoTemplateVisitor) ((GoTemplateVisitor)visitor).visitElseIfStatement(this);
     else super.accept(visitor);
   }
 
   @Override
-  @Nullable
+  @NotNull
   public GoTemplatePipeline getPipeline() {
-    return findChildByClass(GoTemplatePipeline.class);
+    return findNotNullChildByClass(GoTemplatePipeline.class);
   }
 
   @Override
-  @Nullable
+  @NotNull
   public GoTemplateStatement getStatement() {
-    return findChildByClass(GoTemplateStatement.class);
+    return findNotNullChildByClass(GoTemplateStatement.class);
   }
 
   @Override
-  @Nullable
+  @NotNull
   public GoTemplateStatementList getStatementList() {
-    return findChildByClass(GoTemplateStatementList.class);
+    return findNotNullChildByClass(GoTemplateStatementList.class);
   }
 
 }

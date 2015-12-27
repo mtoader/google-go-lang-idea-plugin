@@ -23,12 +23,6 @@ public class GoTemplateRangeStatementImpl extends GoTemplateStatementImpl implem
 
   @Override
   @Nullable
-  public GoTemplateEndStatement getEndStatement() {
-    return findChildByClass(GoTemplateEndStatement.class);
-  }
-
-  @Override
-  @Nullable
   public GoTemplatePipeline getPipeline() {
     return findChildByClass(GoTemplatePipeline.class);
   }
@@ -37,6 +31,12 @@ public class GoTemplateRangeStatementImpl extends GoTemplateStatementImpl implem
   @Nullable
   public GoTemplateRangeAssign getRangeAssign() {
     return findChildByClass(GoTemplateRangeAssign.class);
+  }
+
+  @Override
+  @Nullable
+  public GoTemplateStatement getStatement() {
+    return findChildByClass(GoTemplateStatement.class);
   }
 
   @Override

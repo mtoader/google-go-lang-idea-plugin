@@ -13,6 +13,8 @@ public interface GoTemplateTypes {
   IElementType AND_EXPR = new GoTemplateCompositeElementType("AND_EXPR");
   IElementType BLOCK_STATEMENT = new GoTemplateCompositeElementType("BLOCK_STATEMENT");
   IElementType CONDITIONAL_EXPR = new GoTemplateCompositeElementType("CONDITIONAL_EXPR");
+  IElementType DEFINE_STATEMENT = new GoTemplateCompositeElementType("DEFINE_STATEMENT");
+  IElementType ELSE_IF_STATEMENT = new GoTemplateCompositeElementType("ELSE_IF_STATEMENT");
   IElementType ELSE_STATEMENT = new GoTemplateCompositeElementType("ELSE_STATEMENT");
   IElementType END_STATEMENT = new GoTemplateCompositeElementType("END_STATEMENT");
   IElementType EXPRESSION = new GoTemplateCompositeElementType("EXPRESSION");
@@ -43,6 +45,7 @@ public interface GoTemplateTypes {
   IElementType COMMENT = new GoTemplateTokenType("");
   IElementType COND_AND = new GoTemplateTokenType("&&");
   IElementType COND_OR = new GoTemplateTokenType("||");
+  IElementType DEFINE = new GoTemplateTokenType("define");
   IElementType DOT = new GoTemplateTokenType(".");
   IElementType ELSE = new GoTemplateTokenType("else");
   IElementType END = new GoTemplateTokenType("end");
@@ -82,6 +85,12 @@ public interface GoTemplateTypes {
       }
       else if (type == CONDITIONAL_EXPR) {
         return new GoTemplateConditionalExprImpl(node);
+      }
+      else if (type == DEFINE_STATEMENT) {
+        return new GoTemplateDefineStatementImpl(node);
+      }
+      else if (type == ELSE_IF_STATEMENT) {
+        return new GoTemplateElseIfStatementImpl(node);
       }
       else if (type == ELSE_STATEMENT) {
         return new GoTemplateElseStatementImpl(node);

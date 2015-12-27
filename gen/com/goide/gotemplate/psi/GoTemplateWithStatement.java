@@ -8,10 +8,10 @@ import com.intellij.psi.PsiElement;
 public interface GoTemplateWithStatement extends GoTemplateStatement {
 
   @Nullable
-  GoTemplateEndStatement getEndStatement();
+  GoTemplatePipeline getPipeline();
 
   @Nullable
-  GoTemplatePipeline getPipeline();
+  GoTemplateStatement getStatement();
 
   @Nullable
   GoTemplateStatementList getStatementList();

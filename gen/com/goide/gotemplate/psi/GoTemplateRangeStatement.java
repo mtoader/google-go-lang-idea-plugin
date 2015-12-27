@@ -8,13 +8,13 @@ import com.intellij.psi.PsiElement;
 public interface GoTemplateRangeStatement extends GoTemplateStatement {
 
   @Nullable
-  GoTemplateEndStatement getEndStatement();
-
-  @Nullable
   GoTemplatePipeline getPipeline();
 
   @Nullable
   GoTemplateRangeAssign getRangeAssign();
+
+  @Nullable
+  GoTemplateStatement getStatement();
 
   @Nullable
   GoTemplateStatementList getStatementList();

@@ -10,7 +10,6 @@ import static com.intellij.psi.TokenType.BAD_CHARACTER;
 %%
 
 %{
-  private int textBegin = 0;
   public _GoTemplateLexer() {
     this((java.io.Reader)null);
   }
@@ -53,7 +52,7 @@ TEXT = [^{]*
 
 <YYINITIAL> {
          {TEXT}                          { return TEXT; }
-        \{\{\*(.)*\*\}\}                 { return COMMENT; }
+        \{\{\/\*(.)*\*\/\}\}             { return COMMENT; }
         "{{"                  { yybegin(ST_ACTION);return LDOUBLE_BRACE; }
         "{"                              { return TEXT; }
 }
@@ -90,6 +89,7 @@ TEXT = [^{]*
   "template"            { return TEMPLATE; }
   "range"               { return RANGE; }
   "with"                { return WITH; }
+  "define"                { return DEFINE; }
 
   "$"{IDENT}            { return VAR_IDENT; }
   "$"                   { return VAR_IDENT; }

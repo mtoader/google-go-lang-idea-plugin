@@ -32,6 +32,12 @@ public class GoTemplateParser implements PsiParser, LightPsiParser {
     else if (t == CONDITIONAL_EXPR) {
       r = Expression(b, 0, 1);
     }
+    else if (t == DEFINE_STATEMENT) {
+      r = DefineStatement(b, 0);
+    }
+    else if (t == ELSE_IF_STATEMENT) {
+      r = ElseIfStatement(b, 0);
+    }
     else if (t == ELSE_STATEMENT) {
       r = ElseStatement(b, 0);
     }
@@ -111,8 +117,9 @@ public class GoTemplateParser implements PsiParser, LightPsiParser {
   public static final TokenSet[] EXTENDS_SETS_ = new TokenSet[] {
     create_token_set_(AND_EXPR, CONDITIONAL_EXPR, EXPRESSION, FIELD_CHAIN_EXPR,
       LITERAL_EXPR, OR_EXPR, PARENTHESES_EXPR),
-    create_token_set_(BLOCK_STATEMENT, ELSE_STATEMENT, END_STATEMENT, IF_STATEMENT,
-      PIPELINE_STATEMENT, RANGE_STATEMENT, TEMPLATE_STATEMENT, WITH_STATEMENT),
+    create_token_set_(BLOCK_STATEMENT, DEFINE_STATEMENT, ELSE_IF_STATEMENT, ELSE_STATEMENT,
+      END_STATEMENT, IF_STATEMENT, PIPELINE_STATEMENT, RANGE_STATEMENT,
+      TEMPLATE_STATEMENT, WITH_STATEMENT),
   };
 
   /* ********************************************************** */
@@ -131,6 +138,54 @@ public class GoTemplateParser implements PsiParser, LightPsiParser {
     r = p && EndStatement(b, l + 1) && r;
     exit_section_(b, l, m, BLOCK_STATEMENT, r, p, null);
     return r || p;
+  }
+
+  /* ********************************************************** */
+  // '{{' 'define' StringLiteral '}}' StatementList EndStatement
+  public static boolean DefineStatement(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "DefineStatement")) return false;
+    if (!nextTokenIs(b, LDOUBLE_BRACE)) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, null);
+    r = consumeToken(b, LDOUBLE_BRACE);
+    r = r && consumeToken(b, DEFINE);
+    p = r; // pin = 2
+    r = r && report_error_(b, StringLiteral(b, l + 1));
+    r = p && report_error_(b, consumeToken(b, RDOUBLE_BRACE)) && r;
+    r = p && report_error_(b, StatementList(b, l + 1)) && r;
+    r = p && EndStatement(b, l + 1) && r;
+    exit_section_(b, l, m, DEFINE_STATEMENT, r, p, null);
+    return r || p;
+  }
+
+  /* ********************************************************** */
+  // '{{' 'else' 'if' Pipeline '}}' StatementList (EndStatement|ElseIfStatement|ElseStatement)
+  public static boolean ElseIfStatement(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ElseIfStatement")) return false;
+    if (!nextTokenIs(b, LDOUBLE_BRACE)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, LDOUBLE_BRACE);
+    r = r && consumeToken(b, ELSE);
+    r = r && consumeToken(b, IF);
+    r = r && Pipeline(b, l + 1);
+    r = r && consumeToken(b, RDOUBLE_BRACE);
+    r = r && StatementList(b, l + 1);
+    r = r && ElseIfStatement_6(b, l + 1);
+    exit_section_(b, m, ELSE_IF_STATEMENT, r);
+    return r;
+  }
+
+  // EndStatement|ElseIfStatement|ElseStatement
+  private static boolean ElseIfStatement_6(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ElseIfStatement_6")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = EndStatement(b, l + 1);
+    if (!r) r = ElseIfStatement(b, l + 1);
+    if (!r) r = ElseStatement(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
   }
 
   /* ********************************************************** */
@@ -206,7 +261,7 @@ public class GoTemplateParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // '{{' 'if' Pipeline '}}' StatementList (EndStatement|ElseStatement)
+  // '{{' 'if' Pipeline '}}' StatementList (EndStatement|ElseIfStatement|ElseStatement)
   public static boolean IfStatement(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "IfStatement")) return false;
     if (!nextTokenIs(b, LDOUBLE_BRACE)) return false;
@@ -223,12 +278,13 @@ public class GoTemplateParser implements PsiParser, LightPsiParser {
     return r || p;
   }
 
-  // EndStatement|ElseStatement
+  // EndStatement|ElseIfStatement|ElseStatement
   private static boolean IfStatement_5(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "IfStatement_5")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = EndStatement(b, l + 1);
+    if (!r) r = ElseIfStatement(b, l + 1);
     if (!r) r = ElseStatement(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -390,7 +446,7 @@ public class GoTemplateParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // '{{' 'range' RangeAssign? Pipeline '}}' StatementList EndStatement
+  // '{{' 'range' RangeAssign? Pipeline '}}' StatementList (EndStatement|ElseStatement)
   public static boolean RangeStatement(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "RangeStatement")) return false;
     if (!nextTokenIs(b, LDOUBLE_BRACE)) return false;
@@ -403,7 +459,7 @@ public class GoTemplateParser implements PsiParser, LightPsiParser {
     r = p && report_error_(b, Pipeline(b, l + 1)) && r;
     r = p && report_error_(b, consumeToken(b, RDOUBLE_BRACE)) && r;
     r = p && report_error_(b, StatementList(b, l + 1)) && r;
-    r = p && EndStatement(b, l + 1) && r;
+    r = p && RangeStatement_6(b, l + 1) && r;
     exit_section_(b, l, m, RANGE_STATEMENT, r, p, null);
     return r || p;
   }
@@ -413,6 +469,17 @@ public class GoTemplateParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "RangeStatement_2")) return false;
     RangeAssign(b, l + 1);
     return true;
+  }
+
+  // EndStatement|ElseStatement
+  private static boolean RangeStatement_6(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "RangeStatement_6")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = EndStatement(b, l + 1);
+    if (!r) r = ElseStatement(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
   }
 
   /* ********************************************************** */
@@ -431,7 +498,7 @@ public class GoTemplateParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // TEXT+ | IfStatement | BlockStatement | TemplateStatement | RangeStatement | WithStatement | PipelineStatement
+  // TEXT+ | IfStatement | BlockStatement | TemplateStatement | RangeStatement | WithStatement | DefineStatement | PipelineStatement
   static boolean StatementsGroup(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "StatementsGroup")) return false;
     if (!nextTokenIs(b, "", LDOUBLE_BRACE, TEXT)) return false;
@@ -443,6 +510,7 @@ public class GoTemplateParser implements PsiParser, LightPsiParser {
     if (!r) r = TemplateStatement(b, l + 1);
     if (!r) r = RangeStatement(b, l + 1);
     if (!r) r = WithStatement(b, l + 1);
+    if (!r) r = DefineStatement(b, l + 1);
     if (!r) r = PipelineStatement(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -478,7 +546,7 @@ public class GoTemplateParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // '{{' 'template' Pipeline '}}'
+  // '{{' 'template' StringLiteral Pipeline? '}}'
   public static boolean TemplateStatement(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "TemplateStatement")) return false;
     if (!nextTokenIs(b, LDOUBLE_BRACE)) return false;
@@ -487,14 +555,22 @@ public class GoTemplateParser implements PsiParser, LightPsiParser {
     r = consumeToken(b, LDOUBLE_BRACE);
     r = r && consumeToken(b, TEMPLATE);
     p = r; // pin = 2
-    r = r && report_error_(b, Pipeline(b, l + 1));
+    r = r && report_error_(b, StringLiteral(b, l + 1));
+    r = p && report_error_(b, TemplateStatement_3(b, l + 1)) && r;
     r = p && consumeToken(b, RDOUBLE_BRACE) && r;
     exit_section_(b, l, m, TEMPLATE_STATEMENT, r, p, null);
     return r || p;
   }
 
+  // Pipeline?
+  private static boolean TemplateStatement_3(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "TemplateStatement_3")) return false;
+    Pipeline(b, l + 1);
+    return true;
+  }
+
   /* ********************************************************** */
-  // '{{' 'with' Pipeline '}}' StatementList EndStatement
+  // '{{' 'with' Pipeline '}}' StatementList (EndStatement|ElseStatement)
   public static boolean WithStatement(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "WithStatement")) return false;
     if (!nextTokenIs(b, LDOUBLE_BRACE)) return false;
@@ -506,9 +582,20 @@ public class GoTemplateParser implements PsiParser, LightPsiParser {
     r = r && report_error_(b, Pipeline(b, l + 1));
     r = p && report_error_(b, consumeToken(b, RDOUBLE_BRACE)) && r;
     r = p && report_error_(b, StatementList(b, l + 1)) && r;
-    r = p && EndStatement(b, l + 1) && r;
+    r = p && WithStatement_5(b, l + 1) && r;
     exit_section_(b, l, m, WITH_STATEMENT, r, p, null);
     return r || p;
+  }
+
+  // EndStatement|ElseStatement
+  private static boolean WithStatement_5(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "WithStatement_5")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = EndStatement(b, l + 1);
+    if (!r) r = ElseStatement(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
   }
 
   /* ********************************************************** */

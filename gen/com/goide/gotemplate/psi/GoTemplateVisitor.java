@@ -19,6 +19,14 @@ public class GoTemplateVisitor extends PsiElementVisitor {
     visitExpression(o);
   }
 
+  public void visitDefineStatement(@NotNull GoTemplateDefineStatement o) {
+    visitStatement(o);
+  }
+
+  public void visitElseIfStatement(@NotNull GoTemplateElseIfStatement o) {
+    visitStatement(o);
+  }
+
   public void visitElseStatement(@NotNull GoTemplateElseStatement o) {
     visitStatement(o);
   }

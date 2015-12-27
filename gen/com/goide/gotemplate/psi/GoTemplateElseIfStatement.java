@@ -5,12 +5,15 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface GoTemplateTemplateStatement extends GoTemplateStatement {
+public interface GoTemplateElseIfStatement extends GoTemplateStatement {
 
-  @Nullable
+  @NotNull
   GoTemplatePipeline getPipeline();
 
-  @Nullable
-  GoTemplateStringLiteral getStringLiteral();
+  @NotNull
+  GoTemplateStatement getStatement();
+
+  @NotNull
+  GoTemplateStatementList getStatementList();
 
 }

@@ -47,15 +47,16 @@
     TEMPLATE             =  'template'
     RANGE                =  'range'
     WITH                 =  'with'
+    DEFINE               =  'define'
    ]
-   pin("OrExpr|AndExpr|ConditionalExpr|IfStatement|EndStatement|ElseStatement|BlockStatement|WithStatement|TemplateStatement|RangeStatement")=2
+   pin("OrExpr|AndExpr|ConditionalExpr|IfStatement|EndStatement|ElseStatement|BlockStatement|WithStatement|TemplateStatement|RangeStatement|DefineStatement")=2
 
 }
 
 File ::= StatementList
 
 StatementList ::= StatementsGroup*
-private StatementsGroup ::= TEXT+ | IfStatement | BlockStatement | TemplateStatement | RangeStatement | WithStatement | PipelineStatement
+private StatementsGroup ::= TEXT+ | IfStatement | BlockStatement | TemplateStatement | RangeStatement | WithStatement | DefineStatement | PipelineStatement
 fake Statement ::=
 
 FieldChain ::= '.' IDENT FieldChain?
@@ -87,12 +88,14 @@ ParenthesesExpr ::= '(' Pipeline ')' {pin=1}
 Pipeline      ::= Expression Expression*  Pipe? {pin=1}
 Pipe          ::= '|' Expression+ Pipe? {pin=1}
 
-IfStatement   ::= '{{' 'if' Pipeline '}}' StatementList (EndStatement|ElseStatement)
+IfStatement   ::= '{{' 'if' Pipeline '}}' StatementList (EndStatement|ElseIfStatement|ElseStatement)
+ElseIfStatement   ::= '{{' 'else' 'if' Pipeline '}}' StatementList (EndStatement|ElseIfStatement|ElseStatement)
 ElseStatement ::= '{{' 'else' '}}' StatementList EndStatement
 EndStatement  ::= '{{' 'end' '}}'
-TemplateStatement ::= '{{' 'template' Pipeline '}}'
-RangeStatement ::= '{{' 'range' RangeAssign? Pipeline '}}' StatementList EndStatement
+TemplateStatement ::= '{{' 'template' StringLiteral Pipeline? '}}'
+RangeStatement ::= '{{' 'range' RangeAssign? Pipeline '}}' StatementList (EndStatement|ElseStatement)
 RangeAssign ::= Expression (',' Expression)? ':=' {pin=3}
 BlockStatement ::= '{{' 'block' Pipeline '}}' StatementList EndStatement
-WithStatement ::= '{{' 'with' Pipeline '}}' StatementList EndStatement
+WithStatement ::= '{{' 'with' Pipeline '}}' StatementList (EndStatement|ElseStatement)
 PipelineStatement ::= '{{' Pipeline '}}' { pin=2 }
+DefineStatement ::= '{{' 'define' StringLiteral '}}' StatementList EndStatement
