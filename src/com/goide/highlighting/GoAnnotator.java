@@ -130,7 +130,7 @@ public class GoAnnotator implements Annotator {
   private static void checkLiteralEvaluatedButNotUsed(@NotNull AnnotationHolder holder, @NotNull PsiElement e, @NotNull String message) {
     PsiElement parent = e.getParent();
     if (e instanceof GoFunctionLit && parent instanceof GoCallExpr) return;
-    if ((e instanceof GoStringLiteral || e instanceof GoLiteral) && (parent instanceof GoIndexOrSliceExpr || parent instanceof GoConditionalExpr)) return;
+    if ((e instanceof GoStringLiteral || e instanceof GoLiteral) && PsiTreeUtil.getParentOfType(e, GoIndexOrSliceExpr.class, GoConditionalExpr.class) != null) return;
 
     PsiElement lhe = PsiTreeUtil.getParentOfType(e, GoLeftHandExprList.class, GoArgumentList.class);
     if (lhe == null || lhe instanceof GoArgumentList) return;
