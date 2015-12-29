@@ -226,6 +226,9 @@
     <localInspection language="go" displayName="Struct initialization without field names" groupPath="Go"
                      groupName="Code style issues" enabledByDefault="true" level="WEAK WARNING"
                      implementationClass="com.goide.inspections.GoStructInitializationInspection"/>
+    <localInspection language="go" displayName="Package name should be the same as the containing directory" groupPath="Go"
+                     groupName="Code style issues" enabledByDefault="true" level="WEAK WARNING"
+                     implementationClass="com.goide.inspections.GoSuggestPackageNameInspection"/>
     <!-- /code style issues -->
 
     <!-- probable bugs -->

@@ -30,21 +30,21 @@ public class GoMultiplePackagesQuickFixTest extends GoQuickFixTestBase {
   @NotNull
   @Override
   protected String getBasePath() {
-    return "quickfixes/multiple-packages";
+    return "quickfixes/rename-package";
   }
 
   public void testMultiplePackagesQuickFix() {
-    myFixture.configureByFile("c_test.go");
-    myFixture.configureByFile("b.go");
-    myFixture.configureByFile("b_test.go");
-    myFixture.configureByFile("a.go");
+    myFixture.configureByFile("multiple-packages/c_test.go");
+    myFixture.configureByFile("multiple-packages/b.go");
+    myFixture.configureByFile("multiple-packages/b_test.go");
+    myFixture.configureByFile("multiple-packages/a.go");
 
     GoMultiplePackagesQuickFix.setTestingPackageName("a", getTestRootDisposable());
     applySingleQuickFix("Rename packages");
 
-    myFixture.checkResultByFile("a.go", "a-after.go", true);
-    myFixture.checkResultByFile("b.go", "b-after.go", true);
-    myFixture.checkResultByFile("b_test.go", "b_test-after.go", true);
-    myFixture.checkResultByFile("c_test.go", "c_test-after.go", true);
+    myFixture.checkResultByFile("multiple-packages/a.go", "multiple-packages/a-after.go", true);
+    myFixture.checkResultByFile("multiple-packages/b.go", "multiple-packages/b-after.go", true);
+    myFixture.checkResultByFile("multiple-packages/b_test.go", "multiple-packages/b_test-after.go", true);
+    myFixture.checkResultByFile("multiple-packages/c_test.go", "multiple-packages/c_test-after.go", true);
   }
 }

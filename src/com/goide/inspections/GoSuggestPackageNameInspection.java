@@ -29,32 +29,28 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
-public class GoMultiplePackagesInspection extends GoInspectionBase {
+public class GoSuggestPackageNameInspection extends GoInspectionBase {
   @Override
   protected void checkFile(@NotNull GoFile file, @NotNull ProblemsHolder problemsHolder) {
     if (((ScratchFileType)ScratchFileType.INSTANCE).isMyFileType(file.getVirtualFile())) return;
     GoPackageClause packageClause = file.getPackage();
-    if (packageClause != null) {
-      String packageName = file.getPackageName();
-      if (packageName == null || packageName.equals(GoConstants.DOCUMENTATION)) return;
-      PsiDirectory dir = file.getContainingDirectory();
-      Collection<String> packages = GoUtil.getAllPackagesInDirectory(dir, true);
-      packages.remove(GoConstants.DOCUMENTATION);
-      if (packages.size() > 1) {
-        if (dir != null && !packages.contains(dir.getName())){
-          packages.add(dir.getName());
-        }
-        Collection<LocalQuickFix> fixes = ContainerUtil.newArrayList();
-        if (problemsHolder.isOnTheFly()) {
-          fixes.add(new GoMultiplePackagesQuickFix(packageClause, packageName, packages, true));
-        }
-        else {
-          for (String name : packages) {
-            fixes.add(new GoMultiplePackagesQuickFix(packageClause, name, packages, false));
-          }
-        }
-        problemsHolder.registerProblem(packageClause, "Multiple packages in directory", fixes.toArray(new LocalQuickFix[fixes.size()]));
-      }
+    if (packageClause == null) return;
+
+    String packageName = file.getPackageName();
+    if (packageName == null ||
+        packageName.equals(GoConstants.DOCUMENTATION) ||
+        packageName.equals(GoConstants.MAIN)) {
+      return;
     }
+
+    PsiDirectory dir = file.getContainingDirectory();
+    if (dir == null) return;
+
+    Collection<String> packages = GoUtil.getAllPackagesInDirectory(dir, true);
+    packages.remove(GoConstants.DOCUMENTATION);
+    if (dir.getName().equals(packageName)) return;
+
+    GoMultiplePackagesQuickFix fix = new GoMultiplePackagesQuickFix(packageClause, dir.getName(), packages, problemsHolder.isOnTheFly());
+    problemsHolder.registerProblem(packageClause, "Package should be named as the directory containing it", fix);
   }
 }
