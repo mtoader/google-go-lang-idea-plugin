@@ -24,6 +24,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.LightProjectDescriptor;
 import org.jetbrains.annotations.NotNull;
@@ -290,7 +291,9 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
       @NotNull
       @Override
       public VirtualFile compute() throws Throwable {
-        return myFixture.getTempDirFixture().copyFile(myFixture.getFile().getVirtualFile(), "method/nonlocaltype.go");
+        return VfsUtilCore.copyFile(myFixture.getTempDirFixture(),
+                                    myFixture.getFile().getVirtualFile(),
+                                    myFixture.getTempDirFixture().findOrCreateDir("method"));
       }
     });
     GoModuleLibrariesService.getInstance(myFixture.getModule()).setLibraryRootUrls(file.getParent().getParent().getUrl());

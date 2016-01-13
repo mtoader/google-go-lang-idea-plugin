@@ -32,6 +32,8 @@ import java.util.List;
  * @see com.goide.dlv.DlvCommandProcessor#getResultType(String)
  */
 public abstract class DlvRequest<T> extends OutMessage implements Request<T> {
+  protected final JsonWriter writer = getWriter();
+
   private static final String PARAMS = "params";
   private static final String ID = "id";
   private boolean argumentsObjectStarted;
@@ -52,13 +54,18 @@ public abstract class DlvRequest<T> extends OutMessage implements Request<T> {
   }
 
   @Override
-  protected final void beginArguments() throws IOException {
+  public final void beginArguments() {
     if (!argumentsObjectStarted) {
       argumentsObjectStarted = true;
       if (needObject()) {
-        writer.name(PARAMS);
-        writer.beginArray();
-        writer.beginObject();
+        try {
+          writer.name(PARAMS).
+            beginArray().
+            beginObject();
+        }
+        catch (IOException e) {
+          throw new RuntimeException(e);
+        }
       }
     }
   }
@@ -99,21 +106,21 @@ public abstract class DlvRequest<T> extends OutMessage implements Request<T> {
   public final static class CreateBreakpoint extends DlvRequest<DlvApi.Breakpoint> {
     public CreateBreakpoint(String path, int line) {
       writeString("file", path);
-      writeInt("line", line);
+      writeLong("line", line);
     }
   }
 
   public final static class StacktraceGoroutine extends DlvRequest<List<DlvApi.Location>> {
     public StacktraceGoroutine() {
-      writeInt("Id", -1);
-      writeInt("Depth", 100);
+      writeLong("Id", -1);
+      writeLong("Depth", 100);
     }
   }
 
   private abstract static class Locals<T> extends DlvRequest<T> {
     Locals(int frameId) {
-      writeInt("GoroutineID", -1);
-      writeInt("Frame", frameId);
+      writeLong("GoroutineID", -1);
+      writeLong("Frame", frameId);
     }
   }
 
