@@ -16,19 +16,24 @@
 
 package com.goide.inspections;
 
+import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
 import com.goide.GoCodeInsightFixtureTestCase;
-import com.goide.inspections.unresolved.*;
+import com.goide.inspections.unresolved.GoAssignmentToConstantInspection;
+import com.goide.inspections.unresolved.GoUnresolvedReferenceInspection;
+import com.goide.inspections.unresolved.GoUnusedConstInspection;
+import com.goide.inspections.unresolved.GoUnusedFunctionInspection;
+import com.goide.inspections.unresolved.GoUnusedGlobalVariableInspection;
+import com.goide.inspections.unresolved.GoUnusedVariableInspection;
 import com.goide.project.GoModuleLibrariesService;
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightingSettingsPerFile;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.LightProjectDescriptor;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
 
 public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
   @Override
@@ -290,7 +295,8 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
       @NotNull
       @Override
       public VirtualFile compute() throws Throwable {
-        return myFixture.getTempDirFixture().copyFile(myFixture.getFile().getVirtualFile(), "method/nonlocaltype.go");
+        VirtualFile toDir = myFixture.getTempDirFixture().findOrCreateDir("method");
+        return VfsUtilCore.copyFile(myFixture.getTempDirFixture(), myFixture.getFile().getVirtualFile(), toDir);
       }
     });
     GoModuleLibrariesService.getInstance(myFixture.getModule()).setLibraryRootUrls(file.getParent().getParent().getUrl());

@@ -50,8 +50,7 @@ public class DlvVm extends VmBase {
       }
     };
 
-    vmHelper = new StandaloneVmHelper(this, commandProcessor);
-    vmHelper.setChannel(channel);
+    vmHelper = new StandaloneVmHelper(this, commandProcessor, channel);
 
     channel.pipeline().addLast(new JsonObjectDecoder(), new SimpleChannelInboundHandlerAdapter() {
       @Override
