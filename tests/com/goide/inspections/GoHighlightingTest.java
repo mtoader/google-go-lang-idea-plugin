@@ -65,7 +65,6 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
       GoCommentStartInspection.class,
       GoPlaceholderCountInspection.class,
       GoEmbeddedInterfacePointerInspection.class,
-      GoStructInitializationInspection.class,
       GoMethodOnNonLocalTypeInspection.class,
       GoUnderscoreUsedAsValueInspection.class,
       GoRangeIterationOnIllegalTypeInspection.class,
@@ -375,10 +374,6 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
   public void testDeferInLoop() { doWeakTest(); }
 
   public void testCommentStart() { doWeakTest(); }
-
-  public void testUnitializedStructInitialization() {
-    doWeakTest();
-  }
 
   private long doWeakTest() {return myFixture.testHighlighting(true, false, true, getTestName(true) + ".go");}
 
