@@ -23,29 +23,13 @@ import org.jetbrains.annotations.NotNull;
 @TestDataPath("$PROJECT_ROOT/testData/colorHighlighting")
 public class GoHighlightingAnnotatorTest extends GoCodeInsightFixtureTestCase {
   
-  public void testSimple() {
-    doTest();
-  }
-
-  public void testLabel() {
-    doTest();
-  }
-  
-  public void testReceiver() {
-    doTest();
-  }
-  
-  public void testFuncAndMethod() {
-    doTest();
-  }
-  
-  public void testOctAndHex() {
-    doTest();
-  }
-  
-  public void testTypes() {
-    doTest();
-  }
+  public void testSimple()        { doTest(); }
+  public void testLabel()         { doTest(); }
+  public void testReceiver()      { doTest(); }
+  public void testFuncAndMethod() { doTest(); }
+  public void testOctAndHex()     { doTest(); }
+  public void testTypes()         { doTest(); }
+  public void testStructFields()  { doTest(); }
 
   @Override
   protected boolean isWriteActionRequired() {
