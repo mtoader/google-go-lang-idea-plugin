@@ -1124,6 +1124,19 @@ public class GoPsiImplUtil {
     return spec;
   }
 
+  public static void addSpec(GoStructType struct, GoMethodSpec method) {
+    PsiFile file = struct.getContainingFile();
+    Project project = struct.getProject();
+    GoMethodDeclaration generatedMethod = GoElementFactory.createMethod(project, struct, method);
+    if (generatedMethod == null) return;
+    PsiElement newLine = GoElementFactory.createNewLine(project);
+    // TODO Better element positioning
+    file.add(newLine);
+    file.add(newLine);
+    file.add(generatedMethod);
+    file.add(newLine);
+  }
+
   public static void deleteSpec(@NotNull GoVarDeclaration declaration, @NotNull GoVarSpec specToDelete) {
     List<GoVarSpec> specList = declaration.getVarSpecList();
     int index = specList.indexOf(specToDelete);

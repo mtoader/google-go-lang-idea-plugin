@@ -177,4 +177,12 @@ public class GoElementFactory {
     GoVarDeclaration varDeclaration = createVarDeclaration(project, name + type + value);
     return ContainerUtil.getFirstItem(varDeclaration.getVarSpecList());
   }
+
+  @Nullable
+  public static GoMethodDeclaration createMethod(@NotNull Project project, @NotNull GoStructType struct, @NotNull GoMethodSpec method) {
+    String structName = ((GoTypeSpecImpl)struct.getParent().getParent()).getIdentifier().getText();
+    String contents = "package a; func ("+ structName.charAt(0)+" " + structName + ") " + method.getName() + method.getSignature().getText() + " {\n\t\n}";
+    GoFile file = createFileFromText(project, contents);
+    return ContainerUtil.getFirstItem(file.getMethods());
+  }
 }
