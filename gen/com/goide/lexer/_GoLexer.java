@@ -30,7 +30,7 @@ public class _GoLexer implements FlexLexer, GoTypes {
    *                  at the beginning of a line
    * l is of the form l = 2*k, k a non negative integer
    */
-  private static final int ZZ_LEXSTATE[] = { 
+  private static final int[] ZZ_LEXSTATE = { 
      0,  0,  1, 1
   };
 
@@ -452,7 +452,7 @@ public class _GoLexer implements FlexLexer, GoTypes {
   private static java.io.Reader zzReader = null; // Fake
 
   /* error messages for the codes above */
-  private static final String ZZ_ERROR_MSG[] = {
+  private static final String[] ZZ_ERROR_MSG = {
     "Unkown internal scanner error",
     "Error: could not match input",
     "Error: pushback value was too large"
