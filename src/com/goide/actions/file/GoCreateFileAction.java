@@ -94,6 +94,9 @@ public class GoCreateFileAction extends CreateFileFromTemplateAction implements 
 
   @Override
   public boolean equals(Object obj) {
-    return obj instanceof GoCreateFileAction;
+    if (obj != null) {
+      return this.getClass() == obj.getClass();
+    }
+    return false;
   }
 }
