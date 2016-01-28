@@ -75,11 +75,9 @@ public abstract class DlvRequest<T> extends OutMessage implements Request<T> {
   @Override
   public final void finalize(int id) {
     try {
-      if (argumentsObjectStarted) {
-        if (needObject()) {
-          writer.endObject();
-          writer.endArray();
-        }
+      if (argumentsObjectStarted && needObject()) {
+        writer.endObject();
+        writer.endArray();
       }
       writer.name(ID).value(id);
       writer.endObject();

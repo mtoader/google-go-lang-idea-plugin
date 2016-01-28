@@ -557,10 +557,8 @@ public class GoPsiImplUtil {
       GoType byRef = typeFromRefOrType(underlyingType);
       GoType type = funcType(canDecouple && byRef instanceof GoSpecType ? ((GoSpecType)byRef).getType() : byRef);
       if (type == null) return fromCall;
-      if (type instanceof GoTypeList) {
-        if (((GoTypeList)type).getTypeList().size() > i) {
-          return ((GoTypeList)type).getTypeList().get(i);
-        }
+      if (type instanceof GoTypeList && ((GoTypeList)type).getTypeList().size() > i) {
+        return ((GoTypeList)type).getTypeList().get(i);
       }
       return type;
     }
@@ -1005,14 +1003,12 @@ public class GoPsiImplUtil {
 
   @NotNull
   public static GoStringLiteralImpl updateText(@NotNull GoStringLiteral o, @NotNull String text) {
-    if (text.length() > 2) {
-      if (o.getString() != null) {
-        StringBuilder outChars = new StringBuilder();
-        GoStringLiteralEscaper.escapeString(text.substring(1, text.length()-1), outChars);
-        outChars.insert(0, '"');
-        outChars.append('"');
-        text = outChars.toString();
-      }
+    if (text.length() > 2 && o.getString() != null) {
+      StringBuilder outChars = new StringBuilder();
+      GoStringLiteralEscaper.escapeString(text.substring(1, text.length() - 1), outChars);
+      outChars.insert(0, '"');
+      outChars.append('"');
+      text = outChars.toString();
     }
 
     ASTNode valueNode = o.getNode().getFirstChildNode();

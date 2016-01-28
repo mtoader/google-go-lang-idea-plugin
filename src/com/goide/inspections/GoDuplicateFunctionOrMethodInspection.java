@@ -53,12 +53,12 @@ public class GoDuplicateFunctionOrMethodInspection extends GoInspectionBase {
         GoMethodIndex.process(file.getPackageName() + "." + typeText, file.getProject(), scope, new Processor<GoMethodDeclaration>() {
           @Override
           public boolean process(GoMethodDeclaration declaration) {
-            if (!method.isEquivalentTo(declaration)) {
-              if (Comparing.equal(declaration.getName(), methodName) && GoUtil.allowed(declaration.getContainingFile())) {
-                PsiElement identifier = method.getNameIdentifier();
-                holder.registerProblem(identifier == null ? method : identifier, "Duplicate method name");
-                return false;
-              }
+            if (!method.isEquivalentTo(declaration) &&
+                Comparing.equal(declaration.getName(), methodName) &&
+                GoUtil.allowed(declaration.getContainingFile())) {
+              PsiElement identifier = method.getNameIdentifier();
+              holder.registerProblem(identifier == null ? method : identifier, "Duplicate method name");
+              return false;
             }
             return true;
           }
@@ -79,12 +79,10 @@ public class GoDuplicateFunctionOrMethodInspection extends GoInspectionBase {
         GoFunctionIndex.process(funcName, file.getProject(), scope, new Processor<GoFunctionDeclaration>() {
           @Override
           public boolean process(GoFunctionDeclaration declaration) {
-            if (!func.isEquivalentTo(declaration)) {
-              if (!isMainFunction || Comparing.equal(declaration.getContainingFile(), file)) {
-                PsiElement identifier = func.getNameIdentifier();
-                holder.registerProblem(identifier == null ? func : identifier, "Duplicate function name");
-                return false;
-              }
+            if (!func.isEquivalentTo(declaration) && !isMainFunction || Comparing.equal(declaration.getContainingFile(), file)) {
+              PsiElement identifier = func.getNameIdentifier();
+              holder.registerProblem(identifier == null ? func : identifier, "Duplicate function name");
+              return false;
             }
             return true;
           }

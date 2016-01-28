@@ -50,18 +50,16 @@ public class GoRecursiveCallMarkerProvider implements LineMarkerProvider, DumbAw
     for (PsiElement element : elements) {
       if (element instanceof GoCallExpr) {
         PsiElement resolve = GoPsiImplUtil.resolveCall((GoCallExpr)element);
-        if (resolve instanceof GoFunctionOrMethodDeclaration) {
-          if (isRecursiveCall(element, (GoFunctionOrMethodDeclaration)resolve)) {
-            PsiDocumentManager instance = PsiDocumentManager.getInstance(element.getProject());
-            Document document = instance.getDocument(element.getContainingFile());
-            int textOffset = element.getTextOffset();
-            if (document == null) continue;
-            int lineNumber = document.getLineNumber(textOffset);
-            if (!lines.contains(lineNumber)) {
-              result.add(new RecursiveMethodCallMarkerInfo(element));
-            }
-            lines.add(lineNumber);
+        if (resolve instanceof GoFunctionOrMethodDeclaration && isRecursiveCall(element, (GoFunctionOrMethodDeclaration)resolve)) {
+          PsiDocumentManager instance = PsiDocumentManager.getInstance(element.getProject());
+          Document document = instance.getDocument(element.getContainingFile());
+          int textOffset = element.getTextOffset();
+          if (document == null) continue;
+          int lineNumber = document.getLineNumber(textOffset);
+          if (!lines.contains(lineNumber)) {
+            result.add(new RecursiveMethodCallMarkerInfo(element));
           }
+          lines.add(lineNumber);
         }
       }
     }

@@ -67,11 +67,9 @@ public class GoFunctionVariadicParameterInspection extends GoInspectionBase {
     for (int i = 0; i < size; i++) {
       GoParameterDeclaration declaration = list.get(i);
       PsiElement dot = declaration.getTripleDot();
-      if (dot != null) {
-        if (declaration.getParamDefinitionList().size() > 1 || i != size - 1) {
-          holder.registerProblem(dot, "Can only use ... as final argument in list", ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
-                                 DELETE_QUICK_FIX);
-        }
+      if ( dot != null && (declaration.getParamDefinitionList().size() > 1 || i != size - 1) ) {
+        holder.registerProblem(dot, "Can only use ... as final argument in list", ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
+                               DELETE_QUICK_FIX);
       }
     }
   }

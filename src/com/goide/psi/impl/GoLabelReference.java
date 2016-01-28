@@ -72,10 +72,9 @@ public class GoLabelReference extends GoCachedReference<GoLabelRef> {
     PsiElement breakStatementOwner = GoPsiImplUtil.getBreakStatementOwner(breakStatement);
     while (breakStatementOwner != null) {
       PsiElement parent = breakStatementOwner.getParent();
-      if (parent instanceof GoLabeledStatement) {
-        if (!processor.execute(((GoLabeledStatement)parent).getLabelDefinition(), ResolveState.initial())) {
-          return false;
-        }
+      if (parent instanceof GoLabeledStatement &&
+          !processor.execute(((GoLabeledStatement)parent).getLabelDefinition(), ResolveState.initial())) {
+        return false;
       }
       breakStatementOwner = GoPsiImplUtil.getBreakStatementOwner(breakStatementOwner);
     }

@@ -39,8 +39,8 @@ public class GoInspectionUtil {
     else if (call instanceof GoCallExpr) {
       return getFunctionResultCount((GoCallExpr)call);
     }
-    else if (call instanceof GoReferenceExpression) {
-      if (((GoReferenceExpression)call).getReference().resolve() instanceof GoVarDefinition) return 1;
+    else if (call instanceof GoReferenceExpression && ((GoReferenceExpression)call).getReference().resolve() instanceof GoVarDefinition) {
+      return 1;
     }
     return UNKNOWN_COUNT;
   }
