@@ -115,10 +115,8 @@ public class GoAppEngineRunConfiguration extends GoRunConfigurationBase<GoAppEng
     super.checkConfiguration();
 
     Module module = getConfigurationModule().getModule();
-    if (module != null) {
-      if (!GoSdkService.getInstance(module.getProject()).isAppEngineSdk(module)) {
-        throw new RuntimeConfigurationWarning("Go SDK is not specified for module '" + module.getName() + "'");
-      }
+    if (module != null && !GoSdkService.getInstance(module.getProject()).isAppEngineSdk(module)) {
+      throw new RuntimeConfigurationWarning("Go SDK is not specified for module '" + module.getName() + "'");
     }
 
     checkPortValue(myPort, "Invalid port");

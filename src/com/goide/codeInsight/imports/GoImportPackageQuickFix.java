@@ -175,10 +175,10 @@ public class GoImportPackageQuickFix extends LocalQuickFixAndIntentionActionOnPs
           @Nullable
           @Override
           public String fun(@NotNull GoFile file) {
-            if (parentDirectory != null && parentDirectory.isEquivalentTo(file.getParent())) {
-              if (testTargetPackage == null || !testTargetPackage.equals(file.getPackageName())) {
-                return null;
-              }
+            if ( (parentDirectory != null &&
+                parentDirectory.isEquivalentTo(file.getParent())) &&
+                (testTargetPackage == null || !testTargetPackage.equals(file.getPackageName()))) {
+              return null;
             }
 
             String importPath = file.getImportPath();

@@ -60,9 +60,10 @@ public class GoCompositeElementImpl extends ASTWrapperPsiElement implements GoCo
           o instanceof GoCommClause ||
           o instanceof GoBlock ||
           o instanceof GoCaseClause
-        ) 
-        && processor instanceof GoScopeProcessorBase) {
-      if (!PsiTreeUtil.isAncestor(o, ((GoScopeProcessorBase)processor).myOrigin, false)) return true;
+        )
+        && processor instanceof GoScopeProcessorBase
+        && !PsiTreeUtil.isAncestor(o, ((GoScopeProcessorBase)processor).myOrigin, false)) {
+      return true;
     }
 
     return o instanceof GoBlock

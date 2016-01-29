@@ -33,10 +33,10 @@ public class GoCreateFromTemplateHandler extends DefaultCreateFromTemplateHandle
   public void prepareProperties(Map<String, Object> props) {
     Object name = props.get(FileTemplate.ATTRIBUTE_NAME);
     Object packageName = props.get(GoTemplatePropertiesProvider.GO_PACKAGE_NAME);
-    if (name instanceof String && packageName instanceof String) {
-      if (((String)name).endsWith(GoConstants.TEST_SUFFIX) || ((String)name).endsWith(GoConstants.TEST_SUFFIX_WITH_EXTENSION)) {
-        props.put(GoTemplatePropertiesProvider.GO_PACKAGE_NAME_WITH_TEST_SUFFIX, packageName + GoConstants.TEST_SUFFIX);
-      }
+
+    if ( (((String)name).endsWith(GoConstants.TEST_SUFFIX) ||
+        ((String)name).endsWith(GoConstants.TEST_SUFFIX_WITH_EXTENSION)) && (name instanceof String && packageName instanceof String)) {
+      props.put(GoTemplatePropertiesProvider.GO_PACKAGE_NAME_WITH_TEST_SUFFIX, packageName + GoConstants.TEST_SUFFIX);
     }
   }
 }

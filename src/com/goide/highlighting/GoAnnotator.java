@@ -61,12 +61,11 @@ public class GoAnnotator implements Annotator {
     else if (element instanceof GoReferenceExpression) {
       GoReferenceExpression reference = (GoReferenceExpression)element;
       PsiElement resolvedReference = reference.getReference().resolve();
-      if (resolvedReference instanceof PsiDirectory || resolvedReference instanceof GoImportSpec) {
+      if ((resolvedReference instanceof PsiDirectory || resolvedReference instanceof GoImportSpec) &&
+          !(element.getParent() instanceof GoReferenceExpression) &&
+          PsiTreeUtil.getParentOfType(reference, GoPackageClause.class) == null) {
         // It's a package reference. It should either be inside a package clause or part of a larger reference expression.
-        if (!(element.getParent() instanceof GoReferenceExpression) &&
-            PsiTreeUtil.getParentOfType(reference, GoPackageClause.class) == null) {
-          holder.createErrorAnnotation(element, "Use of package " + element.getText() + " without selector");
-        }
+        holder.createErrorAnnotation(element, "Use of package " + element.getText() + " without selector");
       }
       if (resolvedReference instanceof GoTypeSpec && isIllegalUseOfTypeAsExpression(reference)) {
         holder.createErrorAnnotation(element, "Type " + element.getText() + " is not an expression");
@@ -118,10 +117,8 @@ public class GoAnnotator implements Annotator {
       GoCallExpr call = (GoCallExpr)element;
       if (call.getExpression() instanceof GoReferenceExpression) {
         GoReferenceExpression reference = (GoReferenceExpression)call.getExpression();
-        if (reference.textMatches("cap")) {
-          if (GoPsiImplUtil.builtin(reference.getReference().resolve())) {
-            checkCapCall(call, holder);
-          }
+        if (reference.textMatches("cap") && GoPsiImplUtil.builtin(reference.getReference().resolve())) {
+          checkCapCall(call, holder);
         }
       }
     }
@@ -236,11 +233,9 @@ public class GoAnnotator implements Annotator {
       }
     }
 
-    if (baseType instanceof GoChannelType || baseType instanceof GoMapType) {
-      if (list.size() > 1) {
-        holder.createErrorAnnotation(call, "Too many arguments to make");
-        return;
-      }
+    if ((baseType instanceof GoChannelType || baseType instanceof GoMapType) && list.size() > 1) {
+      holder.createErrorAnnotation(call, "Too many arguments to make");
+      return;
     }
 
     for (int i = 0; i < list.size(); i++) {

@@ -338,10 +338,8 @@ public class GoSdkUtil {
     }
 
     File possibleGCloudSdk = new File(path, GoConstants.GCLOUD_APP_ENGINE_DIRECTORY_PATH);
-    if (possibleGCloudSdk.exists() && possibleGCloudSdk.isDirectory()) {
-      if (isAppEngine(possibleGCloudSdk.getAbsolutePath())) {
-        return possibleGCloudSdk.getAbsolutePath() + GoConstants.APP_ENGINE_GO_ROOT_DIRECTORY_PATH;
-      }
+    if (possibleGCloudSdk.exists() && possibleGCloudSdk.isDirectory() && isAppEngine(possibleGCloudSdk.getAbsolutePath())) {
+      return possibleGCloudSdk.getAbsolutePath() + GoConstants.APP_ENGINE_GO_ROOT_DIRECTORY_PATH;
     }
 
     return isAppEngine(path) ? path + GoConstants.APP_ENGINE_GO_ROOT_DIRECTORY_PATH : path;

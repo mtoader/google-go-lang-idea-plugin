@@ -111,11 +111,9 @@ public class GoUnusedImportInspection extends GoInspectionBase {
     }
     for (PsiElement importEntry : GoImportOptimizer.filterUnusedImports(file, importMap).values()) {
       GoImportSpec spec = GoImportOptimizer.getImportSpec(importEntry);
-      if (spec != null) {
-        if (spec.getImportString().resolve() != null) {
-          problemsHolder.registerProblem(spec, "Unused import", ProblemHighlightType.GENERIC_ERROR, OPTIMIZE_QUICK_FIX, 
-                                         IMPORT_FOR_SIDE_EFFECTS_QUICK_FIX);
-        }
+      if (spec != null && spec.getImportString().resolve() != null) {
+        problemsHolder.registerProblem(spec, "Unused import", ProblemHighlightType.GENERIC_ERROR, OPTIMIZE_QUICK_FIX,
+                                       IMPORT_FOR_SIDE_EFFECTS_QUICK_FIX);
       }
     }
   }

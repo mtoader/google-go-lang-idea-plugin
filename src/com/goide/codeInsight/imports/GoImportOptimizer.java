@@ -102,10 +102,8 @@ public class GoImportOptimizer implements ImportOptimizer {
       GoImportSpec importSpec = getImportSpec(importEntry);
       if (importSpec != null) {
         String localPackageName = importSpec.getLocalPackageName();
-        if (!StringUtil.isEmpty(localPackageName)) {
-          if (Comparing.equal(importSpec.getAlias(), localPackageName)) {
-            importIdentifiersToDelete.add(importSpec.getIdentifier());
-          }
+        if (!StringUtil.isEmpty(localPackageName) && Comparing.equal(importSpec.getAlias(), localPackageName)) {
+          importIdentifiersToDelete.add(importSpec.getIdentifier());
         }
       }
     }

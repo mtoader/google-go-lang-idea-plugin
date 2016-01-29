@@ -72,10 +72,8 @@ public class GoApplicationRunningState extends GoRunningState<GoApplicationConfi
 
       @Override
       public void onTextAvailable(ProcessEvent event, Key outputType) {
-        if (firstOutput.getAndSet(false)) {
-          if (myHistoryProcessHandler != null) {
-            myHistoryProcessHandler.apply(processHandler);
-          }
+        if (firstOutput.getAndSet(false) && myHistoryProcessHandler != null) {
+          myHistoryProcessHandler.apply(processHandler);
         }
         super.onTextAvailable(event, outputType);
       }
