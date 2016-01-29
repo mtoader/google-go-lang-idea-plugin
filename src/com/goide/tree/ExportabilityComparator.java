@@ -20,9 +20,12 @@ import com.goide.psi.GoNamedElement;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
-public class ExportabilityComparator implements Comparator {
+public class ExportabilityComparator implements Comparator, Serializable {
+  private static final long serialVersionUID = 1L;
+
   public static final Comparator INSTANCE = new ExportabilityComparator();
 
   @Override

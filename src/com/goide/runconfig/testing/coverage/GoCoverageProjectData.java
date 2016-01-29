@@ -90,7 +90,9 @@ public class GoCoverageProjectData extends ProjectData {
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (!(o instanceof GoCoverageProjectData)) return false;
+    if (o != null && this.getClass() != o.getClass()) {
+      return false;
+    }
 
     GoCoverageProjectData data = (GoCoverageProjectData)o;
 
@@ -122,7 +124,9 @@ public class GoCoverageProjectData extends ProjectData {
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
-      if (!(o instanceof FileData)) return false;
+      if (o != null && this.getClass() != o.getClass()) {
+        return false;
+      }
 
       FileData fileData = (FileData)o;
 
@@ -160,7 +164,11 @@ public class GoCoverageProjectData extends ProjectData {
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
-      if (!(o instanceof RangeData)) return false;
+      if (o != null) {
+        if (this.getClass() != o.getClass()) {
+          return false;
+        }
+      }
 
       RangeData data = (RangeData)o;
 

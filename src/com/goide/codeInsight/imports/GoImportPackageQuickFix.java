@@ -54,6 +54,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -236,7 +237,9 @@ public class GoImportPackageQuickFix extends LocalQuickFixAndIntentionActionOnPs
     }
   }
 
-  private static class MyImportsComparator implements Comparator<String> {
+  private static class MyImportsComparator implements Comparator<String>, Serializable {
+    private static final long serialVersionUID = 1L;
+
     @Nullable
     private final String myContextImportPath;
 
