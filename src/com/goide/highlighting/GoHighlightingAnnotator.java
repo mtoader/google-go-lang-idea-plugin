@@ -160,6 +160,12 @@ public class GoHighlightingAnnotator implements Annotator {
     else if (o instanceof GoFieldDefinition) {
       setHighlighting(o, holder, getColor((GoFieldDefinition)o));
     }
+    else if (o instanceof GoFieldName && o.getReference() != null) {
+      PsiElement resolved = o.getReference().resolve();
+      if (resolved instanceof GoFieldDefinition) {
+        setHighlighting(o, holder, getColor((GoFieldDefinition)resolved));
+      }
+    }
     else if (o instanceof GoParamDefinition) {
       setHighlighting(o, holder, FUNCTION_PARAMETER);
     }
