@@ -19,7 +19,7 @@ package com.goide.inspections;
 import com.goide.GoCodeInsightFixtureTestCase;
 import com.intellij.testFramework.LightProjectDescriptor;
 
-public class AssignmentCountMismatchTest extends GoCodeInsightFixtureTestCase {
+public class GoAssignmentCountMismatchTest extends GoCodeInsightFixtureTestCase {
   public void setUp() throws Exception {
     super.setUp();
     setUpProjectSdk();

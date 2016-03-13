@@ -36,7 +36,10 @@ func (u user) validate() (bool, error) {
 	return false, nil
 }
 
+var <error descr="Assignment count mismatch: 1 element(s) assigned to 2 element(s)">c, d = func() { }</error>
+
 func main() {
+	_, _ = c, d
 	var s validate
 
 	s = user{}

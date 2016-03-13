@@ -574,29 +574,14 @@ public class GoPsiImplUtil {
     // We don't want to split up the list of variables if the parent is a result type and the parent of that parent is a function
     // because we've essentially bumped into a function signature that's returned by a function
     // e.g. func demo() func() (res1 int, res2 error)
+    if (type == null || !(type.getParent() instanceof GoResult)) return false;
 
-    if (type == null) return false;
-
-    PsiElement parentFunc = type;
-
-    if (type.getParent() instanceof GoParameterDeclaration &&
-        type.getParent().getParent() instanceof GoParameters) {
-      parentFunc = type.getParent().getParent().getParent();
-    }
-    else if (type.getParent() instanceof GoResult) {
-      parentFunc = type.getParent();
-    }
-
-    if (parentFunc.getParent() instanceof GoResult) {
-      parentFunc = type.getParent();
-    }
-    else if (!(parentFunc instanceof GoResult)) {
-      return false;
-    }
+    PsiElement parentFunc = type.getParent();
+    GoParameterDeclaration paramDecl = PsiTreeUtil.getParentOfType(parentFunc, GoParameterDeclaration.class);
 
     return parentFunc.getParent() instanceof GoSignature &&
            (type instanceof GoFunctionType ||
-            parentFunc.getParent().getParent().getParent().getParent() instanceof GoSignature);
+            (paramDecl != null && paramDecl.getParent() instanceof GoSignature));
   }
 
   @Nullable
@@ -1314,14 +1299,8 @@ public class GoPsiImplUtil {
   public static boolean hasUnresolvedReferences(@NotNull List<GoExpression> expressionList) {
     for (GoExpression expression : expressionList) {
       if (expression instanceof GoReferenceExpression) {
-        if (expression.getReference() == null ||
-            expression.getReference().resolve() == null) {
-          return true;
-        }
-
-        if (isIllegalUseOfTypeAsExpression(expression)) {
-          return true;
-        }
+        PsiReference ref = expression.getReference();
+        if (ref == null || ref.resolve() == null || isIllegalUseOfTypeAsExpression(expression)) return true;
       }
     }
     return false;
@@ -1329,26 +1308,19 @@ public class GoPsiImplUtil {
 
   public static boolean hasUnresolvedCalls(@NotNull List<GoExpression> expressionList) {
     for (GoExpression expression : expressionList) {
-      if (expression instanceof GoCallExpr) {
-        expression = ((GoCallExpr)expression).getExpression();
-        if (expression.getGoType(null) == null) {
-          if (expression.getReference() != null) {
-            if (expression.getReference().resolve() == null) {
-              return true;
-            }
-            continue;
-          }
-          return true;
-        }
-      }
+      if (!(expression instanceof GoCallExpr)) continue;
+
+      expression = ((GoCallExpr)expression).getExpression();
+      if (expression.getGoType(null) != null) continue;
+
+      PsiReference ref = expression.getReference();
+      if (ref == null || ref.resolve() == null) return true;
     }
     return false;
   }
 
   public static boolean isTypeAssertion(@NotNull List<GoExpression> expressionList) {
-    if (expressionList.size() != 1) {
-      return false;
-    }
+    if (expressionList.size() != 1) return false;
 
     GoExpression expr = expressionList.get(0);
     if (expr instanceof GoParenthesesExpr) {
@@ -1359,18 +1331,14 @@ public class GoPsiImplUtil {
   }
 
   public static boolean isMapRead(@NotNull List<GoExpression> expressionList) {
-    if (expressionList.size() != 1) {
-      return false;
-    }
+    if (expressionList.size() != 1) return false;
 
     GoExpression expr = expressionList.get(0);
     return expr instanceof GoIndexOrSliceExpr;
   }
 
   public static boolean isChannelReceiver(@NotNull List<GoExpression> expressionList) {
-    if (expressionList.size() != 1) {
-      return false;
-    }
+    if (expressionList.size() != 1) return false;
 
     GoExpression expr = expressionList.get(0);
     if (expr instanceof GoParenthesesExpr) {
