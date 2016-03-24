@@ -25,6 +25,7 @@ import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
+import com.intellij.execution.configurations.ParametersList;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.process.ProcessHandler;
@@ -97,8 +98,19 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
 
   @Override
   protected GoExecutor patchExecutor(@NotNull GoExecutor executor) throws ExecutionException {
-    executor.withParameters("test", "-v");
-    executor.withParameterString(myConfiguration.getGoToolParams());
+    ParametersList buildFlags = new ParametersList();
+    boolean isDebug = isDebug();
+    if (!isDebug) {
+      executor.withParameters("test", "-v");
+      executor.withParameterString(myConfiguration.getGoToolParams());
+    }
+    else if (!myConfiguration.getGoToolParams().isEmpty()) {
+      buildFlags.addAll(myConfiguration.getGoToolParams());
+    }
+
+    String testTarget = getTestTarget(myConfiguration);
+    if (testTarget.isEmpty()) throw new ExecutionException("Invalid run configuration");
+
     switch (myConfiguration.getKind()) {
       case DIRECTORY:
         String relativePath = FileUtil.getRelativePath(myConfiguration.getWorkingDirectory(),
@@ -106,18 +118,12 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
                                                        File.separatorChar);
         // TODO Once Go gets support for covering multiple packages the ternary condition should be reverted
         // See https://golang.org/issues/6909
-        String pathSuffix = myCoverageFilePath == null ? "..." : ".";
-        if (relativePath != null) {
-          executor.withParameters("./" + relativePath + "/" + pathSuffix);
-        }
-        else {
-          executor.withParameters("./" + pathSuffix);
+        if (relativePath == null) {
           executor.withWorkDirectory(myConfiguration.getDirectoryPath());
         }
         addFilterParameter(executor, ObjectUtils.notNull(myFailedTestsPattern, myConfiguration.getPattern()));
         break;
       case PACKAGE:
-        executor.withParameters(myConfiguration.getPackage());
         addFilterParameter(executor, ObjectUtils.notNull(myFailedTestsPattern, myConfiguration.getPattern()));
         break;
       case FILE:
@@ -141,8 +147,16 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
         break;
     }
 
+    if (isDebug) {
+      File dlv = dlv();
+      executor.withExePath(dlv.getAbsolutePath())
+        .withDebuggerParameters("--listen=localhost:" + myDebugPort, "--headless=true", "exec", myOutputFilePath, "--", "-test.v");
+      return executor;
+    }
+
     if (myCoverageFilePath != null) {
       executor.withParameters("-coverprofile=" + myCoverageFilePath, "-covermode=atomic");
+      executor.withParameters(buildFlags.getArray());
     }
 
     return executor;
@@ -159,7 +173,9 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
 
   protected void addFilterParameter(@NotNull GoExecutor executor, String pattern) {
     if (StringUtil.isNotEmpty(pattern)) {
-      executor.withParameters("-run", pattern);
+      String run = "-run";
+      if (isDebug()) run = "-test.run";
+      executor.withParameters(run + "='" + pattern + "'");
     }
   }
 
@@ -174,5 +190,30 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
         return proxy.getName();
       }
     }, "|") + "$";
+  }
+
+  public String getTestTarget(GoTestRunConfiguration configuration) {
+    switch (configuration.getKind()) {
+      case DIRECTORY:
+        String relativePath = FileUtil.getRelativePath(configuration.getWorkingDirectory(),
+                                                       configuration.getDirectoryPath(),
+                                                       File.separatorChar);
+        // TODO Once Go gets support for covering multiple packages the ternary condition should be reverted
+        // See https://golang.org/issues/6909
+        String pathSuffix = myCoverageFilePath == null ? "..." : ".";
+        return relativePath != null ? "./" + relativePath + "/" + pathSuffix : "./" + pathSuffix;
+      case PACKAGE:
+        return configuration.getPackage();
+      case FILE:
+        String filePath = configuration.getFilePath();
+        VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(filePath);
+        if (virtualFile == null) return "";
+        PsiFile file = PsiManager.getInstance(configuration.getProject()).findFile(virtualFile);
+        if (file == null || !GoTestFinder.isTestFile(file)) return "";
+
+        return ((GoFile)file).getImportPath(false);
+      default:
+        return "";
+    }
   }
 }

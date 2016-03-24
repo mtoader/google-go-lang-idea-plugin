@@ -62,7 +62,8 @@ public class GoExecutor {
   private static final Logger LOGGER = Logger.getInstance(GoExecutor.class);
   @NotNull private final Map<String, String> myExtraEnvironment = ContainerUtil.newHashMap();
   @NotNull private final ParametersList myParameterList = new ParametersList();
-  @NotNull private final ProcessOutput myProcessOutput = new ProcessOutput();
+  @NotNull private final ParametersList myDebuggerParameterList = new ParametersList();
+  @NotNull private ProcessOutput myProcessOutput = new ProcessOutput();
   @NotNull private final Project myProject;
   @Nullable private Boolean myVendoringEnabled;
   @Nullable private final Module myModule;
@@ -176,6 +177,12 @@ public class GoExecutor {
   @NotNull
   public GoExecutor withParameters(@NotNull String... parameters) {
     myParameterList.addAll(parameters);
+    return this;
+  }
+
+  @NotNull
+  public GoExecutor withDebuggerParameters(@NotNull String... parameters) {
+    myDebuggerParameterList.addAll(parameters);
     return this;
   }
 
@@ -358,6 +365,7 @@ public class GoExecutor {
     commandLine.getEnvironment().put(GoConstants.PATH, StringUtil.join(paths, File.pathSeparator));
 
     commandLine.withWorkDirectory(myWorkDirectory);
+    commandLine.addParameters(myDebuggerParameterList.getList());
     commandLine.addParameters(myParameterList.getList());
     commandLine.setPassParentEnvironment(myPassParentEnvironment);
     commandLine.withCharset(CharsetToolkit.UTF8_CHARSET);
