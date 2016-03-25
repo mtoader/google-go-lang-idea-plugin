@@ -21,13 +21,19 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.CommandLineState;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.KillableColoredProcessHandler;
+import com.intellij.execution.process.ProcessAdapter;
+import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
 
 public abstract class GoRunningState<T extends GoRunConfigurationBase<?>> extends CommandLineState {
   @NotNull protected final Module myModule;
+  protected String myOutputFilePath;
 
   @NotNull
   public T getConfiguration() {
@@ -49,7 +55,25 @@ public abstract class GoRunningState<T extends GoRunConfigurationBase<?>> extend
     GeneralCommandLine commandLine = patchExecutor(createCommonExecutor())
       .withParameterString(myConfiguration.getParams())
       .createCommandLine();
-    return new KillableColoredProcessHandler(commandLine);
+    final ProcessHandler processHandler = new KillableColoredProcessHandler(commandLine);
+
+    if (StringUtil.isNotEmpty(myConfiguration.getOutputFilePath())) {
+      processHandler.addProcessListener(new ProcessAdapter() {
+        @Override
+        public void processTerminated(ProcessEvent event) {
+          super.processTerminated(event);
+          if (StringUtil.isNotEmpty(myConfiguration.getOutputFilePath())) {
+            File file = new File(myOutputFilePath);
+            if (file.exists()) {
+              //noinspection ResultOfMethodCallIgnored
+              file.delete();
+            }
+          }
+        }
+      });
+    }
+
+    return processHandler;
   }
 
   @NotNull
