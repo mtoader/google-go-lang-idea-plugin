@@ -98,6 +98,10 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
   @Override
   protected GoExecutor patchExecutor(@NotNull GoExecutor executor) throws ExecutionException {
     executor.withParameters("test", "-v");
+    // By default go tool is testing several packages in parallel. That does
+    // not play well with testing progress visualization. Therefore one package
+    // at a time is forced.
+    executor.withParameters("-p", "1");
     executor.withParameterString(myConfiguration.getGoToolParams());
     switch (myConfiguration.getKind()) {
       case DIRECTORY:
