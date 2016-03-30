@@ -236,6 +236,9 @@
     <localInspection language="go" displayName="Printf/Logf placeholder handler" groupPath="Go"
                      groupName="Probable bug" enabledByDefault="true" level="WARNING"
                      implementationClass="com.goide.inspections.GoPlaceholderCountInspection"/>
+    <localInspection language="go" displayName="Obtaining address of a for loop variable" groupPath="Go"
+                     groupName="Probable bugs" enabledByDefault="true" level="WEAK WARNING"
+                     implementationClass="com.goide.inspections.GoAddressOfLoopVariableInspection"/>
     <!-- /probable bugs -->
 
     <!-- control flow issues -->
