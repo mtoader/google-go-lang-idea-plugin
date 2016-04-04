@@ -47,7 +47,7 @@ public class GobenchRunningState extends GoTestRunningState {
 
   @Override
   protected void addFilterParameter(@NotNull GoExecutor executor, String pattern) {
-    executor.withParameters("-bench", StringUtil.isEmpty(pattern) ? "." : pattern);
-    executor.withParameters("-run", "^$");
+    executor.withParameters("-test.bench", StringUtil.isEmpty(pattern) ? "." : pattern);
+    executor.withParameters("-test.run", "^$");
   }
 }
