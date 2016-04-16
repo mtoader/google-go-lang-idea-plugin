@@ -42,6 +42,7 @@ import com.intellij.util.ProcessingContext;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import static com.intellij.codeInsight.completion.PrioritizedLookupElement.withPriority;
@@ -74,22 +75,69 @@ public class GoCompletionContributor extends CompletionContributor {
       PsiDirectory directory = file.getParent();
       String currentPackageName = ((GoFile)file).getPackageName();
       Collection<String> packagesInDirectory = GoPackageUtil.getAllPackagesInDirectory(directory, null, true);
-      for (String packageName : packagesInDirectory) {
-        if (!packageName.equals(currentPackageName)) {
-          result.addElement(packageLookup(packageName, GoCompletionUtil.PACKAGE_PRIORITY - 1));
+      ArrayList<String> packages = new ArrayList<String>();
+      if (currentPackageName != null) {
+        if (isTestFile) {
+          if (currentPackageName.endsWith("_") && currentPackageName.length()>1) {
+            packages.add(currentPackageName.substring(0, currentPackageName.length()-2));
+          }
+          else if (!currentPackageName.endsWith("_")) {
+            packages.add(currentPackageName);
+          }
+        } else {
+            packages.add(currentPackageName);
         }
+      }
+
+      String packageFromDirectory = "";
+      if (directory != null && ContainerUtil.filter(directory.getFiles(), Conditions.instanceOf(GoFile.class)).size() == 1) {
+        packageFromDirectory = GoPsiImplUtil.getLocalPackageName(directory.getName());
+        if (!packageFromDirectory.isEmpty()) {
+          packages.add(packageFromDirectory);
+        }
+      }
+
+      for (String packageName : packagesInDirectory) {
+        if (packages.isEmpty()) {
+          packages.add(packageName);
+        }
+        else {
+          for (int i = 0; i < packages.size(); i++) {
+            String existingPackage = packages.get(i);
+            if (packageName.length() < existingPackage.length()) {
+              if (!existingPackage.startsWith(packageName)) {
+                packages.add(packageName);
+              }
+            }
+            else if (packageName.length() > existingPackage.length()) {
+              if (packageName.startsWith(existingPackage)) {
+                packages.set(i, packageName);
+              }
+            }
+            else if (!packageName.startsWith(existingPackage)) {
+              packages.add(packageName);
+            }
+          }
+        }
+      }
+      boolean shouldAddMain = true;
+      for (String packageName : packages) {
+        if (GoConstants.MAIN.equals(packageName)) {
+          shouldAddMain = false;
+        }
+        result.addElement(packageLookup(packageName, GoCompletionUtil.PACKAGE_PRIORITY - 1));
         if (isTestFile) {
           result.addElement(packageLookup(packageName + GoConstants.TEST_SUFFIX, GoCompletionUtil.PACKAGE_PRIORITY));
         }
       }
 
-      if (directory != null && ContainerUtil.filter(directory.getFiles(), Conditions.instanceOf(GoFile.class)).size() == 1) {
-        String packageFromDirectory = GoPsiImplUtil.getLocalPackageName(directory.getName());
-        if (!packageFromDirectory.isEmpty()) {
-          result.addElement(packageLookup(packageFromDirectory, GoCompletionUtil.PACKAGE_PRIORITY - 1));
-        }
+      if (!packages.isEmpty() && packageFromDirectory.isEmpty()) {
+        shouldAddMain = false;
       }
-      result.addElement(packageLookup(GoConstants.MAIN, GoCompletionUtil.PACKAGE_PRIORITY - 2));
+
+      if (!isTestFile && shouldAddMain) {
+        result.addElement(packageLookup(GoConstants.MAIN, GoCompletionUtil.PACKAGE_PRIORITY - 2));
+      }
     }
     super.fillCompletionVariants(parameters, result);
   }
