@@ -30,25 +30,25 @@ func _(t *testing.T) {
 	fmt.Fprintf(nil, "%d %d %#[1]x %#x %2.f %d %2.2f %.f %.3f %[9]*.[2]*[3]f %d %f %#[1]x %#x %[2]d %v % d",
 		1, 2, 3, 4, 5, 6, 7, 8, 9,
 	)
-	fmt.Fscanf(nil, "%d %d %#[1]x %#x %2.f %d %2.2f %.f %.3f %[9]*.[2]*[3]f %d %f %#[1]x %#x %[2]d %v % d",
+	fmt.Fscanf(nil, <warning descr="Indexed placeholder detected in function not accepting indexed placeholders">"%d %d %#[1]x %#x %2.f %d %2.2f %.f %.3f %[9]*.[2]*[3]f %d %f %#[1]x %#x %[2]d %v % d"</warning>,
 		1, 2, 3, 4, 5, 6, 7, 8, 9,
 	)
 	fmt.Printf("%d %d %#[1]x %#x %2.f %d %2.2f %.f %.3f %[9]*.[2]*[3]f %d %f %#[1]x %#x %[2]d %v % d",
 		1, 2, 3, 4, 5, 6, 7, 8, 9,
 	)
-	fmt.Scanf("%d %d %#[1]x %#x %2.f %d %2.2f %.f %.3f %[9]*.[2]*[3]f %d %f %#[1]x %#x %[2]d %v % d",
+	fmt.Scanf(<warning descr="Indexed placeholder detected in function not accepting indexed placeholders">"%d %d %#[1]x %#x %2.f %d %2.2f %.f %.3f %[9]*.[2]*[3]f %d %f %#[1]x %#x %[2]d %v % d"</warning>,
 		1, 2, 3, 4, 5, 6, 7, 8, 9,
 	)
 	fmt.Sprintf("%d %d %#[1]x %#x %2.f %d %2.2f %.f %.3f %[9]*.[2]*[3]f %d %f %#[1]x %#x %[2]d %v % d",
 		1, 2, 3, 4, 5, 6, 7, 8, 9,
 	)
-	fmt.Sscanf(nil, "%d %d %#[1]x %#x %2.f %d %2.2f %.f %.3f %[9]*.[2]*[3]f %d %f %#[1]x %#x %[2]d %v % d",
+	fmt.Sscanf(nil, <warning descr="Indexed placeholder detected in function not accepting indexed placeholders">"%d %d %#[1]x %#x %2.f %d %2.2f %.f %.3f %[9]*.[2]*[3]f %d %f %#[1]x %#x %[2]d %v % d"</warning>,
 		1, 2, 3, 4, 5, 6, 7, 8, 9,
 	)
 	log.Fatalf("%d %d %#[1]x %#x %2.f %d %2.2f %.f %.3f %[9]*.[2]*[3]f %d %f %#[1]x %#x %[2]d %v % d",
 		1, 2, 3, 4, 5, 6, 7, 8, 9,
 	)
-	log.Panicf("%d %d %#[1]x %#x %2.f %d %2.2f %.f %.3f %[9]*.[2]*[3]f %d %f %#[1]x %#x %[2]d %v % d",
+	log.Panicf(<warning descr="Indexed placeholder detected in function not accepting indexed placeholders">"%d %d %#[1]x %#x %2.f %d %2.2f %.f %.3f %[9]*.[2]*[3]f %d %f %#[1]x %#x %[2]d %v % d"</warning>,
 		1, 2, 3, 4, 5, 6, 7, 8, 9,
 	)
 	log.Printf("%d %d %#[1]x %#x %2.f %d %2.2f %.f %.3f %[9]*.[2]*[3]f %d %f %#[1]x %#x %[2]d %v % d",
@@ -80,6 +80,7 @@ func _(t *testing.T) {
 	t.Fatalf(myFormatConst, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 	t.Logf(myFormatConst, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 	t.Skipf(myFormatConst, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+	t.Logf("%     [1]d thingy %[3]d\n", 1, 2, 3)
 
 	log.Printf(<warning descr="Got 9 placeholder(s) for 8 arguments(s)">myWrongFormatConst</warning>, 1, 2, 3, 4, 5, 6, 7, 8)
 	t.Errorf(<warning descr="Got 9 placeholder(s) for 8 arguments(s)">myWrongFormatConst</warning>, 1, 2, 3, 4, 5, 6, 7, 8)

@@ -20,6 +20,7 @@ import com.goide.psi.*;
 import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
@@ -28,6 +29,7 @@ import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -36,9 +38,6 @@ import java.util.regex.Pattern;
 import static com.goide.GoConstants.TESTING_PATH;
 
 public class GoPlaceholderCountInspection extends GoInspectionBase {
-  private static final Pattern PLACEHOLDER_PATTERN =
-    Pattern.compile("((?<!(?:[^%]%|%%%))%(?:#|\\+|-)?((\\[\\d+\\]|\\*?)?\\.?)*(\\d*\\.?\\d*)*\\s?(v|T|t|b|c|d|o|q|x|X|U|b|e|E|f|F|g|G|s|q|x|X|p))");
-
   private static final Pattern INDEXED_PLACEHOLDER_PATTERN = Pattern.compile("(?:\\[(\\d+)\\])");
 
   // This holds the name of the known formatting functions and position of the string to be formatted
@@ -55,6 +54,18 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
     Pair.pair("logf", 0),
     Pair.pair("skipf", 0));
 
+  private static final List<String> INDEXED_PLACEHOLDER_FUNCTIONS = ContainerUtil.newArrayList(
+    "printf", "sprintf", "errorf", "fprintf", "fatalf", "logf", "skipf");
+
+  @SuppressWarnings("FieldCanBeLocal")
+  private static char PLACEHOLDER_START_CHAR = '%';
+  @SuppressWarnings("FieldCanBeLocal")
+  private static String PLACEHOLDER_ALLOWED_CHARS = " *#.[]+-0123456789";
+  @SuppressWarnings("FieldCanBeLocal")
+  private static String PLACEHOLDER_NONPLACEHOLDER = "%%";
+  @SuppressWarnings("FieldCanBeLocal")
+  private static String PLACEHOLDER_END_CHARS = "%vTtbcdoqxXUbeEfFgGsqxXp";
+
   private static int getPlaceholderPosition(@NotNull GoFunctionOrMethodDeclaration function) {
     Integer position = FORMATTING_FUNCTIONS.get(StringUtil.toLowerCase(function.getName()));
     if (position != null) {
@@ -63,25 +74,68 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
         return position;
       }
     }
+
     return -1;
   }
 
-  private static int getPlaceholders(@Nullable GoExpression argument) {
-    if (argument == null) return -1;
+  @Nullable
+  private static LinkedHashMap<Integer, String> getPlaceholders(@Nullable GoExpression argument) {
+    if (argument == null) return null;
 
     String placeholderText = resolve(argument);
-    if (placeholderText == null) return -1;
+    if (placeholderText == null) return null;
 
-    Matcher placeholders = PLACEHOLDER_PATTERN.matcher(placeholderText);
-    Matcher countPlaceholders;
+    int placeholderTextLength = placeholderText.length();
+    int placeholderStart = 0;
+    LinkedHashMap<Integer, String> placeholders = new LinkedHashMap<Integer, String>();
+    while (placeholderStart < placeholderTextLength) {
+      ProgressManager.checkCanceled();
+      if (PLACEHOLDER_START_CHAR != placeholderText.charAt(placeholderStart)) {
+        placeholderStart++;
+        continue;
+      }
+      int placeholderEnd = placeholderStart + 1;
+      while (placeholderEnd < placeholderTextLength &&
+             PLACEHOLDER_ALLOWED_CHARS.indexOf(placeholderText.charAt(placeholderEnd)) != -1 &&
+             PLACEHOLDER_END_CHARS.indexOf(placeholderText.charAt(placeholderEnd)) == -1) {
+        placeholderEnd++;
+      }
+      if (placeholderEnd >= placeholderTextLength) break;
+      if (PLACEHOLDER_ALLOWED_CHARS.indexOf(placeholderText.charAt(placeholderEnd)) == -1 &&
+          PLACEHOLDER_END_CHARS.indexOf(placeholderText.charAt(placeholderEnd)) == -1) {
+        placeholderStart = placeholderEnd;
+        placeholderStart++;
+        continue;
+      }
+      String placeholder = placeholderText.substring(placeholderStart, placeholderEnd + 1);
+      if (!isValidPlaceholder(placeholder)) {
+        placeholders.put(placeholderStart, placeholder);
+      }
+      placeholderStart = placeholderEnd;
+      placeholderStart++;
+    }
 
+    return placeholders;
+  }
+
+  private static boolean isValidPlaceholder(String placeholder) {
+    return placeholder.equals(PLACEHOLDER_NONPLACEHOLDER);
+  }
+
+  private static int getPlaceholdersCount(GoFunctionOrMethodDeclaration formattingFunction,
+                                          @Nullable LinkedHashMap<Integer, String> placeholders) {
     int indexCount = 0;
     int maxIndexCount = 0;
 
-    while (placeholders.find()) {
-      indexCount++;
+    if (placeholders == null) return -1;
 
-      countPlaceholders = INDEXED_PLACEHOLDER_PATTERN.matcher(placeholders.group());
+    boolean canHaveIndexedPlaceholder = canHaveIndexedPlaceholders(formattingFunction);
+    if (!canHaveIndexedPlaceholder) return placeholders.size();
+
+    for (Map.Entry<Integer, String> placeholder : placeholders.entrySet()) {
+      ProgressManager.checkCanceled();
+      indexCount++;
+      Matcher countPlaceholders = INDEXED_PLACEHOLDER_PATTERN.matcher(placeholder.getValue());
       while (countPlaceholders.find()) {
         int index = StringUtil.parseInt(countPlaceholders.group().replaceAll("\\[|\\]", ""), -1);
         if (index > 0 && index != indexCount) {
@@ -98,7 +152,25 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
 
     return maxIndexCount;
   }
-  
+
+  private static boolean hasIndexedPlaceholder(@Nullable LinkedHashMap<Integer, String> placeholders) {
+    if (placeholders == null) return false;
+    ProgressManager.checkCanceled();
+
+    for (Map.Entry<Integer, String> placeholder : placeholders.entrySet()) {
+      if (INDEXED_PLACEHOLDER_PATTERN.matcher(placeholder.getValue()).find()) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private static boolean canHaveIndexedPlaceholders(GoFunctionOrMethodDeclaration function) {
+    String funcName = StringUtil.toLowerCase(function.getName());
+    return INDEXED_PLACEHOLDER_FUNCTIONS.contains(funcName);
+  }
+
   private static boolean isStringPlaceholder(GoExpression argument) {
     GoType goType = argument.getGoType(null);
     GoTypeReferenceExpression typeReferenceExpression = goType != null ? goType.getTypeReferenceExpression() : null;
@@ -162,10 +234,11 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
         PsiReference psiReference = o.getExpression().getReference();
         PsiElement resolved = psiReference != null ? psiReference.resolve() : null;
         if (!(resolved instanceof GoFunctionOrMethodDeclaration)) return;
-        int placeholderPosition = getPlaceholderPosition((GoFunctionOrMethodDeclaration)resolved);
+        GoFunctionOrMethodDeclaration function = (GoFunctionOrMethodDeclaration)resolved;
+        int placeholderPosition = getPlaceholderPosition(function);
         List<GoExpression> arguments = o.getArgumentList().getExpressionList();
         if (placeholderPosition < 0 || arguments.size() <= placeholderPosition) return;
-        
+
         GoExpression placeholder = arguments.get(placeholderPosition);
         if (!isStringPlaceholder(placeholder)) {
           String message = "Value used for formatting text does not appear to be a string";
@@ -173,8 +246,15 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
           return;
         }
 
+        LinkedHashMap<Integer, String> placeholders = getPlaceholders(placeholder);
+        if (!canHaveIndexedPlaceholders(function) && hasIndexedPlaceholder(placeholders)) {
+          String message = "Indexed placeholder detected in function not accepting indexed placeholders";
+          holder.registerProblem(placeholder, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
+          return;
+        }
+
         int parameterCount = arguments.size() - placeholderPosition - 1;
-        int placeholdersCount = getPlaceholders(placeholder);
+        int placeholdersCount = getPlaceholdersCount(function, placeholders);
         if (placeholdersCount == -1 || placeholdersCount == parameterCount) return;
 
         String message = String.format("Got %d placeholder(s) for %d arguments(s)", placeholdersCount, parameterCount);
