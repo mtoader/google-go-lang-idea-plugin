@@ -57,15 +57,6 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
   private static final List<String> INDEXED_PLACEHOLDER_FUNCTIONS = ContainerUtil.newArrayList(
     "printf", "sprintf", "errorf", "fprintf", "fatalf", "logf", "skipf");
 
-  @SuppressWarnings("FieldCanBeLocal")
-  private static char PLACEHOLDER_START_CHAR = '%';
-  @SuppressWarnings("FieldCanBeLocal")
-  private static String PLACEHOLDER_ALLOWED_CHARS = " *#.[]+-0123456789";
-  @SuppressWarnings("FieldCanBeLocal")
-  private static String PLACEHOLDER_NONPLACEHOLDER = "%%";
-  @SuppressWarnings("FieldCanBeLocal")
-  private static String PLACEHOLDER_END_CHARS = "%vTtbcdoqxXUbeEfFgGsqxXp";
-
   private static int getPlaceholderPosition(@NotNull GoFunctionOrMethodDeclaration function) {
     Integer position = FORMATTING_FUNCTIONS.get(StringUtil.toLowerCase(function.getName()));
     if (position != null) {
@@ -78,26 +69,34 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
     return -1;
   }
 
-  @Nullable
+  @NotNull
   private static LinkedHashMap<Integer, String> getPlaceholders(@Nullable GoExpression argument) {
-    if (argument == null) return null;
+    LinkedHashMap<Integer, String> placeholders = new LinkedHashMap<Integer, String>();
+    if (argument == null) return placeholders;
 
     String placeholderText = resolve(argument);
-    if (placeholderText == null) return null;
+    if (placeholderText == null) return placeholders;
+
+    if (StringUtil.countChars(placeholderText, '%') < 2) return placeholders;
+    if (StringUtil.countChars(placeholderText, '%') == 2 &&
+        placeholderText.contains("%%")) return placeholders;
 
     int placeholderTextLength = placeholderText.length();
     int placeholderStart = 0;
-    LinkedHashMap<Integer, String> placeholders = new LinkedHashMap<Integer, String>();
+    String PLACEHOLDER_ALLOWED_CHARS = " *#.[]+-0123456789";
+    String PLACEHOLDER_END_CHARS = "%vTtbcdoqxXUbeEfFgGsqxXp";
+
     while (placeholderStart < placeholderTextLength) {
       ProgressManager.checkCanceled();
+      char PLACEHOLDER_START_CHAR = '%';
       if (PLACEHOLDER_START_CHAR != placeholderText.charAt(placeholderStart)) {
         placeholderStart++;
         continue;
       }
       int placeholderEnd = placeholderStart + 1;
       while (placeholderEnd < placeholderTextLength &&
-             PLACEHOLDER_ALLOWED_CHARS.indexOf(placeholderText.charAt(placeholderEnd)) != -1 &&
-             PLACEHOLDER_END_CHARS.indexOf(placeholderText.charAt(placeholderEnd)) == -1) {
+             StringUtil.containsChar(PLACEHOLDER_ALLOWED_CHARS, placeholderText.charAt(placeholderEnd)) &&
+             StringUtil.containsChar(PLACEHOLDER_END_CHARS, placeholderText.charAt(placeholderEnd))) {
         placeholderEnd++;
       }
       if (placeholderEnd >= placeholderTextLength) break;
@@ -108,7 +107,7 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
         continue;
       }
       String placeholder = placeholderText.substring(placeholderStart, placeholderEnd + 1);
-      if (!isValidPlaceholder(placeholder)) {
+      if (!"%%".equals(placeholder)) {
         placeholders.put(placeholderStart, placeholder);
       }
       placeholderStart = placeholderEnd;
@@ -116,10 +115,6 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
     }
 
     return placeholders;
-  }
-
-  private static boolean isValidPlaceholder(String placeholder) {
-    return placeholder.equals(PLACEHOLDER_NONPLACEHOLDER);
   }
 
   private static int getPlaceholdersCount(GoFunctionOrMethodDeclaration formattingFunction,
