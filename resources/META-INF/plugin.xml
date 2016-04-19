@@ -311,6 +311,8 @@
 
     <!-- color schemes -->
     <bundledColorScheme path="colorscheme/Darcula - dlsniper"/>
+    <bundledColorScheme path="colorscheme/Monokai Sublime Text 3"/>
+    <bundledColorScheme path="colorscheme/Relax Your Eyes"/>
     <!-- /color schemes -->
   </extensions>
   <actions>
