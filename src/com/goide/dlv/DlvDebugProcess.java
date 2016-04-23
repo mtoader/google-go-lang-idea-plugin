@@ -57,9 +57,7 @@ import org.jetbrains.debugger.Location;
 import org.jetbrains.debugger.StepAction;
 import org.jetbrains.debugger.connection.RemoteVmConnection;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.goide.dlv.protocol.DlvApi.*;
@@ -78,6 +76,7 @@ public final class DlvDebugProcess extends DebugProcessImpl<RemoteVmConnection> 
       LOG.info(throwable);
     }
   };
+  private Timer timer = new Timer();
 
   @NotNull
   private final Consumer<DebuggerState> myStateConsumer = new Consumer<DebuggerState>() {
@@ -180,7 +179,18 @@ public final class DlvDebugProcess extends DebugProcessImpl<RemoteVmConnection> 
 
     if (setBreakpoints) {
       doSetBreakpoints();
-      resume();
+      timer.cancel();
+      timer = new Timer();
+
+      TimerTask action = new TimerTask() {
+        @Override
+        public void run() {
+          resume();
+        }
+
+      };
+
+      timer.schedule(action, 40);
     }
 
     return true;
