@@ -98,7 +98,7 @@ public class GoApplicationRunningState extends GoRunningState<GoApplicationConfi
         dlv.setExecutable(true, false);
       }
       return executor.withExePath(dlv.getAbsolutePath())
-        .withParameters("--listen=localhost:" + myDebugPort, "--headless=true", "exec", myOutputFilePath, "--");
+        .withParameters("--listen=localhost:" + myDebugPort, "--headless=true", "--api-version=2", "exec", myOutputFilePath, "--");
     }
     return executor.showGoEnvVariables(false).withExePath(myOutputFilePath);
   }

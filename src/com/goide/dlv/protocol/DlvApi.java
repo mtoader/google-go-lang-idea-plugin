@@ -44,6 +44,10 @@ public class DlvApi {
     public String err;
   }
 
+  public static class DebuggerStateOut {
+    public DebuggerState State;
+  }
+
   // Breakpoint addresses a location at which process execution may be
   // suspended.
   public static class Breakpoint {
@@ -92,6 +96,10 @@ public class DlvApi {
     public String file;
     public int line;
     public Function function;
+  }
+
+  public static class StacktraceOut {
+    public List<DlvApi.Location> Locations;
   }
 
   // Function represents thread-scoped function information.
@@ -185,6 +193,18 @@ public class DlvApi {
     public boolean isPtr() {
       return getKind() == Kind.Ptr;
     }
+  }
+
+  public static class EvalVariableOut {
+    public Variable Variable;
+  }
+
+  public static class LocalVariablesOut {
+    public List<DlvApi.Variable> Variables;
+  }
+
+  public static class LocalFunctionArgsOut {
+    public List<DlvApi.Variable> Args;
   }
 
   // Goroutine represents the information relevant to Delve from the runtime's

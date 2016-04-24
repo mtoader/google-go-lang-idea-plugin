@@ -52,21 +52,25 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.concurrency.Promise;
 
 import javax.swing.*;
+import java.util.List;
 
 class DlvStackFrame extends XStackFrame {
   private final DlvDebugProcess myProcess;
   private final DlvApi.Location myLocation;
   private final DlvCommandProcessor myProcessor;
   private final int myId;
+  private final int myGoroutineId;
 
   public DlvStackFrame(@NotNull DlvDebugProcess process, 
                        @NotNull DlvApi.Location location, 
                        @NotNull DlvCommandProcessor processor, 
-                       int id) {
+                       int id,
+                       int goroutineId) {
     myProcess = process;
     myLocation = location;
     myProcessor = processor;
     myId = id;
+    myGoroutineId = goroutineId;
   }
 
   @Nullable
@@ -77,8 +81,8 @@ class DlvStackFrame extends XStackFrame {
       public void evaluate(@NotNull String expression,
                            @NotNull XEvaluationCallback callback,
                            @Nullable XSourcePosition expressionPosition) {
-        myProcessor.send(new DlvRequest.EvalSymbol(expression, myId))
-          .done(variable -> callback.evaluated(createXValue(variable, AllIcons.Debugger.Watch)))
+        myProcessor.send(new DlvRequest.Eval(expression, myId, myGoroutineId))
+          .done(variable -> callback.evaluated(createXValue(variable.Variable, AllIcons.Debugger.Watch)))
           .rejected(throwable -> callback.errorOccurred(throwable.getMessage()));
       }
 
@@ -112,7 +116,7 @@ class DlvStackFrame extends XStackFrame {
 
   @NotNull
   private XValue createXValue(@NotNull DlvApi.Variable variable, @Nullable Icon icon) {
-    return new DlvXValue(myProcess, variable, myProcessor, myId, icon);
+    return new DlvXValue(myProcess, variable, myProcessor, myId, myGoroutineId, icon);
   }
 
   @Nullable
@@ -152,10 +156,12 @@ class DlvStackFrame extends XStackFrame {
 
   @Override
   public void computeChildren(@NotNull XCompositeNode node) {
-    send(new DlvRequest.ListLocalVars(myId)).done(variables -> {
+    send(new DlvRequest.ListLocalVars(myId, myGoroutineId)).done(variablesOut -> {
+      List<DlvApi.Variable> variables = variablesOut.Variables;
       XValueChildrenList xVars = new XValueChildrenList(variables.size());
       for (DlvApi.Variable v : variables) xVars.add(v.name, createXValue(v, GoIcons.VARIABLE));
-      send(new DlvRequest.ListFunctionArgs(myId)).done(args -> {
+      send(new DlvRequest.ListFunctionArgs(myId, myGoroutineId)).done(vars -> {
+        List<DlvApi.Variable> args = vars.Args;
         for (DlvApi.Variable v : args) xVars.add(v.name, createXValue(v, GoIcons.PARAMETER));
         node.addChildren(xVars, true);
       });

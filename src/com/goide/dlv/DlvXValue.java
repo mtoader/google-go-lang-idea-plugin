@@ -64,11 +64,13 @@ class DlvXValue extends XNamedValue {
   private final DlvDebugProcess myProcess;
   private final DlvCommandProcessor myProcessor;
   private final int myFrameId;
+  private final int myGoroutineId;
 
   public DlvXValue(@NotNull DlvDebugProcess process,
                    @NotNull DlvApi.Variable variable,
                    @NotNull DlvCommandProcessor processor, 
                    int frameId, 
+                   int goroutineId,
                    @Nullable Icon icon) {
     super(variable.name);
     myProcess = process;
@@ -76,6 +78,7 @@ class DlvXValue extends XNamedValue {
     myIcon = icon;
     myProcessor = processor;
     myFrameId = frameId;
+    myGoroutineId = goroutineId;
   }
 
   @Override
@@ -94,7 +97,7 @@ class DlvXValue extends XNamedValue {
     else {
       XValueChildrenList list = new XValueChildrenList();
       for (DlvApi.Variable child : children) {
-        list.add(child.name, new DlvXValue(myProcess, child, myProcessor, myFrameId, AllIcons.Nodes.Field));
+        list.add(child.name, new DlvXValue(myProcess, child, myProcessor, myFrameId, myGoroutineId, AllIcons.Nodes.Field));
       }
       node.addChildren(list, true);
     }
@@ -105,8 +108,8 @@ class DlvXValue extends XNamedValue {
   public XValueModifier getModifier() {
     return new XValueModifier() {
       @Override
-      public void setValue(@NotNull String newValue, @NotNull XModificationCallback callback) {
-        myProcessor.send(new DlvRequest.SetSymbol(myVariable.name, newValue, myFrameId))
+      public void setValue(@NotNull String newValue, @NotNull final XModificationCallback callback) {
+        myProcessor.send(new DlvRequest.Set(myVariable.name, newValue, myFrameId, myGoroutineId))
           .processed(o -> {
             if (o != null) {
               callback.valueModified();
