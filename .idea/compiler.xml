@@ -8,5 +8,17 @@
         <processorPath useClasspath="true" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel target="1.6">
+      <module name="google-app-engine-yaml_main" target="1.6" />
+      <module name="google-app-engine-yaml_test" target="1.6" />
+      <module name="google-app-engine_main" target="1.6" />
+      <module name="google-app-engine_test" target="1.6" />
+      <module name="intellij-go_main" target="1.6" />
+      <module name="intellij-go_test" target="1.6" />
+      <module name="plan9_main" target="1.6" />
+      <module name="plan9_test" target="1.6" />
+      <module name="utils_main" target="1.6" />
+      <module name="utils_test" target="1.6" />
+    </bytecodeTargetLevel>
   </component>
 </project>
