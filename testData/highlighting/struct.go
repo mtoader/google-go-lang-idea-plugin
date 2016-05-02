@@ -12,7 +12,7 @@ func (car Car) numberOfWheels() int { return car.wheelCount }
 
 type Ferrari struct { Car }
 
-func <warning>Println</warning>(...interface{})  { // should be redeclared!
+func <warning descr="Unused function 'Println'">Println</warning>(...interface{})  { // should be redeclared!
 //   fmt.Println(o...)
 }
 
@@ -68,16 +68,16 @@ func main() {
     t.name()
     t2 := t.createT()
     Println(t2)
-    t3 := <error>doubleFoo()</error>
+    t3 := <error descr="Multiple-value doubleFoo() in single-value context">doubleFoo()</error>
     Println(t3)
 }
 
 type inte struct {
     aa int
-    <error>aa</error>, bbb int
+    <error descr="Duplicate field 'aa'">aa</error>, bbb int
     byte1 struct {
         aaa
-        <error>aaa</error>
+        <error descr="Duplicate field 'aaa'">aaa</error>
     }
 }
 
@@ -88,20 +88,20 @@ type aaa interface {
 type inte2 struct {
     byte1 struct {
         int
-        <error>int</error>
+        <error descr="Duplicate field 'int'">int</error>
     }
-    <error>byte1</error> struct {
+    <error descr="Duplicate field 'byte1'">byte1</error> struct {
         int
-        <error>int</error>
+        <error descr="Duplicate field 'int'">int</error>
     }
 }
 
 type aaa interface {
     Str()
-    <error>Str</error>() interface {
+    <error descr="Duplicate method 'Str'">Str</error>() interface {
           A()
           b()
-          <error>A</error>()
+          <error descr="Duplicate method 'A'">A</error>()
     }
 }
 
@@ -110,7 +110,7 @@ type A struct {
     c int
 }
 
-func <warning>NewA</warning>(b int) *A {
+func <warning descr="Unused function 'NewA'">NewA</warning>(b int) *A {
     return &A{
         b: b, // Reported error: "unknown field b", but that is not correct
         c: 1,
@@ -119,7 +119,7 @@ func <warning>NewA</warning>(b int) *A {
 
 func _() {
 	tr := &url.Userinfo{
-		<error>username</error>:"Name",
+		<error descr="Unknown field 'username' in struct literal">username</error>:"Name",
 	}
 	_ = tr
 }
