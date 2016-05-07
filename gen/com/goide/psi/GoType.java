@@ -33,4 +33,6 @@ public interface GoType extends GoCompositeElement, StubBasedPsiElement<GoTypeSt
 
   boolean shouldGoDeeper();
 
+  boolean isAssignableFrom(GoType right);
+
 }

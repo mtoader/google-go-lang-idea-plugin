@@ -25,6 +25,7 @@ import com.intellij.psi.PsiElementVisitor;
 import com.goide.psi.GoPsiTreeUtil;
 import static com.goide.GoTypes.*;
 import com.goide.psi.*;
+import com.goide.psi.impl.GoPsiImplUtil.ChannelDirection;
 import com.intellij.psi.stubs.IStubElementType;
 
 public class GoChannelTypeImpl extends GoTypeImpl implements GoChannelType {
@@ -62,6 +63,11 @@ public class GoChannelTypeImpl extends GoTypeImpl implements GoChannelType {
   @Nullable
   public PsiElement getChan() {
     return findChildByType(CHAN);
+  }
+
+  @NotNull
+  public ChannelDirection getDirection() {
+    return GoPsiImplUtil.getDirection(this);
   }
 
 }
