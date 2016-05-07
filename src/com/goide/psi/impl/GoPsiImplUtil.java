@@ -759,14 +759,50 @@ public class GoPsiImplUtil {
     return ContainerUtil.filter(o.getMethodSpecList(), new Condition<GoMethodSpec>() {
       @Override
       public boolean value(@NotNull GoMethodSpec spec) {
+        GoMethodSpecStub stub = spec.getStub();
+        if (stub != null) {
+          return stub.getName() != null;
+        }
         return spec.getIdentifier() != null;
       }
     });
   }
 
   @NotNull
+  public static List<GoMethodSpec> getAllMethods(@Nullable GoInterfaceType o) {
+    if (o == null) return ContainerUtil.emptyList();
+    return CachedValuesManager.getCachedValue(o, new CachedValueProvider<List<GoMethodSpec>>() {
+      @Nullable
+      @Override
+      public Result<List<GoMethodSpec>> compute() {
+        return Result.create(getAllMethodsInner(o), PsiModificationTracker.MODIFICATION_COUNT);
+      }
+    });
+  }
+
+  @NotNull
+  private static List<GoMethodSpec> getAllMethodsInner(@NotNull GoInterfaceType o) {
+    List<GoMethodSpec> result = ContainerUtil.newSmartList();
+    for (GoMethodSpec method : o.getMethodSpecList()) {
+      if (method.getIdentifier() != null) {
+        result.add(method);
+      }
+      else {
+        GoTypeReferenceExpression reference = method.getTypeReferenceExpression();
+        if (reference == null) continue;
+        PsiElement resolve = reference.resolve();
+        if (resolve instanceof GoTypeSpec) {
+          GoInterfaceType innerInterface = ObjectUtils.tryCast(((GoTypeSpec)resolve).getSpecType().getType(), GoInterfaceType.class);
+          result.addAll(getAllMethods(innerInterface));
+        }
+      }
+    }
+    return result;
+  }
+
+  @NotNull
   public static List<GoTypeReferenceExpression> getBaseTypesReferences(@NotNull GoInterfaceType o) {
-    final List<GoTypeReferenceExpression> refs = ContainerUtil.newArrayList();
+    final List<GoTypeReferenceExpression> refs = ContainerUtil.newSmartList(); // todo: use stubs
     o.accept(new GoRecursiveVisitor() {
       @Override
       public void visitMethodSpec(@NotNull GoMethodSpec o) {
@@ -1095,7 +1131,7 @@ public class GoPsiImplUtil {
     return false;
   }
 
-  public static boolean shouldGoDeeper(@SuppressWarnings("UnusedParameters") GoType o) {
+  public static boolean shouldGoDeeper(@NotNull GoType o) {
     return o instanceof GoInterfaceType || o instanceof GoStructType;
   }
 
@@ -1397,7 +1433,7 @@ public class GoPsiImplUtil {
   }
 
   @Nullable
-  public static GoTypeSpec getTypeSpecSafe(@NotNull GoType type) {
+  public static GoTypeSpec getTypeSpecSafe(@NotNull GoType type) { // todo: replace with PsiTreeUtil.getStubOrPsiParentOfType(type, GoTypeSpec.class);
     GoTypeStub stub = type.getStub();
     PsiElement parent = stub == null ? type.getParent() : stub.getParentStub().getPsi();
     return ObjectUtils.tryCast(parent, GoTypeSpec.class);
@@ -1484,6 +1520,37 @@ public class GoPsiImplUtil {
   @Nullable
   public static GoExpression getSendExpression(@NotNull GoSendStatement sendStatement) {
     return getLastExpressionAfter(sendStatement.getExpressionList(), sendStatement.getSendChannel());
+  }
+
+  @NotNull
+  public static ChannelDirection getDirection(@NotNull GoChannelType o) {
+    return CachedValuesManager.getCachedValue(o, new CachedValueProvider<ChannelDirection>() {
+      @Nullable
+      @Override
+      public Result<ChannelDirection> compute() {
+        return Result.create(getDirectionInner(o), PsiModificationTracker.MODIFICATION_COUNT);
+      }
+    });
+  }
+
+  @NotNull
+  private static ChannelDirection getDirectionInner(@NotNull GoChannelType o) {GoTypeStub stub = o.getStub();
+    if (stub != null) {
+      String text = o.getText();
+      GoChannelType type = ObjectUtils.tryCast(GoElementFactory.createType(o.getProject(), text), GoChannelType.class);
+      if (type != null) {
+        return getDirectionByPsi(type);
+      }
+    }
+    return getDirectionByPsi(o);
+  }
+
+  @NotNull
+  private static ChannelDirection getDirectionByPsi(@NotNull GoChannelType o) {
+    PsiElement send = o.getSendChannel();
+    PsiElement chan = o.getChan();
+    if (send == null || chan == null) return ChannelDirection.BIDIRECTIONAL;
+    return send.getStartOffsetInParent() < chan.getStartOffsetInParent() ? ChannelDirection.SEND : ChannelDirection.RECEIVER;
   }
 
   @Nullable
@@ -1573,5 +1640,15 @@ public class GoPsiImplUtil {
       }
       return result;
     }
+  }
+
+  public static boolean isAssignableFrom(@NotNull GoType left, @Nullable GoType right) {
+    return GoTypeUtil.isAssignable(left, right);
+  }
+
+  public enum ChannelDirection {
+    SEND,
+    RECEIVER,
+    BIDIRECTIONAL
   }
 }
