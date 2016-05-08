@@ -28,21 +28,30 @@ import com.goide.runconfig.testing.GoTestFunctionType;
 import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.codeInspection.ui.SingleCheckboxOptionsPanel;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
+
 public class GoUnusedFunctionInspection extends GoInspectionBase {
+  @SuppressWarnings("WeakerAccess")
+  public boolean ignoreExportedFunctions;
+
   @NotNull
   @Override
   protected GoVisitor buildGoVisitor(@NotNull final ProblemsHolder holder, @NotNull LocalInspectionToolSession session) {
     return new GoVisitor() {
       @Override
       public void visitFunctionDeclaration(@NotNull GoFunctionDeclaration o) {
+        super.visitFunctionDeclaration(o);
         if (o.isBlank()) return;
         GoFile file = o.getContainingFile();
         String name = o.getName();
+        if (name != null && (name.isEmpty() || "_".equals(name) || StringUtil.isCapitalized(name) && ignoreExportedFunctions)) return;
         if (GoConstants.MAIN.equals(file.getPackageName()) && GoConstants.MAIN.equals(name)) return;
         if (GoConstants.INIT.equals(name)) return;
         if (GoTestFinder.isTestFile(file) && GoTestFunctionType.fromName(name) != null) return;
@@ -54,5 +63,10 @@ public class GoUnusedFunctionInspection extends GoInspectionBase {
         }
       }
     };
+  }
+
+  @Override
+  public JComponent createOptionsPanel() {
+    return new SingleCheckboxOptionsPanel("Ignore exported functions", this, "ignoreExportedFunctions");
   }
 }
