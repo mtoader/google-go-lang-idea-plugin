@@ -16,14 +16,14 @@
 
 package com.goide.quickfix;
 
-import com.goide.inspections.unresolved.GoUnusedVariableInspection;
+import com.goide.inspections.unresolved.GoUnusedUnexportedVariableInspection;
 import org.jetbrains.annotations.NotNull;
 
 public class GoRenameVarQuickFixTest extends GoQuickFixTestBase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myFixture.enableInspections(GoUnusedVariableInspection.class);
+    myFixture.enableInspections(GoUnusedUnexportedVariableInspection.class);
   }
 
   @NotNull

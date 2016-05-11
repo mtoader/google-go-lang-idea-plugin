@@ -183,15 +183,21 @@
     <localInspection language="go" displayName="Unused import inspection" groupPath="Go"
                      groupName="Declaration redundancy" enabledByDefault="true" level="ERROR"
                      implementationClass="com.goide.inspections.GoUnusedImportInspection"/>
-    <localInspection language="go" displayName="Unused variable inspection" groupPath="Go"
+    <localInspection language="go" displayName="Unused unexported variable inspection" groupPath="Go"
                      groupName="Declaration redundancy" enabledByDefault="true" level="ERROR"
-                     implementationClass="com.goide.inspections.unresolved.GoUnusedVariableInspection"/>
+                     implementationClass="com.goide.inspections.unresolved.GoUnusedUnexportedVariableInspection"/>
+    <localInspection language="go" displayName="Unused exported variable inspection" groupPath="Go"
+                     groupName="Declaration redundancy" enabledByDefault="true" level="ERROR"
+                     implementationClass="com.goide.inspections.unresolved.GoUnusedExportedVariableInspection"/>
     <localInspection language="go" displayName="Unused constant inspection" groupPath="Go"
                      groupName="Declaration redundancy" enabledByDefault="true" level="WARNING"
                      implementationClass="com.goide.inspections.unresolved.GoUnusedConstInspection"/>
-    <localInspection language="go" displayName="Unused global variable inspection" groupPath="Go"
+    <localInspection language="go" displayName="Unused unexported global variable inspection" groupPath="Go"
                      groupName="Declaration redundancy" enabledByDefault="true" level="WARNING"
-                     implementationClass="com.goide.inspections.unresolved.GoUnusedGlobalVariableInspection"/>
+                     implementationClass="com.goide.inspections.unresolved.GoUnusedUnexportedGlobalVariableInspection"/>
+    <localInspection language="go" displayName="Unused exported global variable inspection" groupPath="Go"
+                     groupName="Declaration redundancy" enabledByDefault="true" level="WARNING"
+                     implementationClass="com.goide.inspections.unresolved.GoUnusedExportedGlobalVariableInspection"/>
     <localInspection language="go" displayName="Unused function inspection" groupPath="Go"
                      groupName="Declaration redundancy" enabledByDefault="true" level="WARNING"
                      implementationClass="com.goide.inspections.unresolved.GoUnusedFunctionInspection"/>

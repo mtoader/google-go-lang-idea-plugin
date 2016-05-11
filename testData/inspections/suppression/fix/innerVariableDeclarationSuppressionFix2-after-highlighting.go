@@ -1,6 +1,6 @@
 package newmath
 
 func TestFunction() {
-	//noinspection GoUnusedVariable
+	//noinspection GoUnusedUnexportedVariable
 	var var1 = 1;
 }
