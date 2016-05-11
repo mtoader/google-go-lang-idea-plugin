@@ -1,6 +1,6 @@
 package newmath
 
-//noinspection GoUnusedGlobalVariable
+//noinspection GoUnusedUnexportedGlobalVariable
 var var1 = 1;
 
 func TestFunction() {

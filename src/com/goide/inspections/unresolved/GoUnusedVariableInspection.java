@@ -33,7 +33,7 @@ import com.intellij.util.Processor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GoUnusedVariableInspection extends GoInspectionBase {
+public abstract class GoUnusedVariableInspection extends GoInspectionBase {
   @NotNull
   @Override
   protected GoVisitor buildGoVisitor(@NotNull final ProblemsHolder holder, @NotNull LocalInspectionToolSession session) {
@@ -43,13 +43,13 @@ public class GoUnusedVariableInspection extends GoInspectionBase {
         if (o.isBlank()) return;
         GoCompositeElement varSpec = PsiTreeUtil.getParentOfType(o, GoVarSpec.class, GoTypeSwitchGuard.class);
         GoVarDeclaration decl = PsiTreeUtil.getParentOfType(o, GoVarDeclaration.class);
-        if (shouldValidate(decl) && (varSpec != null || decl != null)) {
+        if (shouldValidate(decl, varSpec) && (varSpec != null || decl != null)) {
           PsiReference reference = o.getReference();
           PsiElement resolve = reference != null ? reference.resolve() : null;
           if (resolve != null) return;
           boolean foundReference = !ReferencesSearch.search(o, o.getUseScope()).forEach(new Processor<PsiReference>() {
             @Override
-            public boolean process(PsiReference reference) {
+            public boolean process(@NotNull PsiReference reference) {
               ProgressManager.checkCanceled();
               PsiElement element = reference.getElement();
               if (element == null) return true;
@@ -88,7 +88,7 @@ public class GoUnusedVariableInspection extends GoInspectionBase {
                            new GoRenameToBlankQuickFix(varDefinition), new GoDeleteVarDefinitionQuickFix(name));
   }
 
-  protected boolean shouldValidate(@Nullable GoVarDeclaration varDeclaration) {
+  protected boolean shouldValidate(@Nullable GoVarDeclaration varDeclaration, GoCompositeElement varSpec) {
     return varDeclaration == null || !(varDeclaration.getParent() instanceof GoFile);
   }
 }

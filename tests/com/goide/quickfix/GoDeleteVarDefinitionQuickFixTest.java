@@ -16,13 +16,13 @@
 
 package com.goide.quickfix;
 
-import com.goide.inspections.unresolved.GoUnusedVariableInspection;
+import com.goide.inspections.unresolved.GoUnusedUnexportedVariableInspection;
 
 public class GoDeleteVarDefinitionQuickFixTest extends GoQuickFixTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myFixture.enableInspections(GoUnusedVariableInspection.class);
+    myFixture.enableInspections(GoUnusedUnexportedVariableInspection.class);
   }
   
   public void testSimple() {

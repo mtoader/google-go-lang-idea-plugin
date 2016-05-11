@@ -19,8 +19,8 @@ package com.goide.inspections.suppression;
 import com.goide.inspections.GoMultiplePackagesInspection;
 import com.goide.inspections.GoUnusedImportInspection;
 import com.goide.inspections.unresolved.GoUnresolvedReferenceInspection;
-import com.goide.inspections.unresolved.GoUnusedGlobalVariableInspection;
-import com.goide.inspections.unresolved.GoUnusedVariableInspection;
+import com.goide.inspections.unresolved.GoUnusedUnexportedGlobalVariableInspection;
+import com.goide.inspections.unresolved.GoUnusedUnexportedVariableInspection;
 import com.goide.quickfix.GoQuickFixTestBase;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,8 +30,8 @@ public class GoSuppressionFixTest extends GoQuickFixTestBase {
     super.setUp();
     myFixture.enableInspections(GoUnusedImportInspection.class);
     myFixture.enableInspections(GoUnresolvedReferenceInspection.class);
-    myFixture.enableInspections(GoUnusedGlobalVariableInspection.class);
-    myFixture.enableInspections(GoUnusedVariableInspection.class);
+    myFixture.enableInspections(GoUnusedUnexportedGlobalVariableInspection.class);
+    myFixture.enableInspections(GoUnusedUnexportedVariableInspection.class);
     myFixture.enableInspections(GoMultiplePackagesInspection.class);
   }
 
