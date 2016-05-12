@@ -65,7 +65,7 @@ public class GoDocumentationProvider extends AbstractDocumentationProvider {
   public static List<PsiComment> getCommentsForElement(@Nullable PsiElement element) {
     List<PsiComment> comments = getCommentsInner(element);
     if (comments.isEmpty()) {
-      if (element instanceof GoVarDefinition || element instanceof GoConstDefinition) {
+      if (element instanceof GoVarDefinition || element instanceof GoConstDefinition|| element instanceof GoImportDeclaration) {
         PsiElement parent = element.getParent(); // spec
         comments = getCommentsInner(parent);
         if (comments.isEmpty() && parent != null) {
