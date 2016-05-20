@@ -226,6 +226,10 @@
     <!-- /redeclare inspections -->
 
     <!-- code style issues -->
+    <localInspection language="go" displayName="Redundant second index in slices inspection" groupPath="Go"
+                     groupName="Code style issues" enabledByDefault="true" level="WEAK WARNING"
+                     implementationClass="com.goide.inspections.GoRedundantSecondIndexInSlicesInspection"/>
+
     <localInspection language="go" displayName="Comment of exported element starts with incorrect name" groupPath="Go"
                      groupName="Code style issues" enabledByDefault="false" level="WEAK WARNING"
                      implementationClass="com.goide.inspections.GoCommentStartInspection"/>
