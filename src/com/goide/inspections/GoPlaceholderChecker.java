@@ -281,8 +281,9 @@ public class GoPlaceholderChecker {
         if (!okPrintfArg(placeholder, arguments, state)) return;
 
         if (!state.argNums.isEmpty()) {
-          Integer maxArg = Collections.max(state.argNums);
-          if (maxArg != null) argNum = maxArg + 1;
+          int maxArgNum = Collections.max(state.argNums);
+          if (!indexed) maxArgNum += 1;
+          if (argNum < maxArgNum) argNum = maxArgNum;
         }
       }
     }
