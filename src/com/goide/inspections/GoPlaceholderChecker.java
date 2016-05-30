@@ -20,7 +20,6 @@ import com.goide.psi.*;
 import com.goide.psi.impl.GoTypeUtil;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.ProblemsHolder;
-import com.intellij.openapi.util.Couple;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
@@ -40,7 +39,7 @@ import static com.goide.inspections.GoPlaceholderChecker.PrintfArgType.*;
 public class GoPlaceholderChecker {
 
   // This holds the name of the known formatting functions and position of the string to be formatted
-  public static final Map<String, Integer> FORMATTING_FUNCTIONS = ContainerUtil.newHashMap(
+  private static final Map<String, Integer> FORMATTING_FUNCTIONS = ContainerUtil.newHashMap(
     Pair.pair("errorf", 0),
     Pair.pair("fatalf", 0),
     Pair.pair("fprintf", 1),
@@ -53,7 +52,7 @@ public class GoPlaceholderChecker {
     Pair.pair("sprintf", 0),
     Pair.pair("sscanf", 1));
 
-  public static final List<String> PRINT_FUNCTIONS = ContainerUtil.newArrayList(
+  private static final List<String> PRINT_FUNCTIONS = ContainerUtil.newArrayList(
     "error",
     "error",
     "fatal",
@@ -68,7 +67,6 @@ public class GoPlaceholderChecker {
     "sprintln"
   );
 
-  // The types of expressions a printf verb accepts. It is a bitmask.
   protected enum PrintfArgType {
     argBool(1),
     argInt(2),
@@ -79,60 +77,60 @@ public class GoPlaceholderChecker {
     argPointer(7),
     anyType(-1);
 
-    private int myVal;
+    private int myMask;
 
-    PrintfArgType(int val) {
-      myVal = val;
+    PrintfArgType(int mask) {
+      myMask = mask;
     }
 
     public int getValue() {
-      return myVal;
+      return myMask;
     }
   }
 
   private enum PrintVerb {
-    Percent(Couple.of('%', Couple.of("", 0))),
-    b(Couple.of('b', Couple.of(" -+.0", argInt.getValue() | argFloat.getValue() | argComplex.getValue()))),
-    c(Couple.of('c', Couple.of("-", argRune.getValue() | argInt.getValue()))),
-    d(Couple.of('d', Couple.of(" -+.0", argInt.getValue()))),
-    e(Couple.of('e', Couple.of(" -+.0", argFloat.getValue() | argComplex.getValue()))),
-    E(Couple.of('E', Couple.of(" -+.0", argFloat.getValue() | argComplex.getValue()))),
-    f(Couple.of('f', Couple.of(" -+.0", argFloat.getValue() | argComplex.getValue()))),
-    F(Couple.of('F', Couple.of(" -+.0", argFloat.getValue() | argComplex.getValue()))),
-    g(Couple.of('g', Couple.of(" -+.0", argFloat.getValue() | argComplex.getValue()))),
-    G(Couple.of('G', Couple.of(" -+.0", argFloat.getValue() | argComplex.getValue()))),
-    o(Couple.of('o', Couple.of(" -+.0#", argInt.getValue()))),
-    p(Couple.of('p', Couple.of("-#", argPointer.getValue()))),
-    q(Couple.of('q', Couple.of(" -+.0#", argRune.getValue() | argInt.getValue() | argString.getValue()))),
-    s(Couple.of('s', Couple.of(" -+.0", argString.getValue()))),
-    t(Couple.of('t', Couple.of("-", argBool.getValue()))),
-    T(Couple.of('T', Couple.of("-", anyType.getValue()))),
-    U(Couple.of('U', Couple.of("-#", argRune.getValue() | argInt.getValue()))),
-    V(Couple.of('v', Couple.of(" -+.0#", anyType.getValue()))),
-    x(Couple.of('x', Couple.of(" -+.0#", argRune.getValue() | argInt.getValue() | argString.getValue()))),
-    X(Couple.of('X', Couple.of(" -+.0#", argRune.getValue() | argInt.getValue() | argString.getValue())));
+    Percent('%', "", 0),
+    b('b', " -+.0", argInt.getValue() | argFloat.getValue() | argComplex.getValue()),
+    c('c', "-", argRune.getValue() | argInt.getValue()),
+    d('d', " -+.0", argInt.getValue()),
+    e('e', " -+.0", argFloat.getValue() | argComplex.getValue()),
+    E('E', " -+.0", argFloat.getValue() | argComplex.getValue()),
+    f('f', " -+.0", argFloat.getValue() | argComplex.getValue()),
+    F('F', " -+.0", argFloat.getValue() | argComplex.getValue()),
+    g('g', " -+.0", argFloat.getValue() | argComplex.getValue()),
+    G('G', " -+.0", argFloat.getValue() | argComplex.getValue()),
+    o('o', " -+.0#", argInt.getValue()),
+    p('p', "-#", argPointer.getValue()),
+    q('q', " -+.0#", argRune.getValue() | argInt.getValue() | argString.getValue()),
+    s('s', " -+.0", argString.getValue()),
+    t('t', "-", argBool.getValue()),
+    T('T', "-", anyType.getValue()),
+    U('U', "-#", argRune.getValue() | argInt.getValue()),
+    V('v', " -+.0#", anyType.getValue()),
+    x('x', " -+.0#", argRune.getValue() | argInt.getValue() | argString.getValue()),
+    X('X', " -+.0#", argRune.getValue() | argInt.getValue() | argString.getValue());
 
-    private Couple myVal;
+    private char myVerb;
+    private String myFlags;
+    private int myMask;
 
-    PrintVerb(Couple val) {
-      myVal = val;
-    }
-
-    public Couple getValue() {
-      return myVal;
+    PrintVerb(char verb, String flags, int mask) {
+      myVerb = verb;
+      myFlags = flags;
+      myMask = mask;
     }
 
     public char getVerb() {
-      return (char)myVal.getFirst();
+      return myVerb;
     }
 
     @NotNull
     public String getFlags() {
-      return (String)((Couple)myVal.getSecond()).getFirst();
+      return myFlags;
     }
 
     public int getMask() {
-      return (int)((Couple)myVal.getSecond()).getSecond();
+      return myMask;
     }
 
     @Nullable
@@ -147,6 +145,14 @@ public class GoPlaceholderChecker {
   private ProblemsHolder myProblemsHolder;
   private GoCallExpr myCallExpr;
   private GoFunctionOrMethodDeclaration myDeclaration;
+
+  public static boolean isFormattingFunction(String functionName) {
+    return FORMATTING_FUNCTIONS.containsKey(functionName);
+  }
+
+  public static boolean isPrintingFunction(String functionName) {
+    return PRINT_FUNCTIONS.contains(functionName);
+  }
 
   public GoPlaceholderChecker(ProblemsHolder problemsHolder, GoCallExpr callExpr, GoFunctionOrMethodDeclaration declaration) {
     myProblemsHolder = problemsHolder;
@@ -194,7 +200,6 @@ public class GoPlaceholderChecker {
         if (state == null) return;
         w = state.format.length();
 
-        // One error per format is enough
         if (!okPrintfArg(placeholder, arguments, state)) return;
 
         if (!state.argNums.isEmpty()) {
@@ -287,16 +292,13 @@ public class GoPlaceholderChecker {
   private FormatState parsePrintfVerb(@NotNull GoExpression placeholder, @NotNull String format, int firstArg, int argNum) {
     FormatState state = new FormatState(format, argNum, firstArg);
 
-    // There may be flags
     parseFlags(state);
 
-    // There may be an index
     if (!parseIndex(myProblemsHolder, placeholder, state)) return null;
 
     // There may be a width
     if (!parseNum(state)) return null;
 
-    // There may be a precision
     if (!parsePrecision(myProblemsHolder, placeholder, state)) return null;
 
     // Now a verb, possibly prefixed by an index (which we may already have)
@@ -402,12 +404,13 @@ public class GoPlaceholderChecker {
     @NotNull public String flags = ""; // the list of # + etc.
     public boolean indexed;            // whether an indexing expression appears: %[1]d.
     public int firstArg;               // Index of first argument after the format in the Printf call.
-    public final List<Integer> argNums = new ArrayList<Integer>(); // the successive argument numbers that are consumed, adjusted to refer to actual arg in call
+    public final List<Integer> argNums = new ArrayList<Integer>();
+    // the successive argument numbers that are consumed, adjusted to refer to actual arg in call
 
     // Used only during parse.
-    public int argNum;            // Which argument we're expecting to format now.
-    public boolean indexPending;  // Whether we have an indexed argument that has not resolved.
-    public int nBytes = 1;        // number of bytes of the format string consumed.
+    public int argNum;           // Which argument we're expecting to format now.
+    public boolean indexPending; // Whether we have an indexed argument that has not resolved.
+    public int nBytes = 1;       // number of bytes of the format string consumed.
 
     public FormatState(String format, int argNum, int firstArg) {
       this.format = format;

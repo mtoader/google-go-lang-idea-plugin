@@ -26,9 +26,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import org.jetbrains.annotations.NotNull;
 
-import static com.goide.inspections.GoPlaceholderChecker.FORMATTING_FUNCTIONS;
-import static com.goide.inspections.GoPlaceholderChecker.PRINT_FUNCTIONS;
-
 public class GoPlaceholderCountInspection extends GoInspectionBase {
 
   @NotNull
@@ -41,15 +38,14 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
         PsiElement resolved = psiReference != null ? psiReference.resolve() : null;
         if (!(resolved instanceof GoFunctionOrMethodDeclaration)) return;
 
-        String functionName = ((GoFunctionOrMethodDeclaration)resolved).getName();
+        String functionName = StringUtil.toLowerCase(((GoFunctionOrMethodDeclaration)resolved).getName());
         if (functionName == null) return;
 
-        functionName = StringUtil.toLowerCase(functionName);
         GoPlaceholderChecker checker = new GoPlaceholderChecker(holder, o, (GoFunctionOrMethodDeclaration)resolved);
-        if (FORMATTING_FUNCTIONS.containsKey(functionName)) {
+        if (GoPlaceholderChecker.isFormattingFunction(functionName)) {
           checker.checkPrintf();
         }
-        else if (PRINT_FUNCTIONS.contains(functionName)) {
+        else if (GoPlaceholderChecker.isPrintingFunction(functionName)) {
           checker.checkPrint();
         }
       }
