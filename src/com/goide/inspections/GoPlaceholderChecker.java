@@ -200,7 +200,7 @@ public class GoPlaceholderChecker {
         arg = Integer.parseInt(format.substring(start, nBytes));
       }
       catch (NumberFormatException ignored) {
-        String message = "illegal syntax for <code>#ref</code> argument index, ";
+        String message = "illegal syntax for <code>#ref</code> argument index, expecting a number";
         myHolder.registerProblem(myPlaceholder, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
         return false;
       }
@@ -208,6 +208,7 @@ public class GoPlaceholderChecker {
       nBytes++;
       arg += firstArg - 1;
       argNum = arg;
+      argNums.add(argNum);
       indexPending = true;
 
       return true;
@@ -267,7 +268,7 @@ public class GoPlaceholderChecker {
 
     int firstArg = placeholderPosition + 1;
     int argNum = firstArg;
-    boolean indexed = false;
+    int maxArgsNum = argNum;
     int w;
     for (int i = 0; i < placeholderText.length(); i += w) {
       w = 1;
@@ -275,25 +276,35 @@ public class GoPlaceholderChecker {
         FormatState state = parsePrintfVerb(placeholder, placeholderText.substring(i), firstArg, argNum);
         if (state == null) return;
         w = state.format.length();
-        if (state.indexed) indexed = true;
 
         // One error per format is enough
         if (!okPrintfArg(placeholder, arguments, state)) return;
 
         if (!state.argNums.isEmpty()) {
-          int maxArgNum = Collections.max(state.argNums);
-          if (!indexed) maxArgNum += 1;
-          if (argNum < maxArgNum) argNum = maxArgNum;
+          int maxArgNum = Collections.max(state.argNums) + 1;
+          int lastArgNum = state.argNums.get(state.argNums.size() - 1) + 1;
+          if (!state.indexed) {
+            if (argNum < maxArgNum) argNum = maxArgNum;
+            if (maxArgsNum < argNum) {
+              maxArgsNum = argNum;
+            }
+          }
+          else {
+            argNum = lastArgNum;
+            if (maxArgsNum < maxArgNum) {
+              maxArgsNum = maxArgNum;
+            }
+          }
         }
       }
     }
 
-    if (hasVariadic(myCallExpr.getArgumentList()) && argNum >= arguments.size() - 1) {
+    if (hasVariadic(myCallExpr.getArgumentList()) && maxArgsNum >= arguments.size() - 1) {
       return;
     }
 
-    if (!indexed && argNum != arguments.size()) {
-      int expect = argNum - firstArg;
+    if (maxArgsNum != arguments.size()) {
+      int expect = maxArgsNum - firstArg;
       int numArgs = arguments.size() - firstArg;
       String message = String.format("Got %d placeholder(s) for %d arguments(s)", expect, numArgs);
       myHolder.registerProblem(placeholder, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
@@ -441,7 +452,6 @@ public class GoPlaceholderChecker {
   }
 
   private FormatState parsePrintfVerb(@NotNull GoExpression placeholder, @NotNull String format, int firstArg, int argNum) {
-
     FormatState state = new FormatState(placeholder);
     state.format = format;
     state.flags = "";
