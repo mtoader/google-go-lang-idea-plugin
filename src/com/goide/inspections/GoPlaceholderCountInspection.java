@@ -148,6 +148,8 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
       String message = String.format("Got %d placeholder(s) for %d arguments(s)", expect, numArgs);
       holder.registerProblem(placeholder, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
     }
+
+    // TODO florin: check if all arguments are strings and offer to replace with Println and string concat
   }
 
   private static int computeMaxArgsNum(@NotNull List<Placeholder> placeholders) {
