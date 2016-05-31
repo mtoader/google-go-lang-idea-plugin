@@ -41,7 +41,10 @@ public class GoTypeUtil {
 
   public static boolean isString(@Nullable GoType type) {
     GoType underlyingType = type != null ? type.getUnderlyingType() : null;
-    return underlyingType != null && underlyingType.textMatches("string") && GoPsiImplUtil.builtin(underlyingType);
+    return underlyingType != null &&
+           underlyingType.getText() != null &&
+           underlyingType.textMatches("string") &&
+           GoPsiImplUtil.builtin(underlyingType);
   }
 
   public static boolean isFunction(@Nullable GoType goType) {

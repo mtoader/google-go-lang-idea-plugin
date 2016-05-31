@@ -93,6 +93,9 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
       }
       else if (GoTypeUtil.isFunction(goType)) {
         String message = "Argument <code>#ref</code> is not a function call";
+        if (argument instanceof GoCallExpr) {
+          message = "Final return type of <code>#ref</code> is a function not a function call";
+        }
         holder.registerProblem(argument, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
       }
     }
@@ -229,6 +232,9 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
     GoExpression expression = arguments.get(argNum);
     if (GoTypeUtil.isFunction(expression.getGoType(null)) && stateVerb != 'p' && stateVerb != 'T') {
       String message = "Argument <code>#ref</code> is not a function call";
+      if (expression instanceof GoCallExpr) {
+        message = "Final return type of <code>#ref</code> is a function not a function call";
+      }
       holder.registerProblem(expression, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
       return false;
     }

@@ -58,7 +58,7 @@ func main() {
 
     c := Car{4}
     Println("A Car has this many wheels:", c.wheelCount)
-    Println("A Car has this many wheels:", c.numberOfWheels)
+    Println("A Car has this many wheels:", c.numberOfWheels())
     Println("A Car has this many wheels:", c.numberOfWheels())
 
     a := AstonMartin{Car{4}}
