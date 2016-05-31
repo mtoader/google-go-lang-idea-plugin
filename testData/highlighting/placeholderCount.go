@@ -107,4 +107,13 @@ func _(t *testing.T) {
 		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
 	)
 	fmt.Sprintf(<warning descr="Got 1 placeholder(s) for 2 arguments(s)">"%d"</warning>, 1, 2)
+
+	fmt.Print(<warning descr="Possible formatting directive in '\"%[2]*.[1]*[3]d\"'">"%[2]*.[1]*[3]d"</warning>, 2, 3, myNonFormatFunc)
+	fmt.Print(<warning descr="Possible formatting directive in '\"%[2]*.[1]*[3]d\"'">"%[2]*.[1]*[3]d"</warning>, 2, 3, printf)
+
+	fmt.Println(<warning descr="Function already ends with new line">"demo\n"</warning>, 2, 3, <warning descr="Argument 'myNonFormatFunc' is not a function call">myNonFormatFunc</warning>)
+	fmt.Println(<warning descr="Function already ends with new line">"demo\n"</warning>, 2, 3, <warning descr="Argument 'printf' is not a function call">printf</warning>)
+
+	fmt.Print("demo\n", 2, 3, <warning descr="Argument 'myNonFormatFunc' is not a function call">myNonFormatFunc</warning>)
+	fmt.Print("demo\n", 2, 3, <warning descr="Argument 'printf' is not a function call">printf</warning>)
 }

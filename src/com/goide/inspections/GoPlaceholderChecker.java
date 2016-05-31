@@ -17,9 +17,6 @@
 package com.goide.inspections;
 
 import com.goide.psi.*;
-import com.goide.psi.impl.GoTypeUtil;
-import com.intellij.codeInspection.ProblemHighlightType;
-import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
@@ -34,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.goide.GoConstants.TESTING_PATH;
-import static com.goide.inspections.GoPlaceholderChecker.PrintfArgType.*;
+import static com.goide.inspections.GoPlaceholderChecker.PrintfArgumentType.*;
 
 public class GoPlaceholderChecker {
 
@@ -52,7 +49,7 @@ public class GoPlaceholderChecker {
     Pair.pair("sprintf", 0),
     Pair.pair("sscanf", 1));
 
-  private static final List<String> PRINT_FUNCTIONS = ContainerUtil.newArrayList(
+  private static final List<String> PRINTING_FUNCTIONS = ContainerUtil.newArrayList(
     "error",
     "error",
     "fatal",
@@ -67,19 +64,19 @@ public class GoPlaceholderChecker {
     "sprintln"
   );
 
-  protected enum PrintfArgType {
-    argBool(1),
-    argInt(2),
-    argRune(3),
-    argString(4),
-    argFloat(5),
-    argComplex(6),
-    argPointer(7),
-    anyType(-1);
+  protected enum PrintfArgumentType {
+    ANY(-1),
+    BOOL(1),
+    INT(2),
+    RUNE(3),
+    STRING(4),
+    FLOAT(5),
+    COMPLEX(6),
+    POINTER(7);
 
     private int myMask;
 
-    PrintfArgType(int mask) {
+    PrintfArgumentType(int mask) {
       myMask = mask;
     }
 
@@ -88,27 +85,27 @@ public class GoPlaceholderChecker {
     }
   }
 
-  private enum PrintVerb {
+  enum PrintVerb {
     Percent('%', "", 0),
-    b('b', " -+.0", argInt.getValue() | argFloat.getValue() | argComplex.getValue()),
-    c('c', "-", argRune.getValue() | argInt.getValue()),
-    d('d', " -+.0", argInt.getValue()),
-    e('e', " -+.0", argFloat.getValue() | argComplex.getValue()),
-    E('E', " -+.0", argFloat.getValue() | argComplex.getValue()),
-    f('f', " -+.0", argFloat.getValue() | argComplex.getValue()),
-    F('F', " -+.0", argFloat.getValue() | argComplex.getValue()),
-    g('g', " -+.0", argFloat.getValue() | argComplex.getValue()),
-    G('G', " -+.0", argFloat.getValue() | argComplex.getValue()),
-    o('o', " -+.0#", argInt.getValue()),
-    p('p', "-#", argPointer.getValue()),
-    q('q', " -+.0#", argRune.getValue() | argInt.getValue() | argString.getValue()),
-    s('s', " -+.0", argString.getValue()),
-    t('t', "-", argBool.getValue()),
-    T('T', "-", anyType.getValue()),
-    U('U', "-#", argRune.getValue() | argInt.getValue()),
-    V('v', " -+.0#", anyType.getValue()),
-    x('x', " -+.0#", argRune.getValue() | argInt.getValue() | argString.getValue()),
-    X('X', " -+.0#", argRune.getValue() | argInt.getValue() | argString.getValue());
+    b('b', " -+.0", INT.getValue() | FLOAT.getValue() | COMPLEX.getValue()),
+    c('c', "-", RUNE.getValue() | INT.getValue()),
+    d('d', " -+.0", INT.getValue()),
+    e('e', " -+.0", FLOAT.getValue() | COMPLEX.getValue()),
+    E('E', " -+.0", FLOAT.getValue() | COMPLEX.getValue()),
+    f('f', " -+.0", FLOAT.getValue() | COMPLEX.getValue()),
+    F('F', " -+.0", FLOAT.getValue() | COMPLEX.getValue()),
+    g('g', " -+.0", FLOAT.getValue() | COMPLEX.getValue()),
+    G('G', " -+.0", FLOAT.getValue() | COMPLEX.getValue()),
+    o('o', " -+.0#", INT.getValue()),
+    p('p', "-#", POINTER.getValue()),
+    q('q', " -+.0#", RUNE.getValue() | INT.getValue() | STRING.getValue()),
+    s('s', " -+.0", STRING.getValue()),
+    t('t', "-", BOOL.getValue()),
+    T('T', "-", ANY.getValue()),
+    U('U', "-#", RUNE.getValue() | INT.getValue()),
+    V('v', " -+.0#", ANY.getValue()),
+    x('x', " -+.0#", RUNE.getValue() | INT.getValue() | STRING.getValue()),
+    X('X', " -+.0#", RUNE.getValue() | INT.getValue() | STRING.getValue());
 
     private char myVerb;
     private String myFlags;
@@ -142,95 +139,109 @@ public class GoPlaceholderChecker {
     }
   }
 
-  private ProblemsHolder myProblemsHolder;
-  private GoCallExpr myCallExpr;
-  private GoFunctionOrMethodDeclaration myDeclaration;
-
   public static boolean isFormattingFunction(String functionName) {
     return FORMATTING_FUNCTIONS.containsKey(functionName);
   }
 
   public static boolean isPrintingFunction(String functionName) {
-    return PRINT_FUNCTIONS.contains(functionName);
+    return PRINTING_FUNCTIONS.contains(functionName);
   }
 
-  public GoPlaceholderChecker(ProblemsHolder problemsHolder, GoCallExpr callExpr, GoFunctionOrMethodDeclaration declaration) {
-    myProblemsHolder = problemsHolder;
-    myCallExpr = callExpr;
-    myDeclaration = declaration;
-  }
+  static class Placeholder {
+    private final String placeholder;
+    private final int startPos;
+    private final int position;
+    private final State state;
+    private final char verb;
+    private final List<Integer> arguments;
+    private final String flags;
 
-  public void checkPrint() {
-    // TODO florin: Implement the print function checking
-    // Ref code: https://github.com/golang/go/blob/79f7ccf2c3931745aeb97c5c985b6ac7b44befb4/src/cmd/vet/print.go#L587
-  }
+    enum State {
+      OK(0),
+      MISSING_VERB_AT_END(1),
+      ARGUMENT_INDEX_NOT_NUMERIC(2);
 
-  public void checkPrintf() {
-    int placeholderPosition = getPlaceholderPosition(myDeclaration);
-    List<GoExpression> arguments = myCallExpr.getArgumentList().getExpressionList();
-    if (placeholderPosition < 0 || arguments.size() <= placeholderPosition) return;
+      private int state;
 
-    GoExpression placeholder = arguments.get(placeholderPosition);
-    if (!GoTypeUtil.isString(placeholder.getGoType(null))) {
-      String message = "Value used for formatting text does not appear to be a string";
-      myProblemsHolder.registerProblem(placeholder, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
-      return;
+      State(int state) {
+        this.state = state;
+      }
+
+      public int getState() {
+        return state;
+      }
     }
 
-    String placeholderText = resolve(placeholder);
-    if (placeholderText == null) return;
-
-    // We always receive the text with double quotes at the beginning and at the end so remove them
-    placeholderText = placeholderText.substring(1, placeholderText.length() - 1);
-
-    if (!hasPlaceholder(placeholderText) && arguments.size() > placeholderPosition) {
-      String message = "Value used for formatting text does not appear to contain a placeholder";
-      myProblemsHolder.registerProblem(placeholder, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
-      return;
+    Placeholder(State state, int startPos, String placeholder, String flags, int position, List<Integer> arguments, char verb) {
+      this.placeholder = placeholder;
+      this.startPos = startPos;
+      this.position = position;
+      this.verb = verb;
+      this.state = state;
+      this.arguments = arguments;
+      this.flags = flags;
     }
 
-    int firstArg = placeholderPosition + 1;
+    public String getPlaceholder() {
+      return placeholder;
+    }
+
+    public int getPosition() {
+      return position;
+    }
+
+    public State getState() {
+      return state;
+    }
+
+    public char getVerb() {
+      return verb;
+    }
+
+    public List<Integer> getArguments() {
+      return arguments;
+    }
+
+    public String getFlags() {
+      return flags;
+    }
+
+    public int getStartPos() {
+      return startPos;
+    }
+  }
+
+  @NotNull
+  public static List<Placeholder> parsePrintf(@NotNull String placeholderText, int firstArg) {
+    List<Placeholder> placeholders = new ArrayList<Placeholder>();
     int argNum = firstArg;
-    int maxArgsNum = argNum;
     int w;
     for (int i = 0; i < placeholderText.length(); i += w) {
       w = 1;
       if (placeholderText.charAt(i) == '%') {
-        FormatState state = parsePrintfVerb(placeholder, placeholderText.substring(i), firstArg, argNum);
-        if (state == null) return;
+        FormatState state = parsePrintfVerb(placeholderText.substring(i), i, firstArg, argNum);
+        placeholders.add(state.toPlaceholder());
         w = state.format.length();
 
-        if (!okPrintfArg(placeholder, arguments, state)) return;
-
+        // TODO florin: when is this empty??
         if (!state.argNums.isEmpty()) {
-          int maxArgNum = Collections.max(state.argNums) + 1;
-          int lastArgNum = state.argNums.get(state.argNums.size() - 1) + 1;
           if (!state.indexed) {
+            int maxArgNum = Collections.max(state.argNums) + 1;
             if (argNum < maxArgNum) {
               argNum = maxArgNum;
             }
           }
           else {
-            argNum = lastArgNum;
+            argNum = state.argNums.get(state.argNums.size() - 1) + 1;
           }
-          if (maxArgsNum < maxArgNum) maxArgsNum = maxArgNum;
         }
       }
     }
 
-    if (hasVariadic(myCallExpr.getArgumentList()) && maxArgsNum >= arguments.size() - 1) {
-      return;
-    }
-
-    if (maxArgsNum != arguments.size()) {
-      int expect = maxArgsNum - firstArg;
-      int numArgs = arguments.size() - firstArg;
-      String message = String.format("Got %d placeholder(s) for %d arguments(s)", expect, numArgs);
-      myProblemsHolder.registerProblem(placeholder, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
-    }
+    return placeholders;
   }
 
-  private static int getPlaceholderPosition(@NotNull GoFunctionOrMethodDeclaration function) {
+  protected static int getPlaceholderPosition(@NotNull GoFunctionOrMethodDeclaration function) {
     Integer position = FORMATTING_FUNCTIONS.get(StringUtil.toLowerCase(function.getName()));
     if (position != null) {
       String importPath = function.getContainingFile().getImportPath(false);
@@ -242,20 +253,26 @@ public class GoPlaceholderChecker {
   }
 
   @Nullable
-  private static String resolve(@NotNull GoExpression argument) {
+  protected static String resolve(@NotNull GoExpression argument) {
     if (argument instanceof GoStringLiteral) return argument.getText();
 
     PsiReference reference = argument.getReference();
     PsiElement resolved = reference != null ? reference.resolve() : null;
 
+    String value = null;
     if (resolved instanceof GoVarDefinition) {
-      return getValue(((GoVarDefinition)resolved).getValue());
+      value = getValue(((GoVarDefinition)resolved).getValue());
     }
-    if (resolved instanceof GoConstDefinition) {
-      return getValue(((GoConstDefinition)resolved).getValue());
+    else if (resolved instanceof GoConstDefinition) {
+      value = getValue(((GoConstDefinition)resolved).getValue());
     }
 
-    return null;
+    // We always receive the text with double quotes at the beginning and at the end so remove them
+    if (value != null) {
+      value = value.substring(1, value.length() - 1);
+    }
+
+    return value;
   }
 
   // todo: implement ConstEvaluator
@@ -289,134 +306,70 @@ public class GoPlaceholderChecker {
     return result.toString();
   }
 
-  private FormatState parsePrintfVerb(@NotNull GoExpression placeholder, @NotNull String format, int firstArg, int argNum) {
-    FormatState state = new FormatState(format, argNum, firstArg);
+  private static class FormatState {
+    private char verb;                  // the format verb: 'd' for "%d"
+    private String format;              // the full format directive from % through verb, "%.3d"
+    @NotNull private String flags = ""; // the list of # + etc
+    private boolean indexed;            // whether an indexing expression appears: %[1]d
+    private int firstArg;               // Index of first argument after the format in the Printf call
+    private final int startPos;         // index of the first character of the placeholder in the formatting string
+
+    // the successive argument numbers that are consumed, adjusted to refer to actual arg in call
+    private final List<Integer> argNums = new ArrayList<Integer>();
+
+    // Keep track of the parser state
+    private Placeholder.State state;
+
+    // Used only during parse.
+    private int argNum;           // Which argument we're expecting to format now
+    private boolean indexPending; // Whether we have an indexed argument that has not resolved
+    private int nBytes = 1;       // number of bytes of the format string consumed
+
+    FormatState(String format, int startPos, int argNum, int firstArg) {
+      this.format = format;
+      this.startPos = startPos;
+      this.argNum = argNum;
+      this.firstArg = firstArg;
+    }
+
+    @NotNull
+    private Placeholder toPlaceholder() {
+      return new Placeholder(state, startPos, format, flags, argNum, argNums, verb);
+    }
+  }
+
+  @NotNull
+  private static FormatState parsePrintfVerb(@NotNull String format, int startPos, int firstArg, int argNum) {
+    FormatState state = new FormatState(format, startPos, argNum, firstArg);
 
     parseFlags(state);
 
-    if (!parseIndex(myProblemsHolder, placeholder, state)) return null;
+    if (!parseIndex(state)) return state;
 
     // There may be a width
-    if (!parseNum(state)) return null;
+    if (!parseNum(state)) return state;
 
-    if (!parsePrecision(myProblemsHolder, placeholder, state)) return null;
+    if (!parsePrecision(state)) return state;
 
     // Now a verb, possibly prefixed by an index (which we may already have)
-    if (!state.indexPending && !parseIndex(myProblemsHolder, placeholder, state)) return null;
+    if (!state.indexPending && !parseIndex(state)) return state;
 
     if (state.nBytes == format.length()) {
-      String message = "Missing verb at end of format string in <code>#ref</code> call";
-      myProblemsHolder.registerProblem(placeholder, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
-      return null;
+      state.state = Placeholder.State.MISSING_VERB_AT_END;
+      return state;
     }
 
     state.verb = state.format.charAt(state.nBytes);
     state.nBytes++;
     if (state.verb != '%') state.argNums.add(state.argNum);
     state.format = state.format.substring(0, state.nBytes);
+    state.state = Placeholder.State.OK;
 
     return state;
   }
 
-  private boolean okPrintfArg(@NotNull GoExpression placeholder, @NotNull List<GoExpression> arguments, @NotNull FormatState state) {
-    PrintVerb v = PrintVerb.getByVerb(state.verb);
-    if (v == null) {
-      String message = String.format("Unrecognized printf verb %s in <code>#ref</code> call", state.verb);
-      myProblemsHolder.registerProblem(placeholder, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
-      return false;
-    }
-
-    for (int i = 0; i < state.flags.length(); i++) {
-      char flag = state.flags.charAt(i);
-      if (v.getFlags().indexOf(flag) == -1) {
-        String message = String.format("Unrecognized <code>#ref</code> flag for verb %s: %s call", state.verb, flag);
-        myProblemsHolder.registerProblem(placeholder, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
-        return false;
-      }
-    }
-
-    // Verb is good. If len(state.argNums)>trueArgs, we have something like %.*s and all
-    // but the final arg must be an integer.
-    int trueArgs = state.verb == '%' ? 0 : 1;
-    int nargs = state.argNums.size();
-    for (int i = 0; i < nargs - trueArgs; i++) {
-      if (!argCanBeChecked(placeholder, arguments.size(), i, state)) return false;
-      // TODO florin: add argument matching when type comparison can be done
-      // Ref code: https://github.com/golang/go/blob/79f7ccf2c3931745aeb97c5c985b6ac7b44befb4/src/cmd/vet/print.go#L484
-    }
-
-    if (state.verb == '%') return true;
-
-    if (!argCanBeChecked(placeholder, arguments.size(), state.argNums.size() - 1, state)) return false;
-
-    int argNum = state.argNums.get(state.argNums.size() - 1);
-    GoExpression expression = arguments.get(argNum);
-    if (isFunctionValue(expression) && state.verb != 'p' && state.verb != 'T') {
-      String message = "Argument <code>#ref</code> for <code>#loc</code> is a function value, not a function call";
-      myProblemsHolder.registerProblem(expression, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
-      return false;
-    }
-
-    // TODO florin: add argument matching when type comparison can be done
-    // Ref code: https://github.com/golang/go/blob/79f7ccf2c3931745aeb97c5c985b6ac7b44befb4/src/cmd/vet/print.go#L502
-
-    return true;
-  }
-
-  private boolean argCanBeChecked(@NotNull GoExpression placeholder, int callArgs, int formatArg, @NotNull FormatState state) {
-    int argNum = state.argNums.get(formatArg);
-    if (argNum < 0) return false;
-
-    if (argNum == 0) {
-      String message = String.format("Index value [0] for <code>#ref</code>(\"%s\"); indexes start at 1", state.format);
-      myProblemsHolder.registerProblem(placeholder, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
-      return false;
-    }
-
-    if (argNum < callArgs - 1) return true;
-    if (hasVariadic(myCallExpr.getArgumentList())) return false;
-    if (argNum < callArgs) return true;
-
-    // There are bad indexes in the format or there are fewer arguments than the format needs
-    // This is the argument number relative to the format: Printf("%s", "hi") will give 1 for the "hi"
-    int arg = argNum - state.firstArg + 1;
-    String message = String.format("Got %d placeholder(s) for %d arguments(s)", arg, callArgs - state.firstArg);
-    myProblemsHolder.registerProblem(placeholder, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
-
-    return false;
-  }
-
-  private static boolean isFunctionValue(GoExpression expression) {
-    return expression instanceof GoCallExpr;
-  }
-
-  private static boolean hasPlaceholder(@NotNull String formatString) {
+  protected static boolean hasPlaceholder(@NotNull String formatString) {
     return StringUtil.contains(formatString, "%");
-  }
-
-  private static boolean hasVariadic(@NotNull GoArgumentList argumentList) {
-    return argumentList.getTripleDot() != null;
-  }
-
-  private static class FormatState {
-    public char verb;                  // the format verb: 'd' for "%d"
-    public String format;              // the full format directive from % through verb, "%.3d".
-    @NotNull public String flags = ""; // the list of # + etc.
-    public boolean indexed;            // whether an indexing expression appears: %[1]d.
-    public int firstArg;               // Index of first argument after the format in the Printf call.
-    public final List<Integer> argNums = new ArrayList<Integer>();
-    // the successive argument numbers that are consumed, adjusted to refer to actual arg in call
-
-    // Used only during parse.
-    public int argNum;           // Which argument we're expecting to format now.
-    public boolean indexPending; // Whether we have an indexed argument that has not resolved.
-    public int nBytes = 1;       // number of bytes of the format string consumed.
-
-    public FormatState(String format, int argNum, int firstArg) {
-      this.format = format;
-      this.argNum = argNum;
-      this.firstArg = firstArg;
-    }
   }
 
   private static void parseFlags(@NotNull FormatState state) {
@@ -444,7 +397,7 @@ public class GoPlaceholderChecker {
     }
   }
 
-  private static boolean parseIndex(@NotNull ProblemsHolder holder, @NotNull GoExpression placeholder, @NotNull FormatState state) {
+  private static boolean parseIndex(@NotNull FormatState state) {
     if (state.nBytes == state.format.length() || state.format.charAt(state.nBytes) != '[') return true;
 
     state.indexed = true;
@@ -452,8 +405,7 @@ public class GoPlaceholderChecker {
     int start = state.nBytes;
     scanNum(state);
     if (state.nBytes == state.format.length() || state.nBytes == start || state.format.charAt(state.nBytes) != ']') {
-      String message = "Illegal syntax for <code>#ref</code> argument index";
-      holder.registerProblem(placeholder, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
+      state.state = Placeholder.State.ARGUMENT_INDEX_NOT_NUMERIC;
       return false;
     }
 
@@ -462,8 +414,7 @@ public class GoPlaceholderChecker {
       arg = Integer.parseInt(state.format.substring(start, state.nBytes));
     }
     catch (NumberFormatException ignored) {
-      String message = "illegal syntax for <code>#ref</code> argument index, expecting a number";
-      holder.registerProblem(placeholder, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
+      state.state = Placeholder.State.ARGUMENT_INDEX_NOT_NUMERIC;
       return false;
     }
 
@@ -492,11 +443,11 @@ public class GoPlaceholderChecker {
     return true;
   }
 
-  private static boolean parsePrecision(@NotNull ProblemsHolder holder, @NotNull GoExpression placeholder, @NotNull FormatState state) {
+  private static boolean parsePrecision(@NotNull FormatState state) {
     if (state.nBytes < state.format.length() && state.format.charAt(state.nBytes) == '.') {
       state.flags += '.';
       state.nBytes++;
-      if (!parseIndex(holder, placeholder, state)) return false;
+      if (!parseIndex(state)) return false;
       if (!parseNum(state)) return false;
     }
 
