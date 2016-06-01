@@ -3,6 +3,8 @@ package placeholderCount
 import "fmt"
 import "log"
 import "testing"
+import "unsafe"
+import "C"
 
 const (
 	myFormatConst      = "%d %d %#[1]x %#x %2.f %d %2.2f %.f %.3f %[9]*.[2]*[3]f %d %f %#[1]x %#x %[2]d %v % d"
@@ -116,4 +118,8 @@ func _(t *testing.T) {
 
 	fmt.Print("demo\n", 2, 3, <warning descr="Argument 'myNonFormatFunc' is not a function call">myNonFormatFunc</warning>)
 	fmt.Print("demo\n", 2, 3, <warning descr="Argument 'printf' is not a function call">printf</warning>)
+
+	type X struct{ Y, Z int32 }
+	a := &X{5, 7}
+	fmt.Println(a, "->", C.sum(*((*C.struct_x)(unsafe.Pointer(a)))))
 }

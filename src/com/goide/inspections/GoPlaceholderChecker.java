@@ -19,6 +19,7 @@ package com.goide.inspections;
 import com.goide.psi.*;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.ElementManipulators;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.util.containers.ContainerUtil;
@@ -150,32 +151,20 @@ public class GoPlaceholderChecker {
   static class Placeholder {
     private final String placeholder;
     private final int startPos;
-    private final int position;
     private final State state;
-    private final char verb;
+    private final PrintVerb verb;
     private final List<Integer> arguments;
     private final String flags;
 
     enum State {
-      OK(0),
-      MISSING_VERB_AT_END(1),
-      ARGUMENT_INDEX_NOT_NUMERIC(2);
-
-      private int state;
-
-      State(int state) {
-        this.state = state;
-      }
-
-      public int getState() {
-        return state;
-      }
+      OK,
+      MISSING_VERB_AT_END,
+      ARGUMENT_INDEX_NOT_NUMERIC
     }
 
-    Placeholder(State state, int startPos, String placeholder, String flags, int position, List<Integer> arguments, char verb) {
+    Placeholder(State state, int startPos, String placeholder, String flags, List<Integer> arguments, PrintVerb verb) {
       this.placeholder = placeholder;
       this.startPos = startPos;
-      this.position = position;
       this.verb = verb;
       this.state = state;
       this.arguments = arguments;
@@ -187,14 +176,14 @@ public class GoPlaceholderChecker {
     }
 
     public int getPosition() {
-      return position;
+      return arguments.get(arguments.size() - 1);
     }
 
     public State getState() {
       return state;
     }
 
-    public char getVerb() {
+    public PrintVerb getVerb() {
       return verb;
     }
 
@@ -212,29 +201,37 @@ public class GoPlaceholderChecker {
   }
 
   @NotNull
-  public static List<Placeholder> parsePrintf(@NotNull String placeholderText, int firstArg) {
+  public static List<Placeholder> parsePrintf(@NotNull String placeholderText) {
     List<Placeholder> placeholders = new ArrayList<Placeholder>();
-    int argNum = firstArg;
+    int argNum = 1;
     int w;
     for (int i = 0; i < placeholderText.length(); i += w) {
       w = 1;
       if (placeholderText.charAt(i) == '%') {
-        FormatState state = parsePrintfVerb(placeholderText.substring(i), i, firstArg, argNum);
-        placeholders.add(state.toPlaceholder());
+        FormatState state = parsePrintfVerb(placeholderText.substring(i), i, argNum);
         w = state.format.length();
 
-        // TODO florin: when is this empty??
-        if (!state.argNums.isEmpty()) {
-          if (!state.indexed) {
-            int maxArgNum = Collections.max(state.argNums) + 1;
-            if (argNum < maxArgNum) {
-              argNum = maxArgNum;
-            }
-          }
-          else {
-            argNum = state.argNums.get(state.argNums.size() - 1) + 1;
+        // We are not interested in %% which prints %
+        if (state.state == Placeholder.State.OK && state.verb == PrintVerb.Percent) {
+          // Special magic case for allowing things like %*% to pass (which are sadly valid expressions)
+          if (state.format.length() == 2) continue;
+        }
+
+        placeholders.add(state.toPlaceholder());
+
+        // We only consider ok states as valid to increase the number of arguments. Should we?
+        if (state.state != Placeholder.State.OK) continue;
+
+        if (!state.indexed) {
+          int maxArgNum = Collections.max(state.argNums);
+          if (argNum < maxArgNum) {
+            argNum = maxArgNum;
           }
         }
+        else {
+          argNum = state.argNums.get(state.argNums.size() - 1);
+        }
+        argNum++;
       }
     }
 
@@ -254,7 +251,7 @@ public class GoPlaceholderChecker {
 
   @Nullable
   protected static String resolve(@NotNull GoExpression argument) {
-    if (argument instanceof GoStringLiteral) return argument.getText();
+    if (argument instanceof GoStringLiteral) return ElementManipulators.getValueText(argument);
 
     PsiReference reference = argument.getReference();
     PsiElement resolved = reference != null ? reference.resolve() : null;
@@ -267,11 +264,6 @@ public class GoPlaceholderChecker {
       value = getValue(((GoConstDefinition)resolved).getValue());
     }
 
-    // We always receive the text with double quotes at the beginning and at the end so remove them
-    if (value != null) {
-      value = value.substring(1, value.length() - 1);
-    }
-
     return value;
   }
 
@@ -279,27 +271,28 @@ public class GoPlaceholderChecker {
   @Nullable
   private static String getValue(@Nullable GoExpression expression) {
     if (expression instanceof GoStringLiteral) {
-      return expression.getText();
+      return ElementManipulators.getValueText(expression);
     }
     if (expression instanceof GoAddExpr) {
-      String sum = getValue((GoAddExpr)expression);
-      return sum.isEmpty() ? null : sum;
+      return StringUtil.nullize(getValue((GoAddExpr)expression));
     }
 
     return null;
   }
 
   // todo: implement ConstEvaluator
-  @NotNull
+  @Nullable
   private static String getValue(@Nullable GoAddExpr expression) {
-    if (expression == null) return "";
+    if (expression == null) return null;
     StringBuilder result = new StringBuilder();
     for (GoExpression expr : expression.getExpressionList()) {
       if (expr instanceof GoStringLiteral) {
-        result.append(expr.getText());
+        result.append(ElementManipulators.getValueText(expr));
       }
       else if (expr instanceof GoAddExpr) {
-        result.append(getValue(expr));
+        // TODO Should we abort and return null here?
+        String value = getValue(expr);
+        if (value != null) result.append(value);
       }
     }
 
@@ -307,11 +300,10 @@ public class GoPlaceholderChecker {
   }
 
   private static class FormatState {
-    private char verb;                  // the format verb: 'd' for "%d"
+    @Nullable private PrintVerb verb;   // the format verb: 'd' for "%d"
     private String format;              // the full format directive from % through verb, "%.3d"
     @NotNull private String flags = ""; // the list of # + etc
     private boolean indexed;            // whether an indexing expression appears: %[1]d
-    private int firstArg;               // Index of first argument after the format in the Printf call
     private final int startPos;         // index of the first character of the placeholder in the formatting string
 
     // the successive argument numbers that are consumed, adjusted to refer to actual arg in call
@@ -322,25 +314,23 @@ public class GoPlaceholderChecker {
 
     // Used only during parse.
     private int argNum;           // Which argument we're expecting to format now
-    private boolean indexPending; // Whether we have an indexed argument that has not resolved
     private int nBytes = 1;       // number of bytes of the format string consumed
 
-    FormatState(String format, int startPos, int argNum, int firstArg) {
+    FormatState(String format, int startPos, int argNum) {
       this.format = format;
       this.startPos = startPos;
       this.argNum = argNum;
-      this.firstArg = firstArg;
     }
 
     @NotNull
     private Placeholder toPlaceholder() {
-      return new Placeholder(state, startPos, format, flags, argNum, argNums, verb);
+      return new Placeholder(state, startPos, format, flags, argNums, verb);
     }
   }
 
   @NotNull
-  private static FormatState parsePrintfVerb(@NotNull String format, int startPos, int firstArg, int argNum) {
-    FormatState state = new FormatState(format, startPos, argNum, firstArg);
+  private static FormatState parsePrintfVerb(@NotNull String format, int startPos, int argNum) {
+    FormatState state = new FormatState(format, startPos, argNum);
 
     parseFlags(state);
 
@@ -352,16 +342,16 @@ public class GoPlaceholderChecker {
     if (!parsePrecision(state)) return state;
 
     // Now a verb, possibly prefixed by an index (which we may already have)
-    if (!state.indexPending && !parseIndex(state)) return state;
+    if (!parseIndex(state)) return state;
 
     if (state.nBytes == format.length()) {
       state.state = Placeholder.State.MISSING_VERB_AT_END;
       return state;
     }
 
-    state.verb = state.format.charAt(state.nBytes);
+    state.verb = PrintVerb.getByVerb(state.format.charAt(state.nBytes));
+    if (state.verb != null && state.verb != PrintVerb.Percent) state.argNums.add(state.argNum);
     state.nBytes++;
-    if (state.verb != '%') state.argNums.add(state.argNum);
     state.format = state.format.substring(0, state.nBytes);
     state.state = Placeholder.State.OK;
 
@@ -419,19 +409,13 @@ public class GoPlaceholderChecker {
     }
 
     state.nBytes++;
-    arg += state.firstArg - 1;
     state.argNum = arg;
-    state.argNums.add(state.argNum);
-    state.indexPending = true;
 
     return true;
   }
 
   private static boolean parseNum(@NotNull FormatState state) {
     if (state.nBytes < state.format.length() && state.format.charAt(state.nBytes) == '*') {
-      if (state.indexPending) {
-        state.indexPending = false;
-      }
       state.nBytes++;
       state.argNums.add(state.argNum);
       state.argNum++;

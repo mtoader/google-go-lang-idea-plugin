@@ -86,7 +86,7 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
       GoType goType = argument.getGoType(null);
       if (isLn && GoTypeUtil.isString(goType)) {
         String argText = GoPlaceholderChecker.resolve(argument);
-        if (argText != null && argText.endsWith("\\n\"")) {
+        if (argText != null && argText.endsWith("\\n")) {
           String message = "Function already ends with new line";
           holder.registerProblem(argument, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
         }
@@ -99,7 +99,6 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
         holder.registerProblem(argument, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
       }
     }
-
   }
 
   private static void checkPrintf(
@@ -129,22 +128,23 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
       return;
     }
 
-    int firstArg = placeholderPosition + 1;
-    List<Placeholder> placeholders = GoPlaceholderChecker.parsePrintf(placeholderText, firstArg);
+    callArgsNum--;
+    List<Placeholder> placeholders = GoPlaceholderChecker.parsePrintf(placeholderText);
     for (Placeholder fmtPlaceholder : placeholders) {
-      if (!checkPrintfArgument(holder, placeholder, callExpr, arguments, firstArg, fmtPlaceholder)) return;
+      if (!checkPrintfArgument(holder, placeholder, callExpr, arguments, callArgsNum, placeholderPosition, fmtPlaceholder)) return;
     }
 
     if (hasErrors(holder, placeholder, placeholders)) return;
-    int maxArgsNum = computeMaxArgsNum(placeholders);
+    // TODO florin add a min argument to see if we are skipping any argument from the formatting string
+    int maxArgsNum = computeMaxArgsNum(placeholders, placeholderPosition);
 
     if (GoPsiImplUtil.hasVariadic(callExpr.getArgumentList()) && maxArgsNum >= callArgsNum) {
       return;
     }
 
     if (maxArgsNum != callArgsNum) {
-      int expect = maxArgsNum - firstArg;
-      int numArgs = callArgsNum - firstArg;
+      int expect = maxArgsNum - placeholderPosition;
+      int numArgs = callArgsNum - placeholderPosition;
       String message = String.format("Got %d placeholder(s) for %d arguments(s)", expect, numArgs);
       holder.registerProblem(placeholder, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
     }
@@ -152,18 +152,18 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
     // TODO florin: check if all arguments are strings and offer to replace with Println and string concat
   }
 
-  private static int computeMaxArgsNum(@NotNull List<Placeholder> placeholders) {
+  private static int computeMaxArgsNum(@NotNull List<Placeholder> placeholders, int firstArg) {
     int maxArgsNum = 0;
     for (Placeholder placeholder : placeholders) {
       List<Integer> arguments = placeholder.getArguments();
-      if (arguments == null || arguments.isEmpty()) continue;
+      if (arguments.isEmpty()) continue;
       int max = Collections.max(arguments);
       if (maxArgsNum < max) {
         maxArgsNum = max;
       }
     }
 
-    return maxArgsNum + 1;
+    return maxArgsNum + firstArg;
   }
 
   private static boolean hasErrors(
@@ -194,13 +194,13 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
     @NotNull GoExpression placeholder,
     @NotNull GoCallExpr callExpr,
     @NotNull List<GoExpression> arguments,
+    int callArgsNum,
     int firstArg,
     @NotNull Placeholder fmtPlaceholder) {
 
-    char stateVerb = fmtPlaceholder.getVerb();
-    PrintVerb v = PrintVerb.getByVerb(fmtPlaceholder.getVerb());
+    PrintVerb v = fmtPlaceholder.getVerb();
     if (v == null) {
-      String message = String.format("Unrecognized printf verb %s in <code>#ref</code> call", stateVerb);
+      String message = "Unrecognized formatting verb in <code>#ref</code> call";
       holder.registerProblem(placeholder, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
       return false;
     }
@@ -209,7 +209,7 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
     for (int i = 0; i < flags.length(); i++) {
       char flag = flags.charAt(i);
       if (v.getFlags().indexOf(flag) == -1) {
-        String message = String.format("Unrecognized <code>#ref</code> flag for verb %s: %s call", stateVerb, flag);
+        String message = String.format("Unrecognized <code>#ref</code> flag for verb %s: %s call", v.getVerb(), flag);
         holder.registerProblem(placeholder, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
         return false;
       }
@@ -218,21 +218,21 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
     List<Integer> args = fmtPlaceholder.getArguments();
     // Verb is good. If len(state.argNums)>trueArgs, we have something like %.*s and all
     // but the final arg must be an integer.
-    int trueArgs = stateVerb == '%' ? 0 : 1;
+    int trueArgs = v == PrintVerb.Percent ? 0 : 1;
     int nargs = args.size();
     for (int i = 0; i < nargs - trueArgs; i++) {
-      if (!argumentCanBeChecked(holder, placeholder, callExpr, fmtPlaceholder, arguments.size(), firstArg)) return false;
+      if (!checkArgumentIndex(holder, placeholder, callExpr, fmtPlaceholder, callArgsNum)) return false;
       // TODO florin: add argument matching when type comparison can be done
       // Ref code: https://github.com/golang/go/blob/79f7ccf2c3931745aeb97c5c985b6ac7b44befb4/src/cmd/vet/print.go#L484
     }
 
-    if (stateVerb == '%') return true;
+    if (v == PrintVerb.Percent) return true;
 
-    if (!argumentCanBeChecked(holder, placeholder, callExpr, fmtPlaceholder, arguments.size(), firstArg)) return false;
+    if (!checkArgumentIndex(holder, placeholder, callExpr, fmtPlaceholder, callArgsNum)) return false;
 
     int argNum = args.get(args.size() - 1);
-    GoExpression expression = arguments.get(argNum);
-    if (GoTypeUtil.isFunction(expression.getGoType(null)) && stateVerb != 'p' && stateVerb != 'T') {
+    GoExpression expression = arguments.get(argNum + firstArg - 1);
+    if (GoTypeUtil.isFunction(expression.getGoType(null)) && v != PrintVerb.p && v != PrintVerb.T) {
       String message = "Argument <code>#ref</code> is not a function call";
       if (expression instanceof GoCallExpr) {
         message = "Final return type of <code>#ref</code> is a function not a function call";
@@ -247,31 +247,29 @@ public class GoPlaceholderCountInspection extends GoInspectionBase {
     return true;
   }
 
-  private static boolean argumentCanBeChecked(
+  private static boolean checkArgumentIndex(
     @NotNull ProblemsHolder holder,
     @NotNull GoExpression placeholder,
     @NotNull GoCallExpr callExpr,
     @NotNull Placeholder fmtPlaceholder,
-    int callArgsNum,
-    int firstArg) {
+    int callArgsNum) {
 
     int argNum = fmtPlaceholder.getPosition();
     if (argNum < 0) return false;
 
     if (argNum == 0) {
-      String message = String.format("Index value [0] for <code>#ref</code>(\"%s\"); indexes start at 1", fmtPlaceholder.getPlaceholder());
-      holder.registerProblem(placeholder, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
+      holder.registerProblem(placeholder, "Index value [0] is not allowed", ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
       return false;
     }
 
-    if (argNum < callArgsNum - 1) return true;
+    if (argNum <= callArgsNum) return true;
     if (GoPsiImplUtil.hasVariadic(callExpr.getArgumentList())) return false;
-    if (argNum < callArgsNum) return true;
+    if (argNum <= callArgsNum) return true;
 
     // There are bad indexes in the format or there are fewer arguments than the format needs
     // This is the argument number relative to the format: Printf("%s", "hi") will give 1 for the "hi"
-    int arg = fmtPlaceholder.getPosition() - firstArg + 1;
-    String message = String.format("Got %d placeholder(s) for %d arguments(s)", arg, callArgsNum - firstArg);
+    int arg = fmtPlaceholder.getPosition();
+    String message = String.format("Got %d placeholder(s) for %d arguments(s)", arg, callArgsNum);
     holder.registerProblem(placeholder, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
     return false;
   }

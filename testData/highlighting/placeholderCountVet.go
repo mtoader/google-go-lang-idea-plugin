@@ -13,7 +13,7 @@ import (
 	"unsafe" // just for test case printing unsafe.Pointer
 )
 
-func UnsafePointerPrintfTest() {
+func <warning descr="Unused function 'UnsafePointerPrintfTest'">UnsafePointerPrintfTest</warning>() {
 	var up unsafe.Pointer
 	fmt.Printf("%p, %x %X", up, up, up)
 }
@@ -47,7 +47,7 @@ func (errorTest5) error() { // niladic; don't complain if no args (was bug)
 
 // This function never executes, but it serves as a simple test for the program.
 // Test with make test.
-func PrintfTests() {
+func <warning descr="Unused function 'PrintfTests'">PrintfTests</warning>() {
 	var b bool
 	var i int
 	var r rune
@@ -129,13 +129,13 @@ func PrintfTests() {
 	fmt.Printf("%.*s %d %g", 3, "hi", 23, 'x') // ERROR "arg 'x' for printf verb %g of wrong type"
 	fmt.Println()                              // not an error
 	fmt.Println(<warning descr="Possible formatting directive in '\"%s\"'">"%s"</warning>, "hi")                    // ERROR "possible formatting directive in Println call"
-	fmt.Printf("%s", "hi", 3)                  // ERROR "wrong number of args for format in Printf call"
+	fmt.Printf(<warning descr="Got 1 placeholder(s) for 2 arguments(s)">"%s"</warning>, "hi", 3)                  // ERROR "wrong number of args for format in Printf call"
 	_ = fmt.Sprintf("%"+("s"), "hi", 3)        // ERROR "wrong number of args for format in Sprintf call"
 	fmt.Printf("%s%%%d", "hi", 3)              // correct
 	fmt.Printf("%08s", "woo")                  // correct
 	fmt.Printf("% 8s", "woo")                  // correct
 	fmt.Printf("%.*d", 3, 3)                   // correct
-	fmt.Printf("%.*d", 3, 3, 3, 3)             // ERROR "wrong number of args for format in Printf call.*4 args"
+	fmt.Printf(<warning descr="Got 2 placeholder(s) for 4 arguments(s)">"%.*d"</warning>, 3, 3, 3, 3)             // ERROR "wrong number of args for format in Printf call.*4 args"
 	fmt.Printf("%.*d", "hi", 3)                // ERROR "arg .hi. for \* in printf format not of type int"
 	fmt.Printf("%.*d", i, 3)                   // correct
 	fmt.Printf("%.*d", s, 3)                   // ERROR "arg s for \* in printf format not of type int"
@@ -184,11 +184,11 @@ func PrintfTests() {
 	var et1 errorTest1
 	fmt.Println(et1.Error())        // ERROR "no args in Error call"
 	fmt.Println(et1.Error("hi"))    // ok
-	fmt.Println(et1.Error("%d", 3)) // ERROR "possible formatting directive in Error call"
+	fmt.Println(et1.Error(<warning descr="Possible formatting directive in '\"%d\"'">"%d"</warning>, 3)) // ERROR "possible formatting directive in Error call"
 	var et2 errorTest2
 	et2.Error()        // ERROR "no args in Error call"
 	et2.Error("hi")    // ok, not an error method.
-	et2.Error("%d", 3) // ERROR "possible formatting directive in Error call"
+	et2.Error(<warning descr="Possible formatting directive in '\"%d\"'">"%d"</warning>, 3) // ERROR "possible formatting directive in Error call"
 	var et3 errorTest3
 	et3.Error() // ok, not an error method.
 	var et4 errorTest4
@@ -198,7 +198,7 @@ func PrintfTests() {
 	// Can't print a function.
 	Printf("%d", someFunction) // ERROR "arg someFunction in printf call is a function value, not a function call"
 	Printf("%v", someFunction) // ERROR "arg someFunction in printf call is a function value, not a function call"
-	Println(someFunction)      // ERROR "arg someFunction in Println call is a function value, not a function call"
+	Println(<warning descr="Argument 'someFunction' is not a function call">someFunction</warning>)      // ERROR "arg someFunction in Println call is a function value, not a function call"
 	Printf("%p", someFunction) // ok: maybe someone wants to see the pointer
 	Printf("%T", someFunction) // ok: maybe someone wants to see the type
 	// Bug: used to recur forever.
@@ -217,6 +217,10 @@ func PrintfTests() {
 
 // A function we use as a function value; it has no other purpose.
 func someFunction() {
+}
+
+func Println(<warning descr="Unused parameter 'args'">args</warning> ...interface{}) {
+	panic("don't call - testing only")
 }
 
 // Printf is used by the test so we must declare it.
