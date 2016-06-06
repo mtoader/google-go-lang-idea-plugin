@@ -28,6 +28,8 @@ import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 @SuppressWarnings("ConstantConditions")
 public class GoElementFactory {
   private GoElementFactory() {
@@ -213,5 +215,39 @@ public class GoElementFactory {
     type = StringUtil.isNotEmpty(type) ? " " + type : "";
     value = StringUtil.isNotEmpty(value) ? " = " + value : "";
     return name + type + value;
+  }
+
+  public static GoStructType createMultipleFieldsFromSingleDeclaration(@NotNull Project project,
+                                                                       @NotNull GoStructType structType,
+                                                                       int splitIdx) {
+    StringBuilder contents = new StringBuilder("package a; type a struct{ ");
+    boolean first = true;
+    List<GoFieldDeclaration> fieldDeclarationList = structType.getFieldDeclarationList();
+    for (int i = 0; i < fieldDeclarationList.size(); i++) {
+      GoFieldDeclaration fieldDeclaration = fieldDeclarationList.get(i);
+      if (splitIdx != i) {
+        contents.append(fieldDeclaration.getText()).append("\n");
+      } else {
+        for (GoFieldDefinition fieldDefinition : fieldDeclaration.getFieldDefinitionList()) {
+          contents.append(fieldDefinition.getName())
+            .append(" ")
+            .append(fieldDeclaration.getType().getText());
+          if (first) {
+            contents.append(" ")
+              .append(fieldDeclaration.getTag().getText());
+            first = false;
+          }
+          contents.append("\n");
+        }
+      }
+    }
+    contents.append(" }");
+    GoFile file = createFileFromText(project, contents.toString());
+    return PsiTreeUtil.findChildOfType(file, GoStructType.class);
+  }
+
+  @NotNull
+  public static GoFieldDeclaration createTaglessField(@NotNull Project project, @NotNull GoFieldDeclaration field) {
+    return PsiTreeUtil.findChildOfType(null, GoFieldDeclaration.class);
   }
 }
