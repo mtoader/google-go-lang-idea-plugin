@@ -108,6 +108,16 @@ public class GoElementFactory {
   }
 
   @NotNull
+  public static GoFunctionDeclaration createFunctionDeclarationFromText(@NotNull Project project,
+                                                                        @NotNull String name,
+                                                                        @NotNull String text,
+                                                                        @Nullable String expectedType) {
+    expectedType = expectedType == null ? "" : expectedType + " ";
+    GoFile file = createFileFromText(project, "package a; func " + name + "(" + text + ") " + expectedType + "{\n}");
+    return ContainerUtil.getFirstItem(file.getFunctions());
+  }
+
+  @NotNull
   public static GoStatement createShortVarDeclarationStatement(@NotNull Project project,
                                                                @NotNull String name,
                                                                @NotNull GoExpression initializer) {
@@ -128,7 +138,7 @@ public class GoElementFactory {
     GoFile file = createFileFromText(project, "package a; func a() {\n for " + leftSide + " := range " + rightSide + "{\n}\n}");
     return PsiTreeUtil.findChildOfType(file, GoRangeClause.class);
   }
-  
+
   @NotNull
   public static GoRangeClause createRangeClauseAssignment(@NotNull Project project, @NotNull String leftSide, @NotNull String rightSide) {
     GoFile file = createFileFromText(project, "package a; func a() {\n for " + leftSide + " = range " + rightSide + "{\n}\n}");
@@ -140,7 +150,7 @@ public class GoElementFactory {
     GoFile file = createFileFromText(project, "package a; func a() {\n select { case " + leftSide + " := " + rightSide + ":\n}\n}");
     return PsiTreeUtil.findChildOfType(file, GoRecvStatement.class);
   }
-  
+
   @NotNull
   public static GoRecvStatement createRecvStatementAssignment(@NotNull Project project, @NotNull String left, @NotNull String right) {
     GoFile file = createFileFromText(project, "package a; func a() {\n select { case " + left + " = " + right + ":\n}\n}");
@@ -213,5 +223,17 @@ public class GoElementFactory {
     type = StringUtil.isNotEmpty(type) ? " " + type : "";
     value = StringUtil.isNotEmpty(value) ? " = " + value : "";
     return name + type + value;
+  }
+
+  public static GoTypeList createTypeList(@NotNull Project project,
+                                           @NotNull String text) {
+    GoFile file = createFileFromText(project, "package a; func _() (" + text + "){}");
+    return PsiTreeUtil.findChildOfType(file, GoTypeList.class);
+  }
+
+  public static GoType createType(@NotNull Project project,
+                                          @NotNull String text) {
+    GoFile file = createFileFromText(project, "package a; var a " + text);
+    return PsiTreeUtil.findChildOfType(file, GoType.class);
   }
 }
