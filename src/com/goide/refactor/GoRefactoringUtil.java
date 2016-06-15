@@ -21,6 +21,13 @@ import com.goide.psi.*;
 import com.goide.psi.impl.GoPsiImplUtil;
 import com.goide.psi.impl.GoTypeUtil;
 import com.intellij.codeInsight.PsiEquivalenceUtil;
+import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.codeInsight.template.Expression;
+import com.intellij.codeInsight.template.ExpressionContext;
+import com.intellij.codeInsight.template.Result;
+import com.intellij.codeInsight.template.TextResult;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.NameUtil;
@@ -30,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.HashSet;
 
 public class GoRefactoringUtil {
   private final static GoNamesValidator namesValidator = new GoNamesValidator();
@@ -72,6 +80,84 @@ public class GoRefactoringUtil {
       statement = statement.getParent();
     }
     return statement == null ? GoPsiImplUtil.getTopLevelDeclaration(first) : statement;
+  }
+
+  @NotNull
+  public static Expression getParameterNameSuggestedExpression(GoExpression expression) {
+    GoTopLevelDeclaration topLevelDecl = PsiTreeUtil.getParentOfType(expression, GoTopLevelDeclaration.class);
+    return new ParameterNameExpression(getSuggestedNames(expression, topLevelDecl == null ? null : topLevelDecl.getNextSibling()));
+  }
+
+  private static class ParameterNameExpression extends Expression {
+    private final Set<String> myNames;
+
+    public ParameterNameExpression(@NotNull Set<String> namesSet) {
+      myNames = namesSet;
+    }
+
+    @Nullable
+    @Override
+    public Result calculateResult(ExpressionContext context) {
+      LookupElement[] lookupItems = calculateLookupItems(context);
+      if (lookupItems.length == 0) return new TextResult("");
+
+      return new TextResult(lookupItems[0].getLookupString());
+    }
+
+    @Nullable
+    @Override
+    public Result calculateQuickResult(ExpressionContext context) {
+      return null;
+    }
+
+    @NotNull
+    @Override
+    public LookupElement[] calculateLookupItems(ExpressionContext context) {
+      LookupElement[] lookupItems;
+
+      int offset = context.getStartOffset();
+      Project project = context.getProject();
+      PsiDocumentManager.getInstance(project).commitAllDocuments();
+      assert context.getEditor() != null;
+      PsiFile file = PsiDocumentManager.getInstance(project).getPsiFile(context.getEditor().getDocument());
+      assert file != null;
+      PsiElement elementAt = file.findElementAt(offset);
+
+      GoParameters parameters = PsiTreeUtil.getParentOfType(elementAt, GoParameters.class);
+
+      Set<LookupElement> set = new LinkedHashSet<LookupElement>();
+      if (parameters == null) {
+        for (String name : myNames) {
+          set.add(LookupElementBuilder.create(name));
+        }
+
+        lookupItems = set.toArray(new LookupElement[set.size()]);
+        return lookupItems;
+      }
+
+      GoParamDefinition parameter = PsiTreeUtil.getParentOfType(elementAt, GoParamDefinition.class);
+      Set<String> parameterNames = new HashSet<String>();
+      for (GoParameterDeclaration paramDecl : parameters.getParameterDeclarationList()) {
+        for (GoParamDefinition paramDef : paramDecl.getParamDefinitionList()) {
+          if (parameter == paramDef) continue;
+          parameterNames.add(paramDef.getName());
+        }
+      }
+
+      for (String name : myNames) {
+        if (parameterNames.contains(name)) {
+          int j = 1;
+          while (parameterNames.contains(name + j)) j++;
+          //noinspection StringConcatenationInLoop
+          name += j;
+        }
+
+        set.add(LookupElementBuilder.create(name));
+      }
+
+      lookupItems = set.toArray(new LookupElement[set.size()]);
+      return lookupItems;
+    }
   }
 
   public static LinkedHashSet<String> getSuggestedNames(GoExpression expression) {
