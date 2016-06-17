@@ -16,17 +16,17 @@
 
 package com.goide.editor;
 
-import com.goide.psi.GoFile;
-import com.goide.psi.GoImportDeclaration;
-import com.goide.psi.GoImportList;
-import com.goide.psi.GoTopLevelDeclaration;
+import com.goide.psi.*;
 import com.intellij.codeInsight.editorActions.moveUpDown.LineMover;
 import com.intellij.codeInsight.editorActions.moveUpDown.LineRange;
+import com.intellij.lang.ASTNode;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.util.Couple;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.impl.source.tree.TreeUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,110 +35,104 @@ import org.jetbrains.annotations.Nullable;
 public class GoStatementMover extends LineMover {
   @Override
   public boolean checkAvailable(@NotNull Editor editor, @NotNull PsiFile file, @NotNull MoveInfo info, boolean down) {
-    if (!(file instanceof GoFile || super.checkAvailable(editor, file, info, down))) return false;
+    if (!(file instanceof GoFile && super.checkAvailable(editor, file, info, down))) return false;
 
-    Pair<PsiElement, PsiElement> primeElementRange = getElementRange(editor, file, getLineRangeFromSelection(editor));
+    Couple<PsiElement> primeElementRange = getElementRange(editor, file);
     if (primeElementRange == null) return false;
-    PsiElement commonParent =
-      primeElementRange.first.isEquivalentTo(primeElementRange.second) ? primeElementRange.first.getParent() :
-      PsiTreeUtil.findCommonParent(primeElementRange.first, primeElementRange.second);
+
+    PsiElement commonParent = primeElementRange.first.isEquivalentTo(primeElementRange.second)
+                              ? primeElementRange.first.getParent()
+                              : PsiTreeUtil.findCommonParent(primeElementRange.first, primeElementRange.second);
     if (commonParent == null) return false;
 
-    Pair<PsiElement, PsiElement> elementRange = getLogicElementRange(primeElementRange, commonParent);
+    Couple<PsiElement> elementRange = getTopmostElementRange(primeElementRange, commonParent);
     if (elementRange == null) return false;
+
     if (commonParent == elementRange.first) commonParent = commonParent.getParent();
     info.toMove = new LineRange(elementRange.first, elementRange.second);
-    if (elementRange.first instanceof GoTopLevelDeclaration) {
-      if (!file.isValid()) {
-        return true;
-      }
-      GoTopLevelDeclaration toMove2 =
-        (GoTopLevelDeclaration)getElementOfTypeAfter(commonParent, elementRange, GoTopLevelDeclaration.class, down);
-      info.toMove2 = toMove2 == null ? null : new LineRange(toMove2);
+    
+    if (elementRange.first instanceof GoTopLevelDeclaration && commonParent instanceof GoFile) {
+      PsiElement toMove2 = getNeighborOfType(elementRange, GoTopLevelDeclaration.class, down);
+      info.toMove2 = toMove2 != null ? new LineRange(toMove2) : null;
       return true;
     }
     if (commonParent instanceof GoImportList) {
-      GoImportDeclaration toMove2 =
-        (GoImportDeclaration)getElementOfTypeAfter(commonParent, elementRange, GoImportDeclaration.class, down);
-      info.toMove2 = toMove2 == null ? null : new LineRange(toMove2);
+      PsiElement toMove2 = getNeighborOfType(elementRange, GoImportDeclaration.class, down);
+      info.toMove2 = toMove2 != null ? new LineRange(toMove2) : null;
       return true;
     }
-    setUpInfo(info, elementRange, commonParent, down);
-    return true;
+    return setUpInfo(info, elementRange, commonParent, down);
   }
 
+  private static Couple<PsiElement> getElementRange(@NotNull Editor editor, @NotNull PsiFile file) {
+    Pair<PsiElement, PsiElement> primeElementRangePair = getElementRange(editor, file, getLineRangeFromSelection(editor));
+    if (primeElementRangePair == null) return null;
+    ASTNode firstNode = TreeUtil.findFirstLeaf(primeElementRangePair.first.getNode());
+    ASTNode lastNode = TreeUtil.findLastLeaf(primeElementRangePair.second.getNode());
+    if (firstNode == null || lastNode == null) return null;
+    return Couple.of(firstNode.getPsi(), lastNode.getPsi());
+  }
+
+  /**
+   * Return element range which contains TextRange(start, end) of top level elements
+   * common parent of elements is straight parent for each element
+   */
   @Nullable
-  private static Pair<PsiElement, PsiElement> getLogicElementRange(@NotNull Pair<PsiElement, PsiElement> elementRange,
-                                                                   @NotNull PsiElement parent) {
+  private static Couple<PsiElement> getTopmostElementRange(@NotNull Couple<PsiElement> elementRange, @NotNull PsiElement commonParent) {
     if (elementRange.first == null || elementRange.second == null) return null;
     int start = elementRange.first.getTextOffset();
     int end = elementRange.second.getTextRange().getEndOffset();
 
-    TextRange range = parent.getTextRange();
-    PsiElement[] children = parent.getChildren();
-    if (range.getStartOffset() == start && (children.length == 0 || children[0].getTextOffset() > start) ||
+    TextRange range = commonParent.getTextRange();
+    PsiElement[] children = commonParent.getChildren();
+    if (commonParent.isEquivalentTo(elementRange.first) ||
+        commonParent.isEquivalentTo(elementRange.second) ||
+        range.getStartOffset() == start && (children.length == 0 || children[0].getTextRange().getStartOffset() > start) ||
         range.getEndOffset() == end && (children.length == 0 || children[children.length - 1].getTextRange().getEndOffset() < end)) {
-      return new Pair<>(parent, parent);
+      return Couple.of(commonParent, commonParent);
     }
 
     PsiElement startElement = elementRange.first;
     PsiElement endElement = elementRange.second;
     for (PsiElement element : children) {
       range = element.getTextRange();
-      if (range.getStartOffset() <= start && range.getEndOffset() <= end && range.getEndOffset() > start) {
+      if (range.contains(start) && !range.contains(end)) {
         startElement = element;
       }
-      if (range.getStartOffset() >= start && range.getStartOffset() < end && range.getEndOffset() >= end) {
+      if (range.contains(end - 1) && !range.contains(start - 1)) {
         endElement = element;
       }
     }
-    if (!startElement.getParent().isEquivalentTo(endElement.getParent())) {
-      return null;
-    }
 
-    return new Pair<>(startElement, endElement);
+    return startElement.getParent().isEquivalentTo(endElement.getParent()) ? Couple.of(startElement, endElement) : null;
   }
 
-  private static void setUpInfo(@NotNull MoveInfo info,
-                                @NotNull Pair<PsiElement, PsiElement> range,
-                                @NotNull PsiElement parent,
-                                boolean down) {
+  private static boolean setUpInfo(@NotNull MoveInfo info,
+                                   @NotNull Couple<PsiElement> range,
+                                   @NotNull PsiElement commonParent,
+                                   boolean down) {
     info.toMove = new LineRange(range.first, range.second);
     info.toMove2 = null;
-    GoTopLevelDeclaration block = PsiTreeUtil.getParentOfType(parent, GoTopLevelDeclaration.class);
-    if (block == null) return;
+    if (range.first instanceof GoPackageClause) return true;
+    PsiElement topLevelElement = PsiTreeUtil.findPrevParent(commonParent.getContainingFile(), commonParent);
 
     int nearLine = down ? info.toMove.endLine : info.toMove.startLine - 1;
-    LineRange blockLineRange = new LineRange(block);
-    if (!blockLineRange.containsLine(down ? info.toMove.endLine + 1 : info.toMove.startLine - 2)) {
-      info.toMove2 = null;
-      return;
+    LineRange lineRange = new LineRange(topLevelElement);
+    if (!lineRange.containsLine(down ? info.toMove.endLine + 1 : info.toMove.startLine - 2)) {
+      return true;
     }
 
-    info.toMove2 =
-      blockLineRange.containsLine(down ? info.toMove.endLine + 1 : info.toMove.startLine - 2)
-      ? new LineRange(nearLine, nearLine + 1)
-      : null;
+    info.toMove2 = lineRange.containsLine(down ? info.toMove.endLine + 1 : info.toMove.startLine - 2)
+                   ? new LineRange(nearLine, nearLine + 1)
+                   : null;
+    return true;
   }
 
   @Nullable
-  private static PsiElement getElementOfTypeAfter(@NotNull PsiElement parent,
-                                                  @NotNull Pair<PsiElement, PsiElement> range,
-                                                  @NotNull Class<? extends PsiElement> clazz,
-                                                  boolean after) {
-    PsiElement[] children = parent.getChildren();
-    for (int i = 0; i < children.length; i++) {
-      if (children[i].isEquivalentTo(after ? range.second : range.first)) {
-        int j = after ? i + 1 : i - 1;
-        while (j >= 0 && j < children.length) {
-          if (clazz.isInstance(children[j])) {
-            return children[j];
-          }
-          j = after ? j + 1 : j - 1;
-        }
-      }
-    }
-    return null;
+  private static PsiElement getNeighborOfType(@NotNull Couple<PsiElement> range,
+                                              @NotNull Class<? extends PsiElement> clazz,
+                                              boolean rightNeighbor) {
+    return rightNeighbor ? PsiTreeUtil.getNextSiblingOfType(range.second, clazz) : PsiTreeUtil.getPrevSiblingOfType(range.first, clazz);
   }
 }
 

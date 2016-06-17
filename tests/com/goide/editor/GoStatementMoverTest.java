@@ -16,13 +16,11 @@
 
 package com.goide.editor;
 
+import com.goide.GoCodeInsightFixtureTestCase;
 import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import org.jetbrains.annotations.NotNull;
 
-public class GoStatementMoverTest extends LightCodeInsightFixtureTestCase {
-
-
+public class GoStatementMoverTest extends GoCodeInsightFixtureTestCase {
   public void testSimpleStatement() {
     doTest(false);
     doTest(true);
@@ -41,21 +39,30 @@ public class GoStatementMoverTest extends LightCodeInsightFixtureTestCase {
     doTest(true);
   }
 
-  public void testFuncDecl() {
+  public void testFunctionDeclaration() {
     doTest(true);
     doTest(false);
   }
 
-  public void testFuncDeclWithFewTopLvlDecl() {
+  public void testFunctionDeclarationWithFewTopLevelDeclarations() {
     doTest(false);
   }
 
-  public void testFuncDeclWithFewTopLvlDeclDown() {
+  public void testFunctionDeclarationWithFewTopLevelDeclarationsDown() {
     doTest(true);
   }
 
   public void testImport() {
     doTest(false);
+  }
+
+  public void testImportWithCaretAtLastImport() {
+    doTest(false);
+  }
+
+  public void testImportWithCaretAtImportString() {
+    doTest(false);
+    doTest(true);
   }
 
   public void testImportDown() {
@@ -79,24 +86,31 @@ public class GoStatementMoverTest extends LightCodeInsightFixtureTestCase {
     doTest(true);
   }
 
-  private void doTest(boolean down) {
-    final String testName = getTestName(false);
+  public void testVarSpecTopLevelDeclaration() {
+    doTest(true);
+  }
 
-    myFixture.configureByFile(getBasePath() + "/" + testName + ".go");
+  public void testAnonymousFunction() {
+    doTest(false);
+    doTest(true);
+  }
+
+  public void testAnonymousFunctionAtAssignment() {
+    doTest(false);
+    doTest(true);
+  }
+
+  private void doTest(boolean down) {
+    final String testName = getTestName(true);
+    myFixture.configureByFile(testName + ".go");
     if (down) {
       myFixture.performEditorAction(IdeActions.ACTION_MOVE_STATEMENT_DOWN_ACTION);
-      myFixture.checkResultByFile(getBasePath() + "/" + testName + "-afterDown.go", true);
+      myFixture.checkResultByFile(testName + "-afterDown.go", true);
     }
     else {
       myFixture.performEditorAction(IdeActions.ACTION_MOVE_STATEMENT_UP_ACTION);
-      myFixture.checkResultByFile(getBasePath() + "/" + testName + "-afterUp.go", true);
+      myFixture.checkResultByFile(testName + "-afterUp.go", true);
     }
-  }
-
-  @NotNull
-  @Override
-  public String getTestDataPath() {
-    return "testData/";
   }
 
   @NotNull
