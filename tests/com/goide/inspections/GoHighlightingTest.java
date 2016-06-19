@@ -159,6 +159,7 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
   public void testUnderscoreUsedAsValue()     { doTest(); }
   public void testUnusedParameter()           { doTest(); }
   public void testUnusedParameter_test()      { doTest(); }
+  public void testUnusedFunction()            { doTest(); }
   public void testVoidFunctionUsedAsValue()   { doTest(); }
   public void testIndexedStringAssign()       { doTest(); }
   public void testStringSliceWithThirdIndex() { doTest(); }
