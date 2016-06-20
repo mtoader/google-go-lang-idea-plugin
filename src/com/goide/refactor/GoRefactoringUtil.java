@@ -21,15 +21,20 @@ import com.goide.psi.*;
 import com.goide.psi.impl.GoPsiImplUtil;
 import com.goide.psi.impl.GoTypeUtil;
 import com.intellij.codeInsight.PsiEquivalenceUtil;
+import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiRecursiveElementVisitor;
 import com.intellij.psi.codeStyle.NameUtil;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.util.containers.*;
+import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.text.UniqueNameGenerator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
 
 public class GoRefactoringUtil {
   private final static GoNamesValidator namesValidator = new GoNamesValidator();
@@ -109,14 +114,12 @@ public class GoRefactoringUtil {
     }
 
     if (names.isEmpty()) {
-      if (usedNames.contains("i")) {
-        int counter = 1;
-        while (usedNames.contains("i" + counter)) counter++;
-        names.add("i" + counter);
-      }
-      else {
-        names.add("i");
-      }
+      names.add(UniqueNameGenerator.generateUniqueName("i", new Condition<String>() {
+        @Override
+        public boolean value(String s) {
+          return !usedNames.contains(s);
+        }
+      }));
     }
     return names;
   }
