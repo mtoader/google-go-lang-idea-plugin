@@ -330,7 +330,9 @@
     <localInspection language="go" displayName="Invalid strings and runes" groupPath="Go"
                      groupName="General" enabledByDefault="true" level="ERROR" 
                      implementationClass="com.goide.inspections.GoInvalidStringOrCharInspection"/>
-
+    <localInspection language="go" displayName="Go types compatibility check" groupPath="Go"
+                     groupName="General" enabledByDefault="false" level="WARNING"
+                     implementationClass="com.goide.inspections.GoTypesCompatibilityInspection"/>
     <!-- /general -->
 
     <!-- color schemes -->
