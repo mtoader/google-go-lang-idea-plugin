@@ -16,9 +16,10 @@
 
 package com.goide.inspections;
 
-import com.goide.GoCodeInsightFixtureTestCase;
+import com.goide.quickfix.GoQuickFixTestBase;
+import com.goide.quickfix.GoRenameReceiverQuickFix;
 
-public class GoReceiverNamesInspectionTest extends GoCodeInsightFixtureTestCase {
+public class GoReceiverNamesInspectionTest extends GoQuickFixTestBase {
 
   @Override
   public void setUp() throws Exception {
@@ -27,17 +28,43 @@ public class GoReceiverNamesInspectionTest extends GoCodeInsightFixtureTestCase 
   }
 
   public void testThis() {
-    doTest("func (<weak_warning descr=\"Receiver has generic name\">this<caret></weak_warning> MyType) asd() {}");
+    doTest(false);
   }
 
+  public void testMeRenameAll() {
+    doTest(true);
+  }
 
   public void testNoFix() {
-    doTest("func (myType<caret> MyType) asd() {}");
+    doTestNoFix(false);
+  }
+
+  public void testDifferentNames() {
+    doTest(false);
+  }
+
+  public void testDifferentNamesRenameAll() {
+    doTest(true);
   }
 
 
-  private void doTest(String code) {
-    myFixture.configureByText("a.go", "package main; type MyType int; " + code);
-    myFixture.checkHighlighting();
+  public void doTest(boolean renameAll) {
+    super.doTest(getQuickFixName(renameAll), true);
   }
+
+  public void doTestNoFix(boolean renameAll) {
+    super.doTestNoFix(getQuickFixName(renameAll), true);
+  }
+
+  private static String getQuickFixName(boolean renameAll) {
+    return renameAll ? GoRenameReceiverQuickFix.RENAME_ALL_METHODS_QUICKFIX_NAME :
+           GoRenameReceiverQuickFix.RENAME_ONE_METHOD_QUICKFIX_NAME;
+  }
+
+  @Override
+  public String getBasePath() {
+    return "inspections/receiver-names";
+  }
+
+
 }
