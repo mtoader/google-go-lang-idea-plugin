@@ -18,8 +18,10 @@ package com.goide.psi.impl;
 
 import com.goide.GoConstants;
 import com.goide.psi.*;
+import com.goide.util.GoStringLiteralEscaper;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
@@ -77,20 +79,20 @@ public class GoTypeUtil {
   }
 
   @NotNull
-  public static List<GoType> getExpectedTypes(@NotNull GoExpression expression) {
+  public static List<Pair<GoType, Boolean>> getExpectedTypesWithVariadic(@NotNull GoExpression expression) {
     PsiElement parent = expression.getParent();
     if (parent == null) return Collections.emptyList();
     if (parent instanceof GoAssignmentStatement) {
-      return getExpectedTypesFromAssignmentStatement(expression, (GoAssignmentStatement)parent);
+      return createListWithFalseVariadic(getExpectedTypesFromAssignmentStatement(expression, (GoAssignmentStatement)parent));
     }
     if (parent instanceof GoRangeClause) {
-      return Collections.singletonList(getGoType(null, parent));
+      return createListWithFalseVariadic(Collections.singletonList(getGoType(null, parent)));
     }
     if (parent instanceof GoRecvStatement) {
-      return getExpectedTypesFromRecvStatement((GoRecvStatement)parent);
+      return createListWithFalseVariadic(getExpectedTypesFromRecvStatement((GoRecvStatement)parent));
     }
     if (parent instanceof GoVarSpec) {
-      return getExpectedTypesFromVarSpec(expression, (GoVarSpec)parent);
+      return createListWithFalseVariadic(getExpectedTypesFromVarSpec(expression, (GoVarSpec)parent));
     }
     if (parent instanceof GoArgumentList) {
       return getExpectedTypesFromArgumentList(expression, (GoArgumentList)parent);
@@ -98,22 +100,32 @@ public class GoTypeUtil {
     if (parent instanceof GoUnaryExpr) {
       GoUnaryExpr unaryExpr = (GoUnaryExpr)parent;
       if (unaryExpr.getSendChannel() != null) {
-        GoType type = ContainerUtil.getFirstItem(getExpectedTypes(unaryExpr));
+        Pair<GoType, Boolean> item = ContainerUtil.getFirstItem(getExpectedTypesWithVariadic(unaryExpr));
+        GoType type = item != null ? item.first : null;
         GoType chanType = GoElementFactory.createType(parent.getProject(), "chan " + getInterfaceIfNull(type, parent).getText());
-        return Collections.singletonList(chanType);
+        return createListWithFalseVariadic(Collections.singletonList(chanType));
       }
       else {
-        return Collections.singletonList(getGoType(null, parent));
+        return createListWithFalseVariadic(Collections.singletonList(getGoType(null, parent)));
       }
     }
     if (parent instanceof GoSendStatement || parent instanceof GoLeftHandExprList && parent.getParent() instanceof GoSendStatement) {
       GoSendStatement sendStatement = (GoSendStatement)(parent instanceof GoSendStatement ? parent : parent.getParent());
-      return getExpectedTypesFromGoSendStatement(expression, sendStatement);
+      return createListWithFalseVariadic(getExpectedTypesFromGoSendStatement(expression, sendStatement));
     }
     if (parent instanceof GoExprCaseClause) {
-      return getExpectedTypesFromExprCaseClause((GoExprCaseClause)parent);
+      return createListWithFalseVariadic(getExpectedTypesFromExprCaseClause((GoExprCaseClause)parent));
     }
     return Collections.emptyList();
+  }
+
+  private static List<Pair<GoType, Boolean>> createListWithFalseVariadic(List<GoType> list) {
+    return ContainerUtil.map(list, new Function<GoType, Pair<GoType, Boolean>>() {
+      @Override
+      public Pair<GoType, Boolean> fun(GoType type) {
+        return Pair.pair(type, false);
+      }
+    });
   }
 
   @NotNull
@@ -130,7 +142,7 @@ public class GoTypeUtil {
     if (statement == null) {
       return Collections.singletonList(getInterfaceIfNull(GoPsiImplUtil.getBuiltinType("bool", exprCaseClause), exprCaseClause));
     }
-    
+
     GoLeftHandExprList leftHandExprList = statement instanceof GoSimpleStatement ? ((GoSimpleStatement)statement).getLeftHandExprList() : null;
     GoExpression expr = leftHandExprList != null ? ContainerUtil.getFirstItem(leftHandExprList.getExpressionList()) : null;
     return Collections.singletonList(getGoType(expr, exprCaseClause));
@@ -157,7 +169,8 @@ public class GoTypeUtil {
   }
 
   @NotNull
-  private static List<GoType> getExpectedTypesFromArgumentList(@NotNull GoExpression expression, @NotNull GoArgumentList argumentList) {
+  private static List<Pair<GoType, Boolean>> getExpectedTypesFromArgumentList(@NotNull GoExpression expression,
+                                                                              @NotNull GoArgumentList argumentList) {
     PsiElement parentOfParent = argumentList.getParent();
     assert parentOfParent instanceof GoCallExpr;
     PsiReference reference = ((GoCallExpr)parentOfParent).getExpression().getReference();
@@ -178,10 +191,13 @@ public class GoTypeUtil {
                 typeList.add(getInterfaceIfNull(parameterDecl.getType(), argumentList));
               }
             }
-            List<GoType> result = ContainerUtil.newSmartList(createGoTypeListOrGoType(typeList, argumentList));
+            GoParameterDeclaration lastItem = ContainerUtil.getLastItem(paramsList);
+            boolean variadic = lastItem != null && lastItem.isVariadic();
+            List<Pair<GoType, Boolean>> result =
+              ContainerUtil.newSmartList(Pair.pair(createGoTypeListOrGoType(typeList, argumentList), variadic));
             if (paramsList.size() > 1) {
               assert paramsList.get(0) != null;
-              result.add(getInterfaceIfNull(paramsList.get(0).getType(), argumentList));
+              result.add(Pair.pair(getInterfaceIfNull(paramsList.get(0).getType(), argumentList), false));
             }
             return result;
           }
@@ -189,19 +205,25 @@ public class GoTypeUtil {
             int position = exprList.indexOf(expression);
             if (position >= 0) {
               int i = 0;
+              GoParameterDeclaration lastParameter = ContainerUtil.getLastItem(paramsList);
+              boolean variadic = lastParameter != null && lastParameter.isVariadic();
               for (GoParameterDeclaration parameterDecl : paramsList) {
                 int paramDeclSize = Math.max(1, parameterDecl.getParamDefinitionList().size());
                 if (i + paramDeclSize > position) {
-                  return Collections.singletonList(getInterfaceIfNull(parameterDecl.getType(), argumentList));
+                  return Collections.singletonList(Pair.pair(getInterfaceIfNull(parameterDecl.getType(), argumentList),
+                                                             variadic && parameterDecl.isEquivalentTo(lastParameter)));
                 }
                 i += paramDeclSize;
+              }
+              if (variadic) {
+                return Collections.singletonList(Pair.pair(getInterfaceIfNull(lastParameter.getType(), argumentList), false));
               }
             }
           }
         }
       }
     }
-    return Collections.singletonList(getInterfaceIfNull(null, argumentList));
+    return Collections.singletonList(Pair.pair(getInterfaceIfNull(null, argumentList), false));
   }
 
   @NotNull
@@ -249,7 +271,7 @@ public class GoTypeUtil {
       }
       return result;
     }
-    
+
     int position = assignment.getExpressionList().indexOf(expression);
     GoType leftExpression = leftExpressions.size() > position ? leftExpressions.get(position).getGoType(null) : null;
     return Collections.singletonList(getInterfaceIfNull(leftExpression, assignment));
@@ -417,7 +439,7 @@ public class GoTypeUtil {
       }
       if (f instanceof GoAnonymousFieldDefinition) {
         if (!(s instanceof GoAnonymousFieldDefinition)) return false;
-        if (!identical(((GoAnonymousFieldDefinition)f).getTypeReferenceExpression().resolveType(), 
+        if (!identical(((GoAnonymousFieldDefinition)f).getTypeReferenceExpression().resolveType(),
                        ((GoAnonymousFieldDefinition)s).getTypeReferenceExpression().resolveType())) return false;
       }
     }
