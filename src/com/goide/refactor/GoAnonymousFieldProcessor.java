@@ -16,13 +16,13 @@
 
 package com.goide.refactor;
 
-import com.goide.psi.GoAnonymousFieldDefinition;
-import com.goide.psi.GoTypeSpec;
+import com.goide.psi.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.refactoring.rename.RenamePsiElementProcessor;
+import com.intellij.util.ObjectUtils;
 import com.intellij.util.Query;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,12 +46,28 @@ public class GoAnonymousFieldProcessor extends RenamePsiElementProcessor {
         if (parent instanceof GoAnonymousFieldDefinition) {
           allRenames.put(parent, newName);
         }
+        GoPointerType pointer = ObjectUtils.tryCast(parent != null ? parent.getParent() : null, GoPointerType.class);
+        GoAnonymousFieldDefinition anonymousFieldDefinition =
+          ObjectUtils.tryCast(pointer != null ? pointer.getParent() : null, GoAnonymousFieldDefinition.class);
+        if (parent instanceof GoType && anonymousFieldDefinition != null) {
+          allRenames.put(anonymousFieldDefinition, newName);
+        }
       }
     }
     else if (element instanceof GoAnonymousFieldDefinition) {
-      PsiElement type = ((GoAnonymousFieldDefinition)element).getTypeReferenceExpression().resolve();
-      if (type instanceof GoTypeSpec) {
-        allRenames.put(type, newName);
+      GoTypeReferenceExpression reference;
+      GoAnonymousFieldDefinition anonymousFieldDefinition = (GoAnonymousFieldDefinition)element;
+      GoPointerType pointer = anonymousFieldDefinition.getPointerType();
+      if (pointer != null) {
+        GoType innerType = pointer.getType();
+        reference = innerType != null ? innerType.getTypeReferenceExpression() : null;
+      }
+      else {
+        reference = anonymousFieldDefinition.getTypeReferenceExpression();
+      }
+      PsiElement typeSpec = reference != null ? reference.resolve() : null;
+      if (typeSpec instanceof GoTypeSpec) {
+        allRenames.put(typeSpec, newName);
       }
     }
   }

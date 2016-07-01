@@ -340,23 +340,16 @@ public class GoParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // '*'? TypeName
+  // PointerType | TypeName
   public static boolean AnonymousFieldDefinition(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "AnonymousFieldDefinition")) return false;
     if (!nextTokenIs(b, "<anonymous field definition>", MUL, IDENTIFIER)) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, ANONYMOUS_FIELD_DEFINITION, "<anonymous field definition>");
-    r = AnonymousFieldDefinition_0(b, l + 1);
-    r = r && TypeName(b, l + 1);
+    r = PointerType(b, l + 1);
+    if (!r) r = TypeName(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
-  }
-
-  // '*'?
-  private static boolean AnonymousFieldDefinition_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "AnonymousFieldDefinition_0")) return false;
-    consumeToken(b, MUL);
-    return true;
   }
 
   /* ********************************************************** */

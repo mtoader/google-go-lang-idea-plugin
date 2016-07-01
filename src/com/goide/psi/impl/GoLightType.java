@@ -48,6 +48,11 @@ public abstract class GoLightType<E extends GoCompositeElement> extends LightEle
   }
 
   @Override
+  public boolean isAssignableFrom(GoType right) {
+    return GoPsiImplUtil.isAssignableFrom(this, right);
+  }
+
+  @Override
   public String toString() {
     return getClass().getSimpleName() + "{" + myElement + "}";
   }

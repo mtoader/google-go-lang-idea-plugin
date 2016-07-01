@@ -80,4 +80,9 @@ public class GoInterfaceTypeImpl extends GoTypeImpl implements GoInterfaceType {
     return GoPsiImplUtil.getBaseTypesReferences(this);
   }
 
+  @NotNull
+  public List<GoMethodSpec> getAllMethods() {
+    return GoPsiImplUtil.getAllMethods(this);
+  }
+
 }

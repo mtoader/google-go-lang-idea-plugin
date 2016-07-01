@@ -39,6 +39,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
@@ -80,7 +81,8 @@ public class GoIntroduceFunctionFix extends LocalQuickFixAndIntentionActionOnPsi
 
     GoCallExpr call = (GoCallExpr)startElement;
     List<GoExpression> args = call.getArgumentList().getExpressionList();
-    GoType resultType = ContainerUtil.getFirstItem(GoTypeUtil.getExpectedTypes(call));
+    Pair<GoType, Boolean> firstItem = ContainerUtil.getFirstItem(GoTypeUtil.getExpectedTypesWithVariadic(call));
+    GoType resultType = firstItem != null ? firstItem.first : null;
     GoFunctionDeclaration function = createFunctionDeclaration(file, myName, args, resultType);
 
     PsiElement anchor = PsiTreeUtil.getParentOfType(call, GoTopLevelDeclaration.class);

@@ -20,6 +20,7 @@ package com.goide.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.goide.psi.impl.GoPsiImplUtil.ChannelDirection;
 
 public interface GoChannelType extends GoType {
 
@@ -31,5 +32,8 @@ public interface GoChannelType extends GoType {
 
   @Nullable
   PsiElement getChan();
+
+  @NotNull
+  ChannelDirection getDirection();
 
 }

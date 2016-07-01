@@ -41,4 +41,7 @@ public interface GoInterfaceType extends GoType {
   @NotNull
   List<GoTypeReferenceExpression> getBaseTypesReferences();
 
+  @NotNull
+  List<GoMethodSpec> getAllMethods();
+
 }
