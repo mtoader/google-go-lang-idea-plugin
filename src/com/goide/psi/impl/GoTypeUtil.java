@@ -454,7 +454,7 @@ public class GoTypeUtil {
   private static boolean isImplementsInterface(@NotNull GoInterfaceType interfaceType, @NotNull GoType type) {
     List<GoMethodSpec> interfaceMethods = interfaceType.getAllMethods();
     if (interfaceMethods.isEmpty()) return true;
-    GoTypeReferenceExpression reference = type.getTypeReferenceExpression();
+    GoTypeReferenceExpression reference = GoPsiImplUtil.getTypeReference(type);
     GoTypeSpec typeSpec = ObjectUtils.tryCast(reference != null ? reference.resolve() : null, GoTypeSpec.class);
     if (typeSpec == null) return false;
     List<GoMethodDeclaration> methodsForType = ContainerUtil.newArrayList(typeSpec.getMethods());
