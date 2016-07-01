@@ -217,7 +217,16 @@ public class GoReference extends PsiPolyVariantReferenceBase<GoReferenceExpressi
         if (!processNamedElements(processor, state, d.getFieldDefinitionList(), localResolve)) return false;
         GoAnonymousFieldDefinition anon = d.getAnonymousFieldDefinition();
         if (anon != null) {
-          (anon.getMul() != null ? structRefs : interfaceRefs).add(anon.getTypeReferenceExpression());
+          GoTypeReferenceExpression expression;
+          GoPointerType pointer = anon.getPointerType();
+          if (pointer != null) {
+            GoType innerType = pointer.getType();
+            expression = innerType != null ? innerType.getTypeReferenceExpression() : null;
+          }
+          else {
+            expression = anon.getTypeReferenceExpression();
+          }
+          (anon.getPointerType() != null ? structRefs : interfaceRefs).add(expression);
           if (!processNamedElements(processor, state, ContainerUtil.createMaybeSingletonList(anon), localResolve)) return false;
         }
       }

@@ -29,6 +29,10 @@ public class GoTypeResolveTest extends GoCodeInsightFixtureTestCase {
     doTopLevelTest("type A struct{};type E A;type B struct{ E };func (e E) foo() {};func main() { b := B{}; b.<caret>E }", "E A");
   }
 
+  public void testAnon2() {
+    doTopLevelTest("type A struct{};type E A;type B struct{ *E };func (e E) foo() {};func main() { b := B{}; b.<caret>E }", "*E");
+  }
+
   public void testTypeSwitchDeclaration() {
     doStatementTest("switch fo<caret>o := \"hello\".(type) {}", "string");
   }

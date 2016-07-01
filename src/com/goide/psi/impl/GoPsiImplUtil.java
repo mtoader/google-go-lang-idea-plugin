@@ -238,13 +238,18 @@ public class GoPsiImplUtil {
     return null;
   }
 
-  @NotNull
+  @Nullable
   public static String getName(@NotNull GoAnonymousFieldDefinition o) {
-    return o.getTypeReferenceExpression().getIdentifier().getText();
-  }
-
-  public static int getTextOffset(@NotNull GoAnonymousFieldDefinition o) {
-    return o.getTypeReferenceExpression().getIdentifier().getTextOffset();
+    GoTypeReferenceExpression expression;
+    GoPointerType pointer = o.getPointerType();
+    if (pointer != null) {
+      GoType type = pointer.getType();
+      expression = type != null ? type.getTypeReferenceExpression() : null;
+    }
+    else {
+      expression = o.getTypeReferenceExpression();
+    }
+    return expression != null ? expression.getIdentifier().getText() : null;
   }
 
   @Nullable
@@ -906,7 +911,22 @@ public class GoPsiImplUtil {
   @Nullable
   public static GoType getGoTypeInner(@NotNull GoAnonymousFieldDefinition o,
                                       @SuppressWarnings("UnusedParameters") @Nullable ResolveState context) {
-    return o.getTypeReferenceExpression().resolveType();
+    return CachedValuesManager.getCachedValue(o, new CachedValueProvider<GoType>() {
+      @Nullable
+      @Override
+      public Result<GoType> compute() {
+        GoType type;
+        if (o.getPointerType() != null) {
+          type = o.getPointerType();
+        }
+        else {
+          GoTypeReferenceExpression expression = o.getTypeReferenceExpression();
+          type = expression!=null ? expression.resolveType() : null;
+        }
+        return Result.create(type, PsiModificationTracker.MODIFICATION_COUNT);
+      }
+    });
+
   }
 
   @NotNull
