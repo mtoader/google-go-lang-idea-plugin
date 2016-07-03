@@ -70,7 +70,8 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
       GoUnderscoreUsedAsValueInspection.class,
       GoRangeIterationOnIllegalTypeInspection.class,
       GoUnusedParameterInspection.class,
-      GoInvalidStringOrCharInspection.class
+      GoInvalidStringOrCharInspection.class,
+      GoMixedNamedUnnamedParametersInspection.class
     );
   }
 
@@ -82,6 +83,11 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
   @Override
   protected String getBasePath() {
     return "highlighting";
+  }
+
+  @Override
+  protected boolean isWriteActionRequired() {
+    return false;
   }
 
   public void testSimple()                    { doTest(); }
@@ -153,6 +159,7 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
   public void testStringSliceWithThirdIndex() { doTest(); }
   public void testSliceWithThirdIndex()       { doTest(); }
   public void testStringInStructSliceWithThirdIndex() { doTest(); }
+  public void testMixedNamedUnnamedParameters() { doTest(); }
 
   public void testAvoidDuplicatedUnusedImportReports() {
     myFixture.addFileToProject("pack1/a.go", "package foo;");
