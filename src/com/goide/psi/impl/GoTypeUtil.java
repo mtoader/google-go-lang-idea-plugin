@@ -411,15 +411,9 @@ public class GoTypeUtil {
     for (int i = 0; i < l.size(); i++) {
       GoNamedElement f = l.get(i);
       GoNamedElement s = r.get(i);
-      if (f instanceof GoFieldDefinition) {
-        if (!(s instanceof GoFieldDefinition)) return false;
-        if (!identical(f.getGoType(null), s.getGoType(null))) return false;
-      }
-      if (f instanceof GoAnonymousFieldDefinition) {
-        if (!(s instanceof GoAnonymousFieldDefinition)) return false;
-        if (!identical(((GoAnonymousFieldDefinition)f).getTypeReferenceExpression().resolveType(), 
-                       ((GoAnonymousFieldDefinition)s).getTypeReferenceExpression().resolveType())) return false;
-      }
+      if (f instanceof GoFieldDefinition && !(s instanceof GoFieldDefinition)) return false;
+      if (f instanceof GoAnonymousFieldDefinition && !(s instanceof GoAnonymousFieldDefinition)) return false;
+      if (!identical(f.getGoType(null), s.getGoType(null))) return false;
     }
     return true;
   }
