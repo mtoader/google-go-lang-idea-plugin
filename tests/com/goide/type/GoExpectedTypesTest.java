@@ -18,15 +18,32 @@ package com.goide.type;
 
 import com.goide.GoCodeInsightFixtureTestCase;
 import com.goide.psi.GoExpression;
+import com.goide.psi.GoType;
 import com.goide.psi.impl.GoPsiImplUtil;
 import com.goide.psi.impl.GoTypeUtil;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.LightProjectDescriptor;
+import com.intellij.util.Function;
 import org.jetbrains.annotations.NotNull;
 
 public class GoExpectedTypesTest extends GoCodeInsightFixtureTestCase {
+  private static final Function<Pair<GoType, Boolean>, String> FUNCTION =  new Function<Pair<GoType, Boolean>, String>() {
+    @Override
+    public String fun(Pair<GoType, Boolean> pair) {
+      return pair.first.getText();
+    }
+  };
+
+  private static final Function<Pair<GoType, Boolean>, String> FUNCTION_WITH_VARIADIC =  new Function<Pair<GoType, Boolean>, String>() {
+    @Override
+    public String fun(Pair<GoType, Boolean> pair) {
+      return pair.first.getText() + " " + pair.second;
+    }
+  };
+
   public void testAssignment() {
     doStatementTest("var a int; a = <selection>asd()</selection>", "int");
   }
@@ -155,6 +172,31 @@ public class GoExpectedTypesTest extends GoCodeInsightFixtureTestCase {
     doStatementTest("select { case i := <selection>asd()</selection> : }", "interface{}");
   }
 
+  public void testVariadicFunction() {
+    doTopLevelTestWithVariadic("func foo(...int){}; func _(){ foo(<selection>asd()</selection>)}", "int true");
+  }
+
+  public void testVariadicFunction_2() {
+    doTopLevelTestWithVariadic("func foo(...int){}; func _(){ foo(1, 2, 3, <selection>asd()</selection>)}", "int false");
+  }
+
+  public void testVariadicFunction_3() {
+    doTopLevelTestWithVariadic("func foo(int, int, ...int){}; func _(){ foo(1, 2, 3, <selection>asd()</selection>)}", "int false");
+  }
+
+  public void testVariadicFunction_4() {
+    doTopLevelTestWithVariadic("func foo(int, int, ...int){}; func _(){ foo(1, <selection>asd()</selection>)}", "int false");
+  }
+
+  public void testVariadicFunction_5() {
+    doTopLevelTestWithVariadic("func foo(s string, f float32, i ...int){}; func _(){ foo(<selection>asd()</selection>)}",
+                               "string, float32, int true; string false");
+  }
+
+  public void testVariadicFunction_6() {
+    doTopLevelTestWithVariadic("func foo(f int, i ...int){}; func _(){ foo(1, <selection>asd()</selection>)}", "int true");
+  }
+
   private void doTopLevelTest(@NotNull String text, @NotNull String expectedTypeText) {
     myFixture.configureByText("a.go", "package a;" + text);
     PsiElement elementAt = findElementAtCaretOrInSelection();
@@ -162,7 +204,17 @@ public class GoExpectedTypesTest extends GoCodeInsightFixtureTestCase {
     GoExpression typeOwner = PsiTreeUtil.getNonStrictParentOfType(elementAt, GoExpression.class);
     assertNotNull("Cannot find type owner. Context element: " + elementAt.getText(), typeOwner);
 
-    assertEquals(expectedTypeText, StringUtil.join(GoTypeUtil.getExpectedTypes(typeOwner), GoPsiImplUtil.GET_TEXT_FUNCTION, "; "));
+    assertEquals(expectedTypeText, StringUtil.join(GoTypeUtil.getExpectedTypesWithVariadic(typeOwner), FUNCTION, "; "));
+  }
+
+  private void doTopLevelTestWithVariadic(@NotNull String text, @NotNull String expectedTypeText) {
+    myFixture.configureByText("a.go", "package a;" + text);
+    PsiElement elementAt = findElementAtCaretOrInSelection();
+
+    GoExpression typeOwner = PsiTreeUtil.getNonStrictParentOfType(elementAt, GoExpression.class);
+    assertNotNull("Cannot find type owner. Context element: " + elementAt.getText(), typeOwner);
+
+    assertEquals(expectedTypeText, StringUtil.join(GoTypeUtil.getExpectedTypesWithVariadic(typeOwner), FUNCTION_WITH_VARIADIC, "; "));
   }
 
   private void doStatementTest(@NotNull String text, @NotNull String expectedTypeText) {
