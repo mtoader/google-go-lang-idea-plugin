@@ -226,7 +226,8 @@ public class GoPsiImplUtil {
 
   @Nullable
   public static PsiElement getIdentifier(@SuppressWarnings("UnusedParameters") @NotNull GoAnonymousFieldDefinition o) {
-    return null;
+    GoTypeReferenceExpression expression = o.getTypeReferenceExpression();
+    return expression != null ? expression.getIdentifier() : null;
   }
 
   @Nullable
@@ -238,14 +239,30 @@ public class GoPsiImplUtil {
     return null;
   }
 
-  @NotNull
+  @Nullable
   public static String getName(@NotNull GoAnonymousFieldDefinition o) {
-    return o.getTypeReferenceExpression().getIdentifier().getText();
+    PsiElement identifier = o.getIdentifier();
+    return identifier != null ? identifier.getText() : null;
   }
 
-  public static int getTextOffset(@NotNull GoAnonymousFieldDefinition o) {
-    return o.getTypeReferenceExpression().getIdentifier().getTextOffset();
+  @Nullable
+  public static GoTypeReferenceExpression getTypeReferenceExpression(@NotNull GoAnonymousFieldDefinition o) {
+    GoType type = o.getGoTypeInner();
+    return type != null ? type.getTypeReferenceExpression() : null;
   }
+
+  @Nullable
+  public static GoType getGoTypeInner(@NotNull GoAnonymousFieldDefinition o) {
+    GoType type = o.getType();
+    return type instanceof GoPointerType ? ((GoPointerType)type).getType() : type;
+  }
+
+  @Nullable
+  public static GoType getGoType(@NotNull GoAnonymousFieldDefinition o,
+                                 @SuppressWarnings("UnusedParameters") @Nullable ResolveState context) {
+    return o.getType();
+  }
+
 
   @Nullable
   public static String getName(@NotNull GoMethodSpec o) {
@@ -821,7 +838,7 @@ public class GoPsiImplUtil {
       return false;
     }
     // it's not a test or context file is also test from the same package
-    return referenceFile == null 
+    return referenceFile == null
            || !GoTestFinder.isTestFile(declarationFile)
            || GoTestFinder.isTestFile(referenceFile) && Comparing.equal(referenceFile.getParent(), declarationFile.getParent());
   }
@@ -901,12 +918,6 @@ public class GoPsiImplUtil {
       return ContainerUtil.newArrayList(declarations);
     }
     return Collections.emptyList();
-  }
-
-  @Nullable
-  public static GoType getGoTypeInner(@NotNull GoAnonymousFieldDefinition o,
-                                      @SuppressWarnings("UnusedParameters") @Nullable ResolveState context) {
-    return o.getTypeReferenceExpression().resolveType();
   }
 
   @NotNull
@@ -1514,7 +1525,8 @@ public class GoPsiImplUtil {
   }
 
   @NotNull
-  private static ChannelDirection getDirectionInner(@NotNull GoChannelType o) {GoTypeStub stub = o.getStub();
+  private static ChannelDirection getDirectionInner(@NotNull GoChannelType o) {
+    GoTypeStub stub = o.getStub();
     if (stub != null) {
       String text = o.getText();
       GoChannelType type = ObjectUtils.tryCast(GoElementFactory.createType(o.getProject(), text), GoChannelType.class);

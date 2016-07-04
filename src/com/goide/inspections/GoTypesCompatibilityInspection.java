@@ -21,6 +21,7 @@ import com.goide.psi.impl.GoPsiImplUtil;
 import com.goide.psi.impl.GoTypeUtil;
 import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
@@ -29,10 +30,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public class GoTypesCompatibilityInspection extends GoInspectionBase {
-  private static final Function<GoType, String> FUNCTION = new Function<GoType, String>() {
+  private static final Function<Pair<GoType, Boolean>, String> FUNCTION = new Function<Pair<GoType, Boolean>, String>() {
     @Override
-    public String fun(GoType t) {
-      return t.getText();
+    public String fun(Pair<GoType, Boolean> t) {
+      return t.first.getText();
     }
   };
 
@@ -58,9 +59,9 @@ public class GoTypesCompatibilityInspection extends GoInspectionBase {
       private void checkExpression(GoExpression e) {
         GoType type = e.getGoType(null);
         if (type == null) return;
-        List<GoType> types = GoTypeUtil.getExpectedTypes(e);
-        for (GoType exp : types) {
-          if (exp.isAssignableFrom(type)) return;
+        List<Pair<GoType, Boolean>>types = GoTypeUtil.getExpectedTypesWithVariadic(e);
+        for (Pair<GoType, Boolean> exp : types) {
+          if (exp.first.isAssignableFrom(type)) return;
         }
         holder.registerProblem(e, "Cannot use " + e.getText() + " (type " + type.getText() + ") as type " +
                                   StringUtil.join(ContainerUtil.map(types, FUNCTION), ","));
