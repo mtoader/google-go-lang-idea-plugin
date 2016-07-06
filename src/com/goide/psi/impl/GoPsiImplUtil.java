@@ -491,7 +491,7 @@ public class GoPsiImplUtil {
   }
 
   @Nullable
-  private static GoType unwrapPointerIfNeeded(@Nullable GoType type) {
+  public static GoType unwrapPointerIfNeeded(@Nullable GoType type) {
     return type instanceof GoPointerType ? ((GoPointerType)type).getType() : type;
   }
 

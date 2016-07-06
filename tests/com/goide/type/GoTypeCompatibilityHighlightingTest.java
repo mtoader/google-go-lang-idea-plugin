@@ -41,8 +41,11 @@ public class GoTypeCompatibilityHighlightingTest extends GoCodeInsightFixtureTes
     return "typeHighlighting";
   }
 
-  public void testSimple() { doTest(); }
+  public void testSimple()                   { doTest(); }
+  public void testVariadic()                 { doTest(); }
+  public void testNilAndVoidInterface()      { doTest(); }
   
+  @NotNull
   @Override
   protected LightProjectDescriptor getProjectDescriptor() {
     return createMockProjectDescriptor();

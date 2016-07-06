@@ -32,15 +32,44 @@ public class GoTypesAssignableTest extends GoTypesIdenticalTestCase {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
+      {"", "int", "int", true},
+      {"type MyType int", "MyType", "MyType", true},
+      {"type MyType int", "MyType", "int", true},
+
+      {"type (T1 int; T2 T1; T3 T1);", "T2", "T3", false},
       {"type (T1 int; T2 T1; T3 T1);", "T1", "int", true},
+      {"type (T1 int; T2 T1; T3 T1);", "int", "T2", true},
+      {"type (T1 int; T2 T1; T3 T1);", "T3", "int", true},
+      {"type (T1 int; T2 T1; T3 T1);", "T2", "T1", false},
+      {"type (T1 int; T2 T1; T3 T1);", "T2", "T2", true},
+
       {"", "interface{}", "int", true},
-      {"type (SimpleInterface interface { fun()}; MyType int); func (m MyType) fun(){};", "SimpleInterface", "MyType", true},
-      {"type (SimpleInterface interface { fun()}; MyType int); func (m MyType) fun(){};", "SimpleInterface", "int", false},
-      {"type (SimpleInterface interface { fun()}; T1 int; T2 T1); func (T1) fun(){};", "SimpleInterface", "T2", false},
-      {"type (SimpleInterface interface { fun(); I}; I interface { f2()}; MyType int); func (m MyType) fun(){}; func (m MyType) f2(){};",
-        "SimpleInterface", "MyType", true},
-      {"type (SimpleInterface interface { fun(); I}; I interface { f2()}; MyType int); func (m MyType) fun(){};",
-        "SimpleInterface", "MyType", false},
+      {"type (T1 int; T2 T1);", "interface{}", "T2", true},
+      {"type (I interface { fun()}; MyType int); func (m MyType) fun(){};", "I", "MyType", true},
+      {"type (I interface { fun()}; MyType int); func (m MyType) fun(){};", "I", "int", false},
+      {"type (I interface { fun()}; T1 int; T2 T1); func (T1) fun(){};", "I", "T2", false},
+      {"type (I2 interface { fun(); I}; I interface { f2()}; MyType int); func (m MyType) fun(){}; func (m MyType) f2(){};",
+        "I2", "MyType", true},
+      {"type (I2 interface { fun(); I}; I interface { f2()}; MyType int); func (m MyType) fun(){};",
+        "I2", "MyType", false},
+
+      {"type (T1 int; T2 T1);", "interface{}", "T2", true},
+      {"type (I interface { fun()}; MyType int); func (m *MyType) fun(){};", "I", "*MyType", true},
+      {"type (I interface { fun()}; MyType int); func (m *MyType) fun(){};", "I", "int", false},
+      {"type (I interface { fun()}; T1 int; T2 T1); func (T1) fun(){};", "I", "T2", false},
+      {"type (I2 interface { fun(); I}; I interface { f2()}; MyType int); func (m *MyType) fun(){}; func (m *MyType) f2(){};",
+        "I2", "*MyType", true},
+      {"type (I2 interface { fun(); I}; I interface { f2()}; MyType int); func (m *MyType) fun(){};",
+        "I2", "*MyType", false},
+
+      {"type (I interface { f1() }; I2 interface{ f1() })", "I", "I2", true},
+      {"type (I interface { f1() }; I2 interface{})", "I2", "I", true},
+      {"type (I interface { I2 }; I2 interface{ f1() })", "I2", "I", true},
+      {"type (I interface { I2 }; I2 interface{ f1() })", "I", "I2", true},
+      {"type (I interface { I2; f() }; I2 interface{ f1() })", "I2", "I", true},
+      {"type (I interface { I2 }; I2 interface{ f1() }; I3 interface{ I2; f()})", "I2", "I3", true},
+      {"type (I interface { I2 }; I2 interface{ f1() }; I3 interface{ I2; f()})", "I3", "I2", false},
+
       {"type (C1 chan int);", "C1", "chan int", true},
       {"type (C1 chan<- int);", "C1", "chan int", true},
       {"type (C1 chan<- int);", "chan int", "C1", false},
@@ -53,18 +82,12 @@ public class GoTypesAssignableTest extends GoTypesIdenticalTestCase {
       {"", "chan int", "chan int", true},
       {"type (C1 chan int; C2 chan int);", "C2", "C1", false},
       {"type (C1 chan int32);", "chan int", "C1", false},
-      {"type (T1 int; T2 T1; T3 T1);", "T2", "T3", false},
-      {"type (T1 int; T2 T1; T3 T1);", "T1", "int", true},
-      {"type (T1 int; T2 T1; T3 T1);", "int", "T2", true},
-      {"type (T1 int; T2 T1; T3 T1);", "T3", "int", true},
-      {"type (T1 int; T2 T1; T3 T1);", "T2", "T1", false},
-      {"type (T1 int; T2 T1; T3 T1);", "T2", "T2", true},
     });
   }
 
   @Override
   void doTest() {
-    myFixture.configureByText("a.go", "package main;" + typesAndFuncs + " var x " + left + ";var y " + right);
+    myFixture.configureByText("a.go", "package main;" + typesAndFuncs + "; var x " + left + "; var y " + right);
     List<GoVarDefinition> vars = ((GoFile)myFixture.getFile()).getVars();
     GoType left = vars.get(0).getGoType(null);
     GoType right = vars.get(1).getGoType(null);

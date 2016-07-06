@@ -27,22 +27,41 @@ public class GoTypesIdenticalTest extends GoTypesIdenticalTestCase {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
-      {"[]string", "[]string"},
-      {"map[int]string", "map[int]string"},
       {"int", "int"},
       {"string", "string"},
+
       {"*string", "*string"},
+      {"*[]string", "*[]string"},
+      {"map[*int]struct{}", "map[*int]struct{}"},
+      {"***int", "***int"},
+
+      {"map[int]string", "map[int]string"},
+      {"map[*int]string", "map[*int]string"},
+      {"map[int]*string", "map[int]*string"},
+
       {"struct{}", "struct{}"},
+      {"struct{ *int }", "struct{ *int }"},
+      {"struct{a *int }", "struct{a *int }"},
       {"struct{a int}", "struct{a int}"},
+      {"struct{_ int; _ string}", "struct{_ int; _ string}"},
+      {"struct{a int \"tag\"}", "struct{a int `tag`}"},
+      {"struct{a int `tag`}", "struct{a int `tag`}"},
+      {"struct{a int \"\\\"\"}", "struct{a int `\"`}"},
+      {"struct{int \"\\U000065e5\\U0000672c\\U00008a9e\"}", "struct { int \"日本語\"}"},
+      {"struct{int \"\\U000065e5\\U0000672c\\U00008a9e\"}", "struct { int `日本語`}"},
+      {"struct{a int \"tag\"}", "struct{a int \"tag\"}"},
+      {"struct{a, b int \"tag\"}", "struct{a int \"tag\"; b int \"tag\"}"},
       {"struct{a int; b int}", "struct{a, b int}"},
       {"struct{a string; string}", "struct{a string; string}"},
       {"struct{a string; s struct {} }", "struct{a string; s struct {} }"},
       {"struct{a string; s struct {a int} }", "struct{a string; s struct {a int} }"},
+
       {"chan int", "chan int"},
       {"chan<- int", "chan<- int"},
       {"<-chan int", "<-chan int"},
       {"chan<- float64", "chan<- float64"},
       {"<-chan <-chan int", "<-chan <-chan int"},
+
       {"func()", "func()"},
       {"func(int)", "func(int)"},
       {"func(i, j, k int)", "func(int, int, int)"},
@@ -50,18 +69,26 @@ public class GoTypesIdenticalTest extends GoTypesIdenticalTestCase {
       {"func(i string)", "func(j string)"},
       {"func(i, j string)", "func(j string, i string)"},
       {"func(i, j string, r ... string)", "func(j string, i string, ... string)"},
+      {"func(... string)", "func(j ... string)"},
+      {"func() int", "func() int"},
+      {"func() []int", "func() []int"},
+      {"func() ([]int)", "func() []int"},
       {"func() (int)", "func() int"},
       {"func() (int, string)", "func() (int, string)"},
       {"func() (i int, s string)", "func() (int, string)"},
-      {"interface{}", "interface{}"},
-      {"interface{ a(int) }", "interface{ a(int) }"},
-      {"interface{b(); a()}", "interface {a(); b()}"},
-      {"interface{a() string}", "interface {a() string}"},
-      {"interface{a() (string, int)}", "interface {a() (s string, i int)}"},
+
       {"[]int", "[]int"},
-      {" = [...]int{1, 2, 3};", " = [...]int{3, 4, 5};"},
-      {"[4]int;", "[4]int;"},
+      {"[][]int", "[][]int"},
+      {"[][3]int", "[][3]int"},
+      {" = [...]int{};", " = [...]int{};"},
+      {" = [...]int{1, 2, 3}", " = [...]int{3, 4, 5}"},
       //{" = [...]int{3, 4, 6};", "[3]int;"},
+      {"[4]int", "[4]int"},
+      {"[4][4]int", "[4][4]int"},
+      {"[4][4]*int", "[4][4]*int"},
+      {"[4][4][4]int", "[4][4][4]int"},
+      {"[4]struct{ i int }", "[4]struct{ i int }"},
+
     });
   }
 

@@ -21,21 +21,15 @@ import com.goide.psi.impl.GoPsiImplUtil;
 import com.goide.psi.impl.GoTypeUtil;
 import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.Function;
+import com.intellij.util.ObjectUtils;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 public class GoTypesCompatibilityInspection extends GoInspectionBase {
-  private static final Function<GoType, String> FUNCTION = new Function<GoType, String>() {
-    @Override
-    public String fun(GoType t) {
-      return t.getText();
-    }
-  };
-
   @NotNull
   @Override
   protected GoVisitor buildGoVisitor(@NotNull final ProblemsHolder holder, @NotNull LocalInspectionToolSession session) {
@@ -49,21 +43,35 @@ public class GoTypesCompatibilityInspection extends GoInspectionBase {
       @Override
       public void visitCallExpr(@NotNull GoCallExpr o) {
         if (builtin(o)) return;
-        for (GoExpression e : o.getArgumentList().getExpressionList()) {
-          checkExpression(e);
+        GoArgumentList argumentList = o.getArgumentList();
+        List<GoExpression> expressionList = argumentList.getExpressionList();
+        boolean variadic = argumentList.getTripleDot() != null;
+        for (int i = 0; i < expressionList.size(); i++) {
+          checkExpression(expressionList.get(i), variadic && i + 1 == expressionList.size());
         }
         super.visitCallExpr(o);
       }
 
-      private void checkExpression(GoExpression e) {
+      private void checkExpression(@NotNull GoExpression e, boolean variadic) {
+        if (GoTypeUtil.isNil(e)) {
+          // todo: check nil
+          return;
+        }
+        
         GoType type = e.getGoType(null);
         if (type == null) return;
-        List<GoType> types = GoTypeUtil.getExpectedTypes(e);
-        for (GoType exp : types) {
-          if (exp.isAssignableFrom(type)) return;
+        List<Pair<GoType, Boolean>> types = GoTypeUtil.getExpectedTypesWithVariadic(e);
+        for (Pair<GoType, Boolean> exp : types) {
+          if (variadic) {
+            GoArrayOrSliceType typeSlice = ObjectUtils.tryCast(type, GoArrayOrSliceType.class);
+            if (exp.second && typeSlice != null && exp.first.isAssignableFrom(typeSlice.getType())) return;
+          }
+          else {
+            if (exp.first.isAssignableFrom(type)) return;
+          }
         }
         holder.registerProblem(e, "Cannot use " + e.getText() + " (type " + type.getText() + ") as type " +
-                                  StringUtil.join(ContainerUtil.map(types, FUNCTION), ","));
+                                  StringUtil.join(ContainerUtil.map(types, GoTypeUtil.TO_STRING), ","));
       }
     };
   }

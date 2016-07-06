@@ -40,6 +40,8 @@ public class GoTypesIdenticalInDifferentPackagesTest extends GoTypesIdenticalTes
       {"var m interface{};", "var m interface{};", true},
       {"var m interface{ MyFunc() };", "var m interface{ MyFunc() };", true},
       {"var m interface{ myFunc() };", "var m interface{ myFunc() };", false},
+      {"type t interface{}; var m interface{ t };", "type t interface{}; var m interface{ t };", true},
+      {"type t interface{ f() }; var m interface{ t };", "type t interface{ f() }; var m interface{ t };", false},
       {"var m struct{};", "var m struct{};", true},
       {"var m struct{ i int };", "var m struct{ i int };", false},
       {"var m struct{ Int int };", "var m struct{ Int int };", true},
@@ -48,7 +50,13 @@ public class GoTypesIdenticalInDifferentPackagesTest extends GoTypesIdenticalTes
       {"var m struct{ MyStruct struct { i int } };", "var m struct{ MyStruct struct { i int } };", false},
       {"var m struct{ MyStruct struct { I int } };", "var m struct{ MyStruct struct { I int } };", true},
       {"var m struct{ myStruct struct { i int } };", "var m struct{ myStruct struct { i int } };", false},
+      {"var m struct { a.MyType };", "var m struct { a.MyType } ;", true},
+      //{"var m struct { *a.MyType };", "var m struct { a.MyType } ;", false},
+      {"var m struct { *a.MyType };", "var m struct { *a.MyType } ;", true},
       {"type MyType int; var m struct{ MyType };", "type MyType int; var m struct{ MyType };", false},
+      {"var m struct{ M a.MyType };", "var m struct{ M a.MyType };", true},
+      {"var m struct{ m MyType };", "var m struct{ m MyType };", false},
+
     });
   }
 

@@ -39,6 +39,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
@@ -54,7 +55,7 @@ import java.util.List;
 import java.util.Map;
 
 public class GoIntroduceFunctionFix extends LocalQuickFixAndIntentionActionOnPsiElement implements HighPriorityAction {
-  private final String myName;
+  @NotNull private final String myName;
   private static final String FAMILY_NAME = "Create function";
 
   public GoIntroduceFunctionFix(@NotNull PsiElement element, @NotNull String name) {
@@ -80,7 +81,8 @@ public class GoIntroduceFunctionFix extends LocalQuickFixAndIntentionActionOnPsi
 
     GoCallExpr call = (GoCallExpr)startElement;
     List<GoExpression> args = call.getArgumentList().getExpressionList();
-    GoType resultType = ContainerUtil.getFirstItem(GoTypeUtil.getExpectedTypes(call));
+    Pair<GoType, Boolean> firstItem = ContainerUtil.getFirstItem(GoTypeUtil.getExpectedTypesWithVariadic(call));
+    GoType resultType = firstItem != null ? firstItem.first : null;
     GoFunctionDeclaration function = createFunctionDeclaration(file, myName, args, resultType);
 
     PsiElement anchor = PsiTreeUtil.getParentOfType(call, GoTopLevelDeclaration.class);
@@ -95,7 +97,7 @@ public class GoIntroduceFunctionFix extends LocalQuickFixAndIntentionActionOnPsi
     setupFunctionParameters(function, builder, args);
     setupFunctionResult(function, builder);
     GoBlock body = function.getBlock();
-    builder.setEndVariableAfter(body == null || body.getLbrace() == null ? function : body.getLbrace());
+    builder.setEndVariableAfter(body == null ? function : body.getLbrace());
 
     function = CodeInsightUtilCore.forcePsiPostprocessAndRestoreElement(function);
     if (function == null) return;
@@ -109,7 +111,7 @@ public class GoIntroduceFunctionFix extends LocalQuickFixAndIntentionActionOnPsi
   }
 
   @NotNull
-  private static String convertType(@NotNull PsiFile file, @Nullable GoType type, Map<String, GoImportSpec> importMap) {
+  private static String convertType(@NotNull PsiFile file, @Nullable GoType type, @NotNull Map<String, GoImportSpec> importMap) {
     if (type == null) return GoConstants.INTERFACE_TYPE;
     final Module module = ModuleUtilCore.findModuleForPsiElement(file);
     boolean vendoringEnabled = GoVendoringUtil.isVendoringEnabled(module);
@@ -146,7 +148,7 @@ public class GoIntroduceFunctionFix extends LocalQuickFixAndIntentionActionOnPsi
     });
   }
 
-  private static void setupFunctionResult(GoFunctionDeclaration function, TemplateBuilderImpl builder) {
+  private static void setupFunctionResult(@NotNull GoFunctionDeclaration function, @NotNull TemplateBuilderImpl builder) {
     GoSignature signature = function.getSignature();
     GoResult result = signature != null ? signature.getResult() : null;
     if (result != null && !result.isVoid()) {
