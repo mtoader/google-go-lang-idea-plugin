@@ -186,4 +186,66 @@ public abstract class GoLightType<E extends GoCompositeElement> extends LightEle
       return null;
     }
   }
+
+  public static abstract class LightUntypedNumericType extends GoLightType<GoCompositeElement> {
+    protected LightUntypedNumericType(@NotNull GoCompositeElement o) {
+      super(o);
+    }
+
+    @Override
+    public String getText() {
+      return "untyped " + getDefaultTypeName();
+    }
+
+    @Nullable
+    public GoType getDefaultType() {
+      return GoPsiImplUtil.getBuiltinType(getDefaultTypeName(), myElement);
+    }
+
+    abstract public String getDefaultTypeName();
+  }
+
+  public static class LightUntypedIntType extends LightUntypedNumericType {
+    protected LightUntypedIntType(@NotNull GoCompositeElement o) {
+      super(o);
+    }
+
+    @Override
+    public String getDefaultTypeName() {
+      return "int";
+    }
+  }
+
+  public static class LightUntypedFloatType extends LightUntypedNumericType {
+    protected LightUntypedFloatType(@NotNull GoCompositeElement o) {
+      super(o);
+    }
+
+    @Override
+    public String getDefaultTypeName() {
+      return "float64";
+    }
+  }
+
+  public static class LightUntypedRuneType extends LightUntypedNumericType {
+    protected LightUntypedRuneType(@NotNull GoCompositeElement o) {
+      super(o);
+    }
+
+    @Override
+    public String getDefaultTypeName() {
+      return "rune";
+    }
+  }
+
+  public static class LightUntypedComplexType extends LightUntypedNumericType {
+    protected LightUntypedComplexType(@NotNull GoCompositeElement o) {
+      super(o);
+    }
+
+    @Override
+    public String getDefaultTypeName() {
+      return "complex64";
+    }
+  }
 }

@@ -29,6 +29,8 @@ public class GoTypesIdenticalTest extends GoTypesIdenticalTestCase {
     return Arrays.asList(new Object[][]{
       {"int", "int"},
       {"string", "string"},
+      {"int32", "rune"},
+      {"uint8", "byte"},
 
       {"*string", "*string"},
       {"*[]string", "*[]string"},

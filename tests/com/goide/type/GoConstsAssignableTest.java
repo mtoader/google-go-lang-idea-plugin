@@ -31,22 +31,25 @@ public class GoConstsAssignableTest extends GoTypesIdenticalTestCase {
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
       {"int", " = 3", true},
-      //{"float32", " = 3", true}, //todo
-      //{"int", " = 3.0", true},
+      {"float32", " = 3", true},
+      {"int", " = 3.0", true},
       {"int", " int = 3", true},
       //{"int", " = 2 + 3.0", false},
       //{"float32", " = 2.0", true},
       {"float64", " = 2.0", true},
       {"int", " = 15 / 4 ", true},
-      {"int", " = 15 / 4.0 ", false},
+      //{"int", " = 15 / 4.0 ", false},
       {"float64", " float64 = 3/2 ", true},
       {"float32", " float64 = 3/2 ", false},
       {"int", " = 1.0 << 3", true},
-      //{"float32", " = 1.0 << 3", true},
+      {"float32", " = 1.0 << 3", true},
       //{"bool", " = true ", true},
       {"bool", " bool = true ", true},
       {"string", " = \"hi\"", true},
-      //{"complex", " = 1 - 0.707i ", true},
+      {"complex64", " = 1 - 0.707i ", true},
+
+      {"string", " = 1 + 2", false},
+      {"string", " rune = 'a'", false},
     });
   }
 
@@ -60,7 +63,7 @@ public class GoConstsAssignableTest extends GoTypesIdenticalTestCase {
     GoType right = file.getConstants().get(0).getGoType(null);
     String leftText = left.getText();
     String rightText = right == null ? null : right.getText();
-    assertTrue(leftText + " should" + (!ok ? " not " : " ") + "equal " + rightText, ok == GoTypeUtil.isAssignable(left, right));
+    assertTrue(leftText + " should" + (!ok ? " not " : " ") + "assign " + rightText, ok == GoTypeUtil.isAssignable(left, right));
   }
 
   @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")

@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 public class GoTypeUtil {
   private static final Comparator<GoNamedElement> BY_NAME = new Comparator<GoNamedElement>() {
@@ -56,6 +57,10 @@ public class GoTypeUtil {
       return pair.first.getText() + " " + pair.second;
     }
   };
+
+  private static final Set NUMERIC_TYPES = ContainerUtil.newHashSet("int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16",
+                                                                    "uint32", "uint64", "float32", "float64", "complex64", "complex128",
+                                                                    "rune", "byte");
 
   /**
    * https://golang.org/ref/spec#For_statements
@@ -85,13 +90,21 @@ public class GoTypeUtil {
   }
 
   private static boolean isBuiltinType(@Nullable GoType type, @Nullable String builtinTypeName) {
-    if (builtinTypeName == null) return false;
+    if (builtinTypeName == null || type == null) return false;
+    return type.textMatches(builtinTypeName) && isBuiltinType(type);
+  }
+
+  private static boolean isBuiltinType(@Nullable GoType type) {
     type = type != null ? type.getUnderlyingType() : null;
-    return type != null && type.textMatches(builtinTypeName) && GoPsiImplUtil.builtin(type);
+    return type != null && GoPsiImplUtil.builtin(type);
   }
 
   public static boolean isNil(@Nullable GoExpression o) {
     return o instanceof GoReferenceExpression && o.textMatches("nil") && GoPsiImplUtil.builtin(((GoReferenceExpression)o).resolve());
+  }
+
+  private static boolean isNumericType(@Nullable GoType type) {
+    return type != null && NUMERIC_TYPES.contains(type.getText()) && isBuiltinType(type);
   }
 
   @NotNull
@@ -318,6 +331,19 @@ public class GoTypeUtil {
     return getInterfaceIfNull(element != null ? element.getGoType(null) : null, context);
   }
 
+  @Nullable
+  public static GoType getDefaultType(@Nullable GoType type) {
+    if (type == null) return null;
+    if (GoPsiImplUtil.builtin(type)) {
+      if ("ComplexType".equals(type.getText())) return GoPsiImplUtil.getBuiltinType("complex128", type);
+      if ("FloatType".equals(type.getText())) return GoPsiImplUtil.getBuiltinType("float64", type);
+    }
+    if (type instanceof GoLightType.LightUntypedNumericType) {
+      return ((GoLightType.LightUntypedNumericType)type).getDefaultType();
+    }
+    return type;
+  }
+
   public static boolean isAssignable(@NotNull GoType left, @Nullable GoType right) {
     if (right == null) return false;
     if (left == right || left.equals(right)) return true;
@@ -326,8 +352,12 @@ public class GoTypeUtil {
     // 1) x's type is identical to T.
     if (identical(left, right)) return true;
 
-    // 2) x's type V and T have identical underlying types and at least one of V or T is not a named type.
     GoType underlyingLeft = left.getUnderlyingType();
+    if (right instanceof GoLightType.LightUntypedNumericType && isNumericType(underlyingLeft)) {
+      return true;
+    }
+
+    // 2) x's type V and T have identical underlying types and at least one of V or T is not a named type.
     GoType underlyingRight = right.getUnderlyingType();
     if (identical(underlyingLeft, underlyingRight) && (!isNamedType(left) || !isNamedType(right))) {
       return true;
@@ -401,12 +431,24 @@ public class GoTypeUtil {
       return right instanceof GoCType;
     }
 
-    if (isNamedType(right) != isNamedType(left)) return false;
+    if (isNamedType(left) != isNamedType(right)) return false;
+    if (isAliases(left, right)) return true;
     GoTypeReferenceExpression l = left.getTypeReferenceExpression(); // todo: stubs?
     GoTypeReferenceExpression r = right.getTypeReferenceExpression();
     if (l == null || r == null) return false;
     PsiElement lResolve = l.resolve();
     return lResolve != null && lResolve.isEquivalentTo(r.resolve());
+  }
+
+  private static Set INT32_ALIAS = ContainerUtil.newTreeSet("int32", "rune");
+  private static Set UINT8_ALIAS = ContainerUtil.newTreeSet("uint8", "byte");
+  
+  private static boolean isAliases(@NotNull GoType left, @NotNull GoType right) {
+    if (!(isBuiltinType(left) && isBuiltinType(right))) return false;
+    String l = left.getText();
+    String r = right.getText();
+    return INT32_ALIAS.contains(l) && INT32_ALIAS.contains(r) || 
+           UINT8_ALIAS.contains(l) && UINT8_ALIAS.contains(r);
   }
 
   private static int getLength(@NotNull GoArrayOrSliceType slice) { // todo: stubs

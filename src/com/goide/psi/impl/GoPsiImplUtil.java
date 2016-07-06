@@ -61,6 +61,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static com.goide.psi.impl.GoLightType.*;
 import static com.intellij.codeInsight.highlighting.ReadWriteAccessDetector.Access.*;
@@ -328,14 +329,40 @@ public class GoPsiImplUtil {
     if (!(parent instanceof GoConstSpec)) return null;
     GoConstSpec spec = (GoConstSpec)parent;
     GoType commonType = spec.getType();
-    if (commonType != null) return commonType;
+    if (commonType != null) return getConstType(commonType);
     List<GoConstDefinition> varList = spec.getConstDefinitionList();
     int i = Math.max(varList.indexOf(o), 0);
     if (stub != null) return null;
     GoConstSpecStub specStub = spec.getStub();
     List<GoExpression> es = specStub != null ? specStub.getExpressionList() : spec.getExpressionList(); // todo: move to constant spec
     if (es.size() <= i) return null;
-    return es.get(i).getGoType(null);
+    return getConstType(es.get(i).getGoType(null));
+  }
+
+  private static final Set INT_TYPES_NAMES = ContainerUtil.newHashSet("int", "int32", "int64", "uint", "uint8", "uint16", "uint32",
+                                                                      "uint64", "uintptr", "IntegerType");
+
+  @Nullable
+  private static GoType getConstType(@Nullable GoType type) {
+    if (!builtin(type)) return type;
+    String name = type.getText();
+    if ("complex128".equals(name) || "complex64".equals(name) || "ComplexType".equals(name)) {
+      return new LightUntypedComplexType(type);
+    }
+
+    if ("float32".equals(name) || "float64".equals(name) || "FloatType".equals(name)) {
+      return new LightUntypedFloatType(type);
+    }
+
+    if (INT_TYPES_NAMES.contains(name)) {
+      return new LightUntypedIntType(type);
+    }
+
+    if ("rune".equals(name)) {
+      return new LightUntypedRuneType(type);
+    }
+
+    return type;
   }
 
   @Nullable
@@ -469,11 +496,10 @@ public class GoPsiImplUtil {
     }
     else if (o instanceof GoLiteral) {
       GoLiteral l = (GoLiteral)o;
-      if (l.getChar() != null) return getBuiltinType("rune", o);
-      if (l.getInt() != null || l.getHex() != null || ((GoLiteral)o).getOct() != null) return getBuiltinType("int", o);
-      if (l.getFloat() != null) return getBuiltinType("float64", o);
-      if (l.getFloati() != null) return getBuiltinType("complex64", o);
-      if (l.getDecimali() != null) return getBuiltinType("complex128", o);
+      if (l.getChar() != null) return new LightUntypedRuneType(o);
+      if (l.getInt() != null || l.getHex() != null || ((GoLiteral)o).getOct() != null) return new LightUntypedIntType(o);
+      if (l.getFloat() != null) return new LightUntypedFloatType(o);
+      if (l.getFloati() != null || l.getDecimali() != null) return new LightUntypedComplexType(o);
     }
     else if (o instanceof GoConditionalExpr) {
       return getBuiltinType("bool", o);
@@ -510,13 +536,6 @@ public class GoPsiImplUtil {
       }
     }
     return null;
-  }
-
-  @Nullable
-  private static GoType typeFromRefOrType(@Nullable GoType t) {
-    if (t == null) return null;
-    GoTypeReferenceExpression tr = t.getTypeReferenceExpression();
-    return tr != null ? tr.resolveType() : t;
   }
 
   @Nullable
@@ -633,21 +652,20 @@ public class GoPsiImplUtil {
     List<GoExpression> exprs = parent.getRightExpressionsList();
     if (exprs.size() == 1 && exprs.get(0) instanceof GoCallExpr) {
       GoExpression call = exprs.get(0);
-      GoType fromCall = call.getGoType(context);
+      GoType fromCall = GoTypeUtil.getDefaultType(call.getGoType(context));
       boolean canDecouple = varList.size() > 1;
       GoType underlyingType = canDecouple && fromCall instanceof GoSpecType ? ((GoSpecType)fromCall).getType() : fromCall;
-      GoType byRef = typeFromRefOrType(underlyingType);
-      GoType type = funcType(canDecouple && byRef instanceof GoSpecType ? ((GoSpecType)byRef).getType() : byRef);
+      GoType type = funcType(canDecouple && underlyingType instanceof GoSpecType ? ((GoSpecType)underlyingType).getType() : underlyingType);
       if (type == null) return fromCall;
       if (type instanceof GoTypeList) {
         if (((GoTypeList)type).getTypeList().size() > i) {
-          return ((GoTypeList)type).getTypeList().get(i);
+          return GoTypeUtil.getDefaultType(((GoTypeList)type).getTypeList().get(i));
         }
       }
       return type;
     }
     if (exprs.size() <= i) return null;
-    return exprs.get(i).getGoType(context);
+    return GoTypeUtil.getDefaultType(exprs.get(i).getGoType(context));
   }
 
   @Nullable
@@ -1534,7 +1552,8 @@ public class GoPsiImplUtil {
   }
 
   @NotNull
-  private static ChannelDirection getDirectionInner(@NotNull GoChannelType o) {GoTypeStub stub = o.getStub();
+  private static ChannelDirection getDirectionInner(@NotNull GoChannelType o) {
+    GoTypeStub stub = o.getStub();
     if (stub != null) {
       String text = o.getText();
       GoChannelType type = ObjectUtils.tryCast(GoElementFactory.createType(o.getProject(), text), GoChannelType.class);

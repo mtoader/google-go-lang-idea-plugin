@@ -173,7 +173,7 @@ public class GoRefactoringUtil {
       }
     }
 
-    GoType type = expression.getGoType(null);
+    GoType type = GoTypeUtil.getDefaultType(expression.getGoType(null));
     String typeText = GoPsiImplUtil.getText(type);
     if (StringUtil.isNotEmpty(typeText)) {
       boolean array = GoTypeUtil.isIterable(type) && !GoTypeUtil.isString(type);

@@ -21,6 +21,7 @@ import com.goide.GoTypes;
 import com.goide.inspections.GoInspectionUtil;
 import com.goide.psi.*;
 import com.goide.psi.impl.GoCType;
+import com.goide.psi.impl.GoLightType;
 import com.goide.psi.impl.GoPsiImplUtil;
 import com.goide.psi.impl.GoTypeUtil;
 import com.goide.quickfix.GoDeleteRangeQuickFix;
@@ -315,6 +316,7 @@ public class GoAnnotator implements Annotator {
 
   private static boolean isIntegerConvertibleType(@Nullable GoType type) {
     if (type == null) return false;
+    if (type instanceof GoLightType.LightUntypedNumericType) return true;
     GoTypeReferenceExpression ref = type.getTypeReferenceExpression();
     if (ref == null) return false;
     return INT_TYPE_NAMES.contains(ref.getText()) && GoPsiImplUtil.builtin(ref.resolve());

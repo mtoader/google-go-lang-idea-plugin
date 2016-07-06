@@ -28,6 +28,10 @@ public class GoTypesNotIdenticalTest extends GoTypesIdenticalTestCase {
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
       {"int", "string"},
+      {"int32", "byte"},
+      {"int8", "rune"},
+      {"uint8", "rune"},
+      {"int8", "byte"},
 
       {"int", "*int"},
       {"**int", "***int"},
