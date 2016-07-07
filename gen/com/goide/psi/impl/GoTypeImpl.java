@@ -66,4 +66,9 @@ public class GoTypeImpl extends GoStubbedElementImpl<GoTypeStub> implements GoTy
     return GoPsiImplUtil.isAssignableFrom(this, right);
   }
 
+  @Nullable
+  public PsiElement resolve() {
+    return GoPsiImplUtil.resolve(this);
+  }
+
 }

@@ -561,6 +561,12 @@ public class GoPsiImplUtil {
   }
 
   @Nullable
+  public static PsiElement resolve(@NotNull GoType type) {
+    GoTypeReferenceExpression expression = type.getTypeReferenceExpression();
+    return expression != null ? expression.resolve() : null;
+  }
+
+  @Nullable
   public static PsiElement resolve(@NotNull GoFieldName o) { // todo: replace with default method in GoReferenceExpressionBase
     return o.getReference().resolve();
   }

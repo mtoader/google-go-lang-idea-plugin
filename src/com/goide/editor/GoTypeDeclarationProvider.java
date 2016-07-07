@@ -18,7 +18,6 @@ package com.goide.editor;
 
 import com.goide.psi.GoNamedElement;
 import com.goide.psi.GoType;
-import com.goide.psi.GoTypeReferenceExpression;
 import com.intellij.codeInsight.navigation.actions.TypeDeclarationProvider;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -30,8 +29,7 @@ public class GoTypeDeclarationProvider implements TypeDeclarationProvider {
   public PsiElement[] getSymbolTypeDeclarations(@NotNull PsiElement element) {
     if (!(element instanceof GoNamedElement)) return PsiElement.EMPTY_ARRAY;
     GoType type = ((GoNamedElement)element).getGoType(null);
-    GoTypeReferenceExpression ref = type != null ? type.getTypeReferenceExpression() : null;
-    PsiElement resolve = ref != null ? ref.resolve() : type; // todo: think about better fallback instead of `type`
+    PsiElement resolve = type != null ? type.resolve() : null;
     return resolve != null ? new PsiElement[]{resolve} : PsiElement.EMPTY_ARRAY;
   }
 }

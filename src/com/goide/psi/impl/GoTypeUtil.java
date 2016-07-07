@@ -393,23 +393,15 @@ public class GoTypeUtil {
   }
 
   @Nullable
-  private static GoSpecType getSpecType(@Nullable GoType type) {
-    PsiElement e = resolve(type);
-    if (!(e instanceof GoTypeSpec)) return null;
-    return ((GoTypeSpec)e).getSpecType();
-  }
-
-  @Nullable
-  private static PsiElement resolve(@Nullable GoType type) {
-    if (type == null) return null;
-    GoTypeReferenceExpression expression = type.getTypeReferenceExpression();
-    return expression != null ? expression.resolve() : null;
+  private static GoSpecType getSpecType(@NotNull GoType type) {
+    PsiElement e = type.resolve();
+    return e instanceof GoTypeSpec ? ((GoTypeSpec)e).getSpecType() : null;
   }
 
   public static boolean identical(@Nullable GoType left, @Nullable GoType right) {
     if (left == null || right == null) return false;
     if (left instanceof GoSpecType && right instanceof GoSpecType) {
-        return left.isEquivalentTo(right);
+      return left.isEquivalentTo(right);
     }
     if (left instanceof GoSpecType) return left.isEquivalentTo(getSpecType(right));
     if (right instanceof GoSpecType) return right.isEquivalentTo(getSpecType(left));
@@ -461,8 +453,9 @@ public class GoTypeUtil {
       return true;
     }
     if (isAliases(left, right)) return true;
-    PsiElement lResolve = resolve(left); // todo: stubs?
-    return lResolve != null && lResolve.isEquivalentTo(resolve(right));
+    // todo: stubs?
+    PsiElement lResolve = left.resolve();
+    return lResolve != null && lResolve.isEquivalentTo(right.resolve());
   }
 
   private static Set INT32_ALIAS = ContainerUtil.newTreeSet("int32", "rune");
@@ -549,9 +542,7 @@ public class GoTypeUtil {
         type instanceof GoSpecType) {
       return false;
     }
-    GoTypeReferenceExpression reference = type.getTypeReferenceExpression();
-    PsiElement resolve = reference != null ? reference.resolve() : null;
-    return resolve != null && !GoPsiImplUtil.builtin(resolve);
+    return !GoPsiImplUtil.builtin(type.resolve());
   }
 
   private static boolean isImplementsInterface(@NotNull GoInterfaceType interfaceType, @NotNull GoType type) {
@@ -582,9 +573,8 @@ public class GoTypeUtil {
     }
     GoType type = GoPsiImplUtil.unwrapPointerIfNeeded(o);
     if (type == null) return null;
-    GoTypeReferenceExpression reference = GoPsiImplUtil.getTypeReference(type);
     GoTypeSpec spec = ObjectUtils.tryCast(type instanceof GoSpecType ? GoPsiImplUtil.getTypeSpecSafe(type) : // todo
-                                              reference != null ? reference.resolve() : null, GoTypeSpec.class);
+                                          type.resolve(), GoTypeSpec.class);
     if (spec == null) return null;
     return ContainerUtil.newArrayList(spec.getAllMethods());
   }

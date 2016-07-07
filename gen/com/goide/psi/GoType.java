@@ -35,4 +35,7 @@ public interface GoType extends GoCompositeElement, StubBasedPsiElement<GoTypeSt
 
   boolean isAssignableFrom(GoType right);
 
+  @Nullable
+  PsiElement resolve();
+
 }
