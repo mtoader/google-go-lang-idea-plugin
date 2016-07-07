@@ -68,6 +68,11 @@ public class GoTypeSpecImpl extends GoNamedElementImpl<GoTypeSpecStub> implement
     return GoPsiImplUtil.shouldGoDeeper(this);
   }
 
+  @NotNull
+  public List<GoMethodDeclaration> getAllMethods() {
+    return GoPsiImplUtil.getAllMethods(this);
+  }
+
   @Override
   @NotNull
   public PsiElement getIdentifier() {

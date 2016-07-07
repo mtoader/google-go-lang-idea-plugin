@@ -23,7 +23,6 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiReference;
 import com.intellij.psi.SyntaxTraverser;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
@@ -60,7 +59,7 @@ public class GoTypeUtil {
 
   private static final Set NUMERIC_TYPES = ContainerUtil.newHashSet("int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16",
                                                                     "uint32", "uint64", "float32", "float64", "complex64", "complex128",
-                                                                    "rune", "byte");
+                                                                    "rune", "byte", "uintptr");
 
   /**
    * https://golang.org/ref/spec#For_statements
@@ -199,57 +198,66 @@ public class GoTypeUtil {
     return Collections.singletonList(getInterfaceIfNull(null, statement));
   }
 
+  @Nullable
+  private static GoSignature getSignature(@Nullable GoExpression expr) {
+    if (expr == null) return null;
+    GoType type = expr.getGoType(null);
+    if (type instanceof GoSpecType) {
+      return null; //call expression is type conversion
+    }
+
+    GoType underlyingType = type != null ? type.getUnderlyingType() : null;
+    if (underlyingType instanceof GoFunctionType) {
+      return ((GoFunctionType)underlyingType).getSignature();
+    }
+    return null;
+  }
+
   @NotNull
   private static List<Pair<GoType, Boolean>> getExpectedTypesFromArgumentList(@NotNull GoExpression expression,
                                                                               @NotNull GoArgumentList argumentList) {
     PsiElement parentOfParent = argumentList.getParent();
     assert parentOfParent instanceof GoCallExpr;
-    PsiReference reference = ((GoCallExpr)parentOfParent).getExpression().getReference();
-    if (reference != null) {
-      PsiElement resolve = reference.resolve();
-      if (resolve instanceof GoFunctionOrMethodDeclaration) {
-        GoSignature signature = ((GoFunctionOrMethodDeclaration)resolve).getSignature();
-        if (signature != null) {
-          List<GoExpression> exprList = argumentList.getExpressionList();
-          List<GoParameterDeclaration> paramsList = signature.getParameters().getParameterDeclarationList();
-          if (exprList.size() == 1) {
-            List<GoType> typeList = ContainerUtil.newSmartList();
-            for (GoParameterDeclaration parameterDecl : paramsList) {
-              for (GoParamDefinition parameter : parameterDecl.getParamDefinitionList()) {
-                typeList.add(getGoType(parameter, argumentList));
-              }
-              if (parameterDecl.getParamDefinitionList().isEmpty()) {
-                typeList.add(getInterfaceIfNull(parameterDecl.getType(), argumentList));
-              }
-            }
-            GoParameterDeclaration lastItem = ContainerUtil.getLastItem(paramsList);
-            boolean variadic = lastItem != null && lastItem.isVariadic();
-            List<Pair<GoType, Boolean>> result =
-              ContainerUtil.newSmartList(Pair.pair(createGoTypeListOrGoType(typeList, argumentList), variadic));
-            if (paramsList.size() > 1) {
-              assert paramsList.get(0) != null;
-              result.add(Pair.pair(getInterfaceIfNull(paramsList.get(0).getType(), argumentList), false));
-            }
-            return result;
+    GoSignature signature =  getSignature(((GoCallExpr)parentOfParent).getExpression());
+    if (signature != null) {
+      List<GoExpression> exprList = argumentList.getExpressionList();
+      List<GoParameterDeclaration> paramsList = signature.getParameters().getParameterDeclarationList();
+      if (exprList.size() == 1) {
+        List<GoType> typeList = ContainerUtil.newSmartList();
+        for (GoParameterDeclaration parameterDecl : paramsList) {
+          for (GoParamDefinition parameter : parameterDecl.getParamDefinitionList()) {
+            typeList.add(getGoType(parameter, argumentList));
           }
-          else {
-            int position = exprList.indexOf(expression);
-            if (position >= 0) {
-              int i = 0;
-              GoParameterDeclaration lastParameter = ContainerUtil.getLastItem(paramsList);
-              boolean variadic = lastParameter != null && lastParameter.isVariadic();
-              for (GoParameterDeclaration parameterDecl : paramsList) {
-                int paramDeclSize = Math.max(1, parameterDecl.getParamDefinitionList().size());
-                if (i + paramDeclSize > position) {
-                  return Collections.singletonList(Pair.pair(getInterfaceIfNull(parameterDecl.getType(), argumentList),
-                                                             variadic && parameterDecl.isEquivalentTo(lastParameter)));
-                }
-                i += paramDeclSize;
-              }
-              if (variadic) {
-                return Collections.singletonList(Pair.pair(getInterfaceIfNull(lastParameter.getType(), argumentList), false));
-              }
+          if (parameterDecl.getParamDefinitionList().isEmpty()) {
+            typeList.add(getInterfaceIfNull(parameterDecl.getType(), argumentList));
+          }
+        }
+        GoParameterDeclaration lastItem = ContainerUtil.getLastItem(paramsList);
+        boolean variadic = lastItem != null && lastItem.isVariadic();
+        List<Pair<GoType, Boolean>> result =
+          ContainerUtil.newSmartList(Pair.pair(createGoTypeListOrGoType(typeList, argumentList), variadic));
+        if (paramsList.size() > 1) {
+          assert paramsList.get(0) != null;
+          result.add(Pair.pair(getInterfaceIfNull(paramsList.get(0).getType(), argumentList), false));
+        }
+        return result;
+      }
+      else {
+        int position = exprList.indexOf(expression);
+        if (position >= 0) {
+          int i = 0;
+          GoParameterDeclaration lastParameter = ContainerUtil.getLastItem(paramsList);
+          boolean variadic = lastParameter != null && lastParameter.isVariadic();
+          for (GoParameterDeclaration parameterDecl : paramsList) {
+            int paramDeclSize = Math.max(1, parameterDecl.getParamDefinitionList().size());
+            if (i + paramDeclSize > position) {
+              return Collections.singletonList(Pair.pair(getInterfaceIfNull(parameterDecl.getType(), argumentList),
+                                                         variadic && parameterDecl.isEquivalentTo(lastParameter)));
             }
+            i += paramDeclSize;
+          }
+          if (variadic) {
+            return Collections.singletonList(Pair.pair(getInterfaceIfNull(lastParameter.getType(), argumentList), false));
           }
         }
       }
@@ -384,16 +392,33 @@ public class GoTypeUtil {
     return false;
   }
 
+  @Nullable
+  private static GoSpecType getSpecType(@Nullable GoType type) {
+    PsiElement e = resolve(type);
+    if (!(e instanceof GoTypeSpec)) return null;
+    return ((GoTypeSpec)e).getSpecType();
+  }
+
+  @Nullable
+  private static PsiElement resolve(@Nullable GoType type) {
+    if (type == null) return null;
+    GoTypeReferenceExpression expression = type.getTypeReferenceExpression();
+    return expression != null ? expression.resolve() : null;
+  }
+
   public static boolean identical(@Nullable GoType left, @Nullable GoType right) {
     if (left == null || right == null) return false;
-    if (left instanceof GoSpecType) {
-      return right instanceof GoSpecType && left.isEquivalentTo(right);
+    if (left instanceof GoSpecType && right instanceof GoSpecType) {
+        return left.isEquivalentTo(right);
     }
+    if (left instanceof GoSpecType) return left.isEquivalentTo(getSpecType(right));
+    if (right instanceof GoSpecType) return right.isEquivalentTo(getSpecType(left));
+
     if (left instanceof GoArrayOrSliceType) {
       if (!(right instanceof GoArrayOrSliceType)) return false;
       GoArrayOrSliceType l = (GoArrayOrSliceType)left;
       GoArrayOrSliceType r = (GoArrayOrSliceType)right;
-      return identical(l.getType(), r.getType()) && getLength(l) == getLength(r);
+      return identical(l.getType(), r.getType()) && l.getLength() == r.getLength();
     }
     if (left instanceof GoStructType) {
       return right instanceof GoStructType && identicalStructs((GoStructType)left, (GoStructType)right);
@@ -427,40 +452,27 @@ public class GoTypeUtil {
     if (left instanceof GoTypeList) {
       return right instanceof GoTypeList && isListsOfGoTypeIdentical(((GoTypeList)left).getTypeList(), ((GoTypeList)right).getTypeList());
     }
-    if (left instanceof GoCType) {
-      return right instanceof GoCType;
+    if (left instanceof GoCType || right instanceof GoCType) {
+      return true;
     }
 
     if (isNamedType(left) != isNamedType(right)) return false;
+    if (right instanceof GoLightType.LightUntypedNumericType && isNumericType(left)) {
+      return true;
+    }
     if (isAliases(left, right)) return true;
-    GoTypeReferenceExpression l = left.getTypeReferenceExpression(); // todo: stubs?
-    GoTypeReferenceExpression r = right.getTypeReferenceExpression();
-    if (l == null || r == null) return false;
-    PsiElement lResolve = l.resolve();
-    return lResolve != null && lResolve.isEquivalentTo(r.resolve());
+    PsiElement lResolve = resolve(left); // todo: stubs?
+    return lResolve != null && lResolve.isEquivalentTo(resolve(right));
   }
 
   private static Set INT32_ALIAS = ContainerUtil.newTreeSet("int32", "rune");
   private static Set UINT8_ALIAS = ContainerUtil.newTreeSet("uint8", "byte");
-  
   private static boolean isAliases(@NotNull GoType left, @NotNull GoType right) {
     if (!(isBuiltinType(left) && isBuiltinType(right))) return false;
     String l = left.getText();
     String r = right.getText();
-    return INT32_ALIAS.contains(l) && INT32_ALIAS.contains(r) || 
+    return INT32_ALIAS.contains(l) && INT32_ALIAS.contains(r) ||
            UINT8_ALIAS.contains(l) && UINT8_ALIAS.contains(r);
-  }
-
-  private static int getLength(@NotNull GoArrayOrSliceType slice) { // todo: stubs
-    if (slice.getTripleDot() == null && slice.getExpression() == null) return -1;
-    if (slice.getTripleDot() != null) {
-      GoCompositeLit compositeLit = ObjectUtils.tryCast(slice.getParent(), GoCompositeLit.class);
-      if (compositeLit == null) return 0;
-      GoLiteralValue literal = compositeLit.getLiteralValue();
-      return literal != null ? literal.getElementList().size() : 0;
-    }
-    // todo: length
-    return -2;
   }
 
   private static boolean isInterfacesIdentical(@NotNull GoInterfaceType left, @NotNull GoInterfaceType right) {
@@ -493,16 +505,9 @@ public class GoTypeUtil {
     for (int i = 0; i < l.size(); i++) {
       GoNamedElement f = l.get(i);
       GoNamedElement s = r.get(i);
-      if (f instanceof GoFieldDefinition) {
-        if (!(s instanceof GoFieldDefinition)) return false;
-        if (!identical(f.getGoType(null), s.getGoType(null))) return false;
-      }
-      if (f instanceof GoAnonymousFieldDefinition) {
-        if (!(s instanceof GoAnonymousFieldDefinition)) return false;
-        GoTypeReferenceExpression fe = ((GoAnonymousFieldDefinition)f).getTypeReferenceExpression();
-        GoTypeReferenceExpression se = ((GoAnonymousFieldDefinition)s).getTypeReferenceExpression();
-        if (!identical(fe != null ? fe.resolveType() : null, se != null ? se.resolveType() : null)) return false;
-      }
+      if (f instanceof GoFieldDefinition && !(s instanceof GoFieldDefinition)) return false;
+      if (f instanceof GoAnonymousFieldDefinition && !(s instanceof GoAnonymousFieldDefinition)) return false;
+      if (!identical(f.getGoType(null), s.getGoType(null))) return false;
       if (!Comparing.equal(getTagForFieldDefinition(f), getTagForFieldDefinition(s))) return false;
     }
     return true;
@@ -553,7 +558,7 @@ public class GoTypeUtil {
     List<GoMethodSpec> interfaceMethods = interfaceType.getAllMethods();
     if (interfaceMethods.isEmpty()) return true;
     List<? extends GoNamedSignatureOwner> methodsForType = getOwners(type);
-    if (methodsForType == null) return false;
+    if (methodsForType == null || methodsForType.isEmpty()) return false;
     ContainerUtil.sort(methodsForType, BY_NAME);
     ContainerUtil.sort(interfaceMethods, BY_NAME);
     int j = 0;
@@ -581,7 +586,7 @@ public class GoTypeUtil {
     GoTypeSpec spec = ObjectUtils.tryCast(type instanceof GoSpecType ? GoPsiImplUtil.getTypeSpecSafe(type) : // todo
                                               reference != null ? reference.resolve() : null, GoTypeSpec.class);
     if (spec == null) return null;
-    return ContainerUtil.newArrayList(spec.getMethods());
+    return ContainerUtil.newArrayList(spec.getAllMethods());
   }
 
   private static boolean isSignaturesIdentical(@Nullable GoSignature left, @Nullable GoSignature right) {

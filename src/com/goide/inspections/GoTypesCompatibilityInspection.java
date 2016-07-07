@@ -53,24 +53,34 @@ public class GoTypesCompatibilityInspection extends GoInspectionBase {
       }
 
       private void checkExpression(@NotNull GoExpression e, boolean variadic) {
-        if (GoTypeUtil.isNil(e)) {
-          // todo: check nil
-          return;
-        }
-        
-        GoType type = e.getGoType(null);
-        if (type == null) return;
+        boolean isNil = GoTypeUtil.isNil(e);
+        GoType type = !isNil ? e.getGoType(null) : null;
+        if (!isNil && type == null) return;
         List<Pair<GoType, Boolean>> types = GoTypeUtil.getExpectedTypesWithVariadic(e);
         for (Pair<GoType, Boolean> exp : types) {
           if (variadic) {
-            GoArrayOrSliceType typeSlice = ObjectUtils.tryCast(type, GoArrayOrSliceType.class);
+            if (isNil) return;
+            GoArrayOrSliceType typeSlice = ObjectUtils.tryCast(type.getUnderlyingType(), GoArrayOrSliceType.class);
             if (exp.second && typeSlice != null && exp.first.isAssignableFrom(typeSlice.getType())) return;
           }
           else {
-            if (exp.first.isAssignableFrom(type)) return;
+            if (!isNil) {
+              if (exp.first.isAssignableFrom(type)) return;
+            }
+            else {
+              GoType expType = exp.first.getUnderlyingType();
+              if (expType instanceof GoPointerType ||
+                  expType instanceof GoFunctionType ||
+                  expType instanceof GoInterfaceType ||
+                  expType instanceof GoMapType ||
+                  expType instanceof GoChannelType ||
+                  expType instanceof GoArrayOrSliceType && !((GoArrayOrSliceType)expType).isArray()) {
+                return;
+              }
+            }
           }
         }
-        holder.registerProblem(e, "Cannot use " + e.getText() + " (type " + type.getText() + ") as type " +
+        holder.registerProblem(e, "Cannot use " + e.getText() + (!isNil ? " (type " + type.getText() + ")" : "") + " as type " +
                                   StringUtil.join(ContainerUtil.map(types, GoTypeUtil.TO_STRING), ","));
       }
     };

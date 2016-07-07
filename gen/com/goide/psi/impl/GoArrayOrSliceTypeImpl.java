@@ -76,4 +76,12 @@ public class GoArrayOrSliceTypeImpl extends GoTypeImpl implements GoArrayOrSlice
     return findChildByType(TRIPLE_DOT);
   }
 
+  public int getLength() {
+    return GoPsiImplUtil.getLength(this);
+  }
+
+  public boolean isArray() {
+    return GoPsiImplUtil.isArray(this);
+  }
+
 }

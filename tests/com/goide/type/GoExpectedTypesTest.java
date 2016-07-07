@@ -179,6 +179,30 @@ public class GoExpectedTypesTest extends GoCodeInsightFixtureTestCase {
     doTopLevelTestWithVariadic("func foo(f int, i ...int){}; func _(){ foo(1, <selection>asd()</selection>)}", "int true");
   }
 
+  public void testVariadicFunctionWithMethod() {
+    doTopLevelTestWithVariadic("type MyType int; func (m MyType) foo(f int, i ...interface{}){};" +
+                               " func _(){ var m MyType; m.foo(1, <selection>asd()</selection>)}", "interface{} true");
+  }
+
+  public void testVariadicFunctionWithMethod_2() {
+    doTopLevelTestWithVariadic("type (MyType int; St struct{ myType MyType }) func (m MyType) foo(f int, i ...int){};" +
+                               " func _(){ var st St = new(St); st.myType.foo(1, <selection>asd()</selection>)}", "int true");
+  }
+
+  public void testMethod() {
+    doTopLevelTestWithVariadic("type (MyType int; St struct{ MyType }) func (m MyType) foo(f int, i ...int){};" +
+                               " func _(){ var st St = new(St); st.foo(1, <selection>asd()</selection>)}", "int true");
+  }
+
+  public void testFunc() {
+    doTopLevelTestWithVariadic("func _(){ var f func(int) string; f(<selection>asd()</selection>)}", "int false");
+  }
+
+  public void testFunc_2() {
+    doTopLevelTestWithVariadic("func _(){ var f func(func(int, string) float32) string; f(<selection>asd()</selection>)}",
+                               "func(int, string) float32 false");
+  }
+
   private void doTopLevelTest(@NotNull String text, @NotNull String expectedTypeText) {
     myFixture.configureByText("a.go", "package a;" + text);
     PsiElement elementAt = findElementAtCaretOrInSelection();

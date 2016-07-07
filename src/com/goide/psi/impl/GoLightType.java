@@ -185,6 +185,16 @@ public abstract class GoLightType<E extends GoCompositeElement> extends LightEle
     public PsiElement getTripleDot() {
       return null;
     }
+
+    @Override
+    public int getLength() {
+      return -1;
+    }
+
+    @Override
+    public boolean isArray() {
+      return false;
+    }
   }
 
   public static abstract class LightUntypedNumericType extends GoLightType<GoCompositeElement> {

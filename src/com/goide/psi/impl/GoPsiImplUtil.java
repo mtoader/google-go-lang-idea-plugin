@@ -708,14 +708,17 @@ public class GoPsiImplUtil {
       if (type instanceof GoChannelType) return ((GoChannelType)type).getType();
       int i = varList.indexOf(o);
       i = i == -1 ? 0 : i;
-      if (type instanceof GoArrayOrSliceType && i == 1) return ((GoArrayOrSliceType)type).getType();
+      if (type instanceof GoArrayOrSliceType) {
+        if (i == 0) return getBuiltinType("int", o);
+        if (i == 1) return ((GoArrayOrSliceType)type).getType();
+      }
       if (type instanceof GoMapType) {
-        List<GoType> list = ((GoMapType)type).getTypeList();
-        if (i == 0) return ContainerUtil.getFirstItem(list);
-        if (i == 1) return ContainerUtil.getLastItem(list);
+        if (i == 0) return ((GoMapType)type).getKeyType();
+        if (i == 1) return ((GoMapType)type).getValueType();
       }
       if (GoTypeUtil.isString(type)) {
-        return getBuiltinType("int32", o);
+        if (i == 0) return getBuiltinType("int", o);
+        if (i == 1) return getBuiltinType("int32", o);
       }
     }
     return null;
@@ -842,6 +845,18 @@ public class GoPsiImplUtil {
     });
   }
 
+  @NotNull
+  public static List<GoMethodDeclaration> getAllMethods(@NotNull final GoTypeSpec o) {
+    return CachedValuesManager.getCachedValue(o, new CachedValueProvider<List<GoMethodDeclaration>>() {
+      @Nullable
+      @Override
+      public Result<List<GoMethodDeclaration>> compute() {
+        // todo[zolotov]: implement package modification tracker
+        return Result.create(calcAllMethods(o), PsiModificationTracker.MODIFICATION_COUNT);
+      }
+    });
+  }
+
   public static boolean allowed(@NotNull PsiFile declarationFile, @Nullable PsiFile referenceFile, @Nullable Module contextModule) {
     if (!(declarationFile instanceof GoFile)) {
       return false;
@@ -944,6 +959,25 @@ public class GoPsiImplUtil {
       return ContainerUtil.newArrayList(declarations);
     }
     return Collections.emptyList();
+  }
+
+  @NotNull
+  private static List<GoMethodDeclaration> calcAllMethods(@NotNull GoTypeSpec o) {
+    List<GoMethodDeclaration> result = o.getMethods();
+    GoStructType struct = ObjectUtils.tryCast(o.getSpecType().getType(), GoStructType.class);
+    if (struct != null) {
+      for (GoFieldDeclaration declaration : struct.getFieldDeclarationList()) {
+        GoAnonymousFieldDefinition anon = declaration.getAnonymousFieldDefinition();
+        if (anon != null) {
+          GoTypeReferenceExpression expression = anon.getTypeReferenceExpression();
+          GoTypeSpec resolve = ObjectUtils.tryCast(expression != null ? expression.resolve() : null, GoTypeSpec.class);
+          if (resolve != null) {
+            result.addAll(resolve.getAllMethods());
+          }
+        }
+      }
+    }
+    return result;
   }
 
   @NotNull
@@ -1659,6 +1693,32 @@ public class GoPsiImplUtil {
       }
       return result;
     }
+  }
+
+  public static int getLength(@NotNull GoArrayOrSliceType o) {
+    return CachedValuesManager.getCachedValue(o, new CachedValueProvider<Integer>() {
+      @Nullable
+      @Override
+      public Result<Integer> compute() {
+        return Result.create(getLengthInner(o), PsiModificationTracker.MODIFICATION_COUNT);
+      }
+    });
+  }
+
+  private static int getLengthInner(@NotNull GoArrayOrSliceType o) {
+    if (o.getTripleDot() == null && o.getExpression() == null) return -1; // -1 == slice
+    /*if (o.getTripleDot() != null) {
+      GoCompositeLit compositeLit = ObjectUtils.tryCast(o.getParent(), GoCompositeLit.class);
+      if (compositeLit == null) return -2;
+      GoLiteralValue literal = compositeLit.getLiteralValue();
+      return literal != null ? literal.getElementList().size() : -2;
+    }*/
+    // todo: length
+    return -2;
+  }
+
+  public static boolean isArray(@NotNull GoArrayOrSliceType o) {
+    return o.getLength() != -1;
   }
 
   public static boolean isAssignableFrom(@NotNull GoType left, @Nullable GoType right) {

@@ -38,6 +38,9 @@ public interface GoTypeSpec extends GoNamedElement, StubBasedPsiElement<GoTypeSp
   boolean shouldGoDeeper();
 
   @NotNull
+  List<GoMethodDeclaration> getAllMethods();
+
+  @NotNull
   PsiElement getIdentifier();
 
 }

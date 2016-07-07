@@ -38,4 +38,8 @@ public interface GoArrayOrSliceType extends GoType {
   @Nullable
   PsiElement getTripleDot();
 
+  int getLength();
+
+  boolean isArray();
+
 }
