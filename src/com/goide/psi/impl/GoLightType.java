@@ -151,8 +151,8 @@ public abstract class GoLightType<E extends GoCompositeElement> extends LightEle
     }
   }
 
-  static class LightArrayType extends GoLightType<GoType> implements GoArrayOrSliceType {
-    protected LightArrayType(GoType type) {
+  static class LightSliceType extends GoLightType<GoType> implements GoArrayOrSliceType {
+    protected LightSliceType(GoType type) {
       super(type);
     }
 

@@ -40,6 +40,9 @@ public class GoGetGoTypeTest extends GoTypesIdenticalTestCase {
       {"const c = complex(1,1)","imag(c)","float64"},
       //{"","2.0 + 6.0i","complex64"},
       {"","complex(1,2)","complex128"},
+      {"var arr = [...]int{1,2,3}", " arr[0:1]", "[]int"},
+      {"var arr[]int", " arr[0:1]", "[]int"},
+      {"var arr[]int", " arr", "[]int"},
     });
   }
 
@@ -47,8 +50,9 @@ public class GoGetGoTypeTest extends GoTypesIdenticalTestCase {
   void doTest() {
     myFixture.configureByText("a.go", "package main;" + typesAndFuncs + "; var x = " + left + ";var y " + right);
     List<GoVarDefinition> vars = ((GoFile)myFixture.getFile()).getVars();
-    GoType left = vars.get(0).getGoType(null);
-    GoType right = vars.get(1).getGoType(null);
+    int varSize = vars.size();
+    GoType left = vars.get(varSize - 2).getGoType(null);
+    GoType right = vars.get(varSize - 1).getGoType(null);
     String leftText = left == null ? null : left.getText();
     String rightText = right == null ? null : right.getText();
     assertTrue(leftText + " should" + (!ok ? " not " : " ") + "equal " + rightText, ok == GoTypeUtil.identical(left, right));

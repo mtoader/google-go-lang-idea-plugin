@@ -470,8 +470,14 @@ public class GoPsiImplUtil {
     }
     else if (o instanceof GoIndexOrSliceExpr) {
       GoType referenceType = getIndexedExpressionReferenceType((GoIndexOrSliceExpr)o, context);
-      if (o.getNode().findChildByType(GoTypes.COLON) != null) return referenceType; // means slice expression, todo: extract if needed
       GoType type = referenceType != null ? referenceType.getUnderlyingType() : null;
+      if (o.getNode().findChildByType(GoTypes.COLON) != null) {
+        if (type instanceof GoArrayOrSliceType) {
+          GoArrayOrSliceType arrayOrSlice = (GoArrayOrSliceType)referenceType;
+          return arrayOrSlice.isArray() ? new LightSliceType(arrayOrSlice.getType()) : arrayOrSlice; // means slice expression, todo: extract if needed
+        }
+        return referenceType;
+       }
       if (type instanceof GoMapType) {
         List<GoType> list = ((GoMapType)type).getTypeList();
         if (list.size() == 2) {
@@ -542,7 +548,7 @@ public class GoPsiImplUtil {
   public static GoType typeOrParameterType(@NotNull GoTypeOwner resolve, @Nullable ResolveState context) {
     GoType type = resolve.getGoType(context);
     if (resolve instanceof GoParamDefinition && ((GoParamDefinition)resolve).isVariadic()) {
-      return type == null ? null : new LightArrayType(type);
+      return type == null ? null : new LightSliceType(type);
     }
     if (resolve instanceof GoSignatureOwner) {
       return new LightFunctionType((GoSignatureOwner)resolve);
