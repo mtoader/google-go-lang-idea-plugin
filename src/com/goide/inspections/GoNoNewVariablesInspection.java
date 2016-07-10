@@ -23,6 +23,7 @@ import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.LocalQuickFixBase;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
@@ -55,6 +56,7 @@ public class GoNoNewVariablesInspection extends GoInspectionBase {
       }
 
       private void visitVarDefinitionList(@NotNull PsiElement o, @NotNull List<GoVarDefinition> list) {
+        ProgressManager.checkCanceled();
         GoVarDefinition first = ContainerUtil.getFirstItem(list);
         GoVarDefinition last = ContainerUtil.getLastItem(list);
         if (first == null || last == null) return;
@@ -69,6 +71,7 @@ public class GoNoNewVariablesInspection extends GoInspectionBase {
   public static boolean hasNonNewVariables(@NotNull List<GoVarDefinition> list) {
     if (list.isEmpty()) return false;
     for (GoVarDefinition def : list) {
+      ProgressManager.checkCanceled();
       if (def.isBlank()) continue;
       PsiReference reference = def.getReference();
       if (reference == null || reference.resolve() == null) return false;

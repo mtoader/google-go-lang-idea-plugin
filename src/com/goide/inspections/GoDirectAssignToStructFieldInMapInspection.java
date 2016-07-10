@@ -19,6 +19,7 @@ package com.goide.inspections;
 import com.goide.psi.*;
 import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,6 +34,7 @@ public class GoDirectAssignToStructFieldInMapInspection extends GoInspectionBase
       public void visitLeftHandExprList(@NotNull GoLeftHandExprList o) {
         super.visitLeftHandExprList(o);
         for (GoExpression expression : o.getExpressionList()) {
+          ProgressManager.checkCanceled();
           if (!(expression instanceof GoSelectorExpr)) continue;
           GoExpression expr = ContainerUtil.getFirstItem(((GoSelectorExpr)expression).getExpressionList());
           if (expr instanceof GoIndexOrSliceExpr) {

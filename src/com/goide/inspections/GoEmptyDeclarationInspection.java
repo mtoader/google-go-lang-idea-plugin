@@ -23,6 +23,7 @@ import com.intellij.codeInspection.CleanupLocalInspectionTool;
 import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -59,7 +60,8 @@ public class GoEmptyDeclarationInspection extends GoInspectionBase implements Cl
         visitDeclaration(o);
       }
 
-      private void visitDeclaration (PsiElement o) {
+      private void visitDeclaration(PsiElement o) {
+        ProgressManager.checkCanceled();
         if (o.getChildren().length == 0 &&
             GoDocumentationProvider.getCommentsForElement(o instanceof GoImportDeclaration && o.getPrevSibling() == null ?
                                                           o.getParent() : o).isEmpty() &&

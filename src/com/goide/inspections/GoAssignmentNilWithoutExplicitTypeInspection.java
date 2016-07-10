@@ -22,6 +22,7 @@ import com.goide.psi.impl.GoPsiImplUtil;
 import com.goide.psi.impl.GoReferenceExpressionImpl;
 import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -65,6 +66,7 @@ public class GoAssignmentNilWithoutExplicitTypeInspection extends GoInspectionBa
 
       private void checkExpressions(@NotNull List<GoExpression> expressions) {
         for (GoExpression expr : expressions) {
+          ProgressManager.checkCanceled();
           if (expr instanceof GoReferenceExpressionImpl) {
             GoReferenceExpressionImpl ref = (GoReferenceExpressionImpl)expr;
             PsiElement resolve = ref.resolve();

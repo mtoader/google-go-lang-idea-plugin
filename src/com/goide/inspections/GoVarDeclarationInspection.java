@@ -22,6 +22,7 @@ import com.goide.psi.impl.GoTypeUtil;
 import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
@@ -55,11 +56,13 @@ public class GoVarDeclarationInspection extends GoInspectionBase {
     return new GoVisitor() {
       @Override
       public void visitAssignmentStatement(@NotNull GoAssignmentStatement o) {
+        super.visitAssignmentStatement(o);
         validatePair(o, Pair.create(o.getLeftHandExprList().getExpressionList(), o.getExpressionList()));
       }
 
       @Override
       public void visitVarSpec(@NotNull GoVarSpec o) {
+        super.visitVarSpec(o);
         validatePair(o, getPair(o));
       }
 
@@ -67,6 +70,7 @@ public class GoVarDeclarationInspection extends GoInspectionBase {
         List<GoExpression> list = p.second;
         int idCount = p.first.size();
         for (GoCompositeElement idElement : p.first) {
+          ProgressManager.checkCanceled();
           if (idElement instanceof GoIndexOrSliceExpr) {
             GoType referenceType = GoPsiImplUtil.getIndexedExpressionReferenceType((GoIndexOrSliceExpr)idElement, null);
             if (GoTypeUtil.isString(referenceType)) {

@@ -20,6 +20,7 @@ import com.goide.psi.*;
 import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.openapi.progress.ProgressManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +34,7 @@ public class GoDuplicateArgumentInspection extends GoInspectionBase {
     return new GoVisitor() {
       @Override
       public void visitCompositeElement(@NotNull GoCompositeElement o) {
+        super.visitCompositeElement(o);
         if (o instanceof GoSignatureOwner) {
           check(((GoSignatureOwner)o).getSignature(), holder);
         }
@@ -50,6 +52,7 @@ public class GoDuplicateArgumentInspection extends GoInspectionBase {
                                         @NotNull GoParameters parameters,
                                         @NotNull Set<String> parameterNames) {
     for (GoParameterDeclaration fp : parameters.getParameterDeclarationList()) {
+      ProgressManager.checkCanceled();
       for (GoParamDefinition parameter : fp.getParamDefinitionList()) {
         if (parameter.isBlank()) continue;
         String name = parameter.getName();

@@ -31,6 +31,7 @@ public class GoRedeclareImportAsFunctionInspection extends GoInspectionBase {
     return new GoVisitor() {
       @Override
       public void visitFunctionDeclaration(@NotNull GoFunctionDeclaration o) {
+        super.visitFunctionDeclaration(o);
         String functionName = o.getName();
         if (StringUtil.isNotEmpty(functionName) && o.getContainingFile().getImportMap().containsKey(functionName)) {
           holder.registerProblem(o.getIdentifier(), "import \"" + functionName + "\" redeclared in this block", new GoRenameQuickFix(o));

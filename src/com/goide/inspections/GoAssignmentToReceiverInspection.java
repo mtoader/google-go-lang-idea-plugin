@@ -19,12 +19,11 @@ package com.goide.inspections;
 import com.goide.psi.*;
 import com.intellij.codeInsight.highlighting.ReadWriteAccessDetector;
 import com.intellij.codeInspection.LocalInspectionToolSession;
+import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
-import static com.intellij.codeInspection.ProblemHighlightType.GENERIC_ERROR_OR_WARNING;
-import static com.intellij.codeInspection.ProblemHighlightType.WEAK_WARNING;
 
 public class GoAssignmentToReceiverInspection extends GoInspectionBase {
   @NotNull
@@ -41,7 +40,7 @@ public class GoAssignmentToReceiverInspection extends GoInspectionBase {
             if (((GoReceiver)resolve).getType() instanceof GoPointerType) {
               message = "Assignment to method receiver propagates only to callees but not to callers";
             }
-            holder.registerProblem(o, message, WEAK_WARNING);
+            holder.registerProblem(o, message, ProblemHighlightType.WEAK_WARNING);
           }
         }
       }

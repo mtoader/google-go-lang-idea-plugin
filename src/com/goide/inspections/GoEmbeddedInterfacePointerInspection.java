@@ -29,6 +29,7 @@ public class GoEmbeddedInterfacePointerInspection extends GoInspectionBase {
     return new GoVisitor() {
       @Override
       public void visitAnonymousFieldDefinition(@NotNull GoAnonymousFieldDefinition o) {
+        super.visitAnonymousFieldDefinition(o);
         if (!(o.getType() instanceof GoPointerType)) return;
         GoTypeReferenceExpression reference = o.getTypeReferenceExpression();
         GoType goType = reference != null ? reference.resolveType() : null;

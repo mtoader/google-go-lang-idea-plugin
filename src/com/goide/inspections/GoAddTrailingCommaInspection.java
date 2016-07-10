@@ -39,6 +39,7 @@ public class GoAddTrailingCommaInspection extends GoInspectionBase {
     return new GoVisitor() {
       @Override
       public void visitErrorElement(PsiErrorElement o) {
+        super.visitErrorElement(o);
         GoElement element = PsiTreeUtil.getPrevSiblingOfType(o, GoElement.class);
         if (element != null) {
           holder.registerProblem(element, "Need trailing comma before newline in composite literal", new MyAddCommaFix());

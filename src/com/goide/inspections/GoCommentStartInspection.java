@@ -42,6 +42,7 @@ public class GoCommentStartInspection extends GoInspectionBase {
 
       @Override
       public void visitPackageClause(@NotNull GoPackageClause o) {
+        super.visitPackageClause(o);
         String packageName = o.getName();
         if (GoConstants.MAIN.equals(packageName)) {
           return;
@@ -55,6 +56,7 @@ public class GoCommentStartInspection extends GoInspectionBase {
 
       @Override
       public void visitCompositeElement(@NotNull GoCompositeElement o) {
+        super.visitCompositeElement(o);
         if (!(o instanceof GoNamedElement) || !((GoNamedElement)o).isPublic()) {
           return;
         }

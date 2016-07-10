@@ -45,6 +45,7 @@ public class GoDuplicateFunctionOrMethodInspection extends GoInspectionBase {
     return new GoVisitor() {
       @Override
       public void visitMethodDeclaration(@NotNull final GoMethodDeclaration method) {
+        super.visitMethodDeclaration(method);
         if (method.isBlank()) return;
 
         final String methodName = method.getName();
@@ -77,6 +78,7 @@ public class GoDuplicateFunctionOrMethodInspection extends GoInspectionBase {
 
       @Override
       public void visitFunctionDeclaration(@NotNull final GoFunctionDeclaration func) {
+        super.visitFunctionDeclaration(func);
         if (func.isBlank()) return;
 
         String funcName = func.getName();

@@ -19,6 +19,7 @@ package com.goide.inspections;
 import com.goide.psi.*;
 import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +37,7 @@ public class GoDuplicateFieldsOrMethodsInspection extends GoInspectionBase {
     return new GoVisitor() {
       @Override
       public void visitStructType(@NotNull final GoStructType type) {
+        super.visitStructType(type);
         final List<GoNamedElement> fields = ContainerUtil.newArrayList();
         type.accept(new GoRecursiveVisitor() {
           @Override
@@ -72,6 +74,7 @@ public class GoDuplicateFieldsOrMethodsInspection extends GoInspectionBase {
   private static void check(@NotNull List<? extends GoNamedElement> fields, @NotNull ProblemsHolder problemsHolder, @NotNull String what) {
     Set<String> names = ContainerUtil.newHashSet();
     for (GoCompositeElement field : fields) {
+      ProgressManager.checkCanceled();
       if (field instanceof GoMethodSpec && ((GoMethodSpec) field).getSignature() == null) {
         // It's an embedded type, not a method or a field.
         continue;

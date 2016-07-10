@@ -43,6 +43,7 @@ public class GoStructInitializationInspection extends GoInspectionBase {
     return new GoVisitor() {
       @Override
       public void visitCompositeLit(@NotNull GoCompositeLit o) {
+        super.visitCompositeLit(o);
         if (PsiTreeUtil.getParentOfType(o, GoReturnStatement.class, GoShortVarDeclaration.class, GoAssignmentStatement.class) == null) {
           return;
         }

@@ -27,6 +27,7 @@ import com.intellij.codeInspection.LocalQuickFixAndIntentionActionOnPsiElement;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ScrollType;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -41,6 +42,7 @@ public class GoMissingReturnInspection extends GoInspectionBase {
   public static final String ADD_RETURN_STATEMENT_QUICK_FIX_NAME = "Add return statement";
 
   private static void check(@Nullable GoSignature signature, @Nullable GoBlock block, @NotNull ProblemsHolder holder) {
+    ProgressManager.checkCanceled();
     if (block == null) return;
     GoResult result = signature != null ? signature.getResult() : null;
     if (result == null || result.isVoid() || isTerminating(block)) return;
@@ -51,6 +53,7 @@ public class GoMissingReturnInspection extends GoInspectionBase {
   }
 
   private static boolean isTerminating(@Nullable GoCompositeElement s) {
+    ProgressManager.checkCanceled();
     if (s instanceof GoReturnStatement || s instanceof GoGoStatement) {
       return true;
     }
