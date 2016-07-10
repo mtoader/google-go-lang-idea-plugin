@@ -28,13 +28,18 @@ import com.goide.runconfig.testing.GoTestFunctionType;
 import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.search.SearchRequestCollector;
+import com.intellij.psi.search.SearchSession;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 
 public class GoUnusedFunctionInspection extends GoInspectionBase {
   @NotNull
@@ -70,9 +75,23 @@ public class GoUnusedFunctionInspection extends GoInspectionBase {
     PsiElement elem = ref.getElement();
     GoFunctionDeclaration parent;
     while ((parent = PsiTreeUtil.getParentOfType(elem, GoFunctionDeclaration.class)) != null) {
-      if (o.equals(parent)) return true;
+      if (o.equals(parent)) return complexFind(o);
       elem = parent;
     }
     return false;
+  }
+
+  private static boolean complexFind(@NotNull GoFunctionDeclaration o) {
+    Collection<PsiReference> results = ReferencesSearch.search(o, o.getUseScope()).findAll();
+    for (PsiReference result : results) {
+      ProgressManager.checkCanceled();
+      PsiElement elem = result.getElement();
+      GoFunctionDeclaration parent;
+      while ((parent = PsiTreeUtil.getParentOfType(elem, GoFunctionDeclaration.class)) != null) {
+        if (o.equals(parent)) break;
+        elem = parent;
+      }
+    }
+    return true;
   }
 }
