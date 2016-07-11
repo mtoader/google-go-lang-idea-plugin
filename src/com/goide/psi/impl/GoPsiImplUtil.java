@@ -417,7 +417,7 @@ public class GoPsiImplUtil {
       return expression != null ? expression.resolveType() : null;
     }
     else if (o instanceof GoFunctionLit) {
-      return new LightFunctionType((GoFunctionLit)o);
+      return new LightFunctionType((GoFunctionLit)o, false);
     }
     else if (o instanceof GoBuiltinCallExpr) {
       String text = ((GoBuiltinCallExpr)o).getReferenceExpression().getText();
@@ -456,9 +456,17 @@ public class GoPsiImplUtil {
       return type;
     }
     else if (o instanceof GoReferenceExpression) {
-      PsiReference reference = o.getReference();
-      PsiElement resolve = reference != null ? reference.resolve() : null;
-      if (resolve instanceof GoTypeOwner) return typeOrParameterType((GoTypeOwner)resolve, context);
+      GoReferenceExpression reference = (GoReferenceExpression)o;
+      PsiElement parent = reference.getParent();
+      GoType type = null;
+      if (parent instanceof GoSelectorExpr) {
+        GoExpression expression = ContainerUtil.getFirstItem(((GoSelectorExpr)parent).getExpressionList());
+         type = expression != null ? expression.getGoType(context) : null;
+      }
+      GoReferenceExpression qualifier = reference.getQualifier();
+      boolean addReceiverInSignature = qualifier != null && qualifier.resolve() instanceof GoTypeSpec || type instanceof GoSpecType;
+      PsiElement resolve = reference.resolve();
+      if (resolve instanceof GoTypeOwner) return typeOrParameterType((GoTypeOwner)resolve, context, addReceiverInSignature);
     }
     else if (o instanceof GoParenthesesExpr) {
       GoExpression expression = ((GoParenthesesExpr)o).getExpression();
@@ -473,7 +481,7 @@ public class GoPsiImplUtil {
       GoType type = referenceType != null ? referenceType.getUnderlyingType() : null;
       if (o.getNode().findChildByType(GoTypes.COLON) != null) {
         if (type instanceof GoArrayOrSliceType) {
-          GoArrayOrSliceType arrayOrSlice = (GoArrayOrSliceType)referenceType;
+          GoArrayOrSliceType arrayOrSlice = (GoArrayOrSliceType)type;
           return arrayOrSlice.isArray() ? new LightSliceType(arrayOrSlice.getType()) : arrayOrSlice; // means slice expression, todo: extract if needed
         }
         return referenceType;
@@ -545,13 +553,13 @@ public class GoPsiImplUtil {
   }
 
   @Nullable
-  public static GoType typeOrParameterType(@NotNull GoTypeOwner resolve, @Nullable ResolveState context) {
+  public static GoType typeOrParameterType(@NotNull GoTypeOwner resolve, @Nullable ResolveState context, boolean addReceiverInSignature) {
     GoType type = resolve.getGoType(context);
     if (resolve instanceof GoParamDefinition && ((GoParamDefinition)resolve).isVariadic()) {
       return type == null ? null : new LightSliceType(type);
     }
     if (resolve instanceof GoSignatureOwner) {
-      return new LightFunctionType((GoSignatureOwner)resolve);
+      return new LightFunctionType((GoSignatureOwner)resolve, addReceiverInSignature);
     }
     return type;
   }
@@ -858,11 +866,11 @@ public class GoPsiImplUtil {
   }
 
   @NotNull
-  public static List<GoMethodDeclaration> getAllMethods(@NotNull final GoTypeSpec o) {
-    return CachedValuesManager.getCachedValue(o, new CachedValueProvider<List<GoMethodDeclaration>>() {
+  public static List<GoNamedSignatureOwner> getAllMethods(@NotNull final GoTypeSpec o) {
+    return CachedValuesManager.getCachedValue(o, new CachedValueProvider<List<GoNamedSignatureOwner>>() {
       @Nullable
       @Override
-      public Result<List<GoMethodDeclaration>> compute() {
+      public Result<List<GoNamedSignatureOwner>> compute() {
         // todo[zolotov]: implement package modification tracker
         return Result.create(calcAllMethods(o), PsiModificationTracker.MODIFICATION_COUNT);
       }
@@ -974,8 +982,9 @@ public class GoPsiImplUtil {
   }
 
   @NotNull
-  private static List<GoMethodDeclaration> calcAllMethods(@NotNull GoTypeSpec o) {
-    List<GoMethodDeclaration> result = o.getMethods();
+  private static List<GoNamedSignatureOwner> calcAllMethods(@NotNull GoTypeSpec o) {
+    List<GoNamedSignatureOwner> result = ContainerUtil.newSmartList();
+    result.addAll(o.getMethods());
     GoStructType struct = ObjectUtils.tryCast(o.getSpecType().getType(), GoStructType.class);
     if (struct != null) {
       for (GoFieldDeclaration declaration : struct.getFieldDeclarationList()) {
@@ -984,7 +993,14 @@ public class GoPsiImplUtil {
           GoTypeReferenceExpression expression = anon.getTypeReferenceExpression();
           GoTypeSpec resolve = ObjectUtils.tryCast(expression != null ? expression.resolve() : null, GoTypeSpec.class);
           if (resolve != null) {
-            result.addAll(resolve.getAllMethods());
+            GoType innerType = resolve.getSpecType().getType();
+            GoType underlyingType = innerType != null ? innerType.getUnderlyingType() : null;
+            if (underlyingType instanceof GoInterfaceType) {
+              result.addAll(((GoInterfaceType)underlyingType).getAllMethods());
+            }
+            else {
+              result.addAll(resolve.getAllMethods());
+            }
           }
         }
       }

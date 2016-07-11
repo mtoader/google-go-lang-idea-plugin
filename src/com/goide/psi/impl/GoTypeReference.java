@@ -30,6 +30,7 @@ import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.ObjectUtils;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.OrderedSet;
 import org.jetbrains.annotations.NotNull;
@@ -88,12 +89,13 @@ public class GoTypeReference extends PsiPolyVariantReferenceBase<GoTypeReference
   public boolean processResolveVariants(@NotNull GoScopeProcessor processor) {
     PsiFile file = myElement.getContainingFile();
     if (!(file instanceof GoFile)) return false;
+    PsiFile substitutionFile = ObjectUtils.notNull((PsiFile)file.getUserData(GoReference.FILE_SUBSTITUTION_CONTEXT), file);
     ResolveState state = ResolveState.initial();
     GoTypeReferenceExpression qualifier = myElement.getQualifier();
     if (qualifier != null) {
-      return processQualifierExpression((GoFile)file, qualifier, processor, state);
+      return processQualifierExpression((GoFile)substitutionFile, qualifier, processor, state);
     }
-    return processUnqualifiedResolve((GoFile)file, processor, state, true);
+    return processUnqualifiedResolve((GoFile)substitutionFile, processor, state, true);
   }
 
   private boolean processQualifierExpression(@NotNull GoFile file,

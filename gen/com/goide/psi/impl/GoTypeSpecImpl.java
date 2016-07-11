@@ -69,7 +69,7 @@ public class GoTypeSpecImpl extends GoNamedElementImpl<GoTypeSpecStub> implement
   }
 
   @NotNull
-  public List<GoMethodDeclaration> getAllMethods() {
+  public List<GoNamedSignatureOwner> getAllMethods() {
     return GoPsiImplUtil.getAllMethods(this);
   }
 

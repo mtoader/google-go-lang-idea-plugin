@@ -23,6 +23,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.SyntaxTraverser;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
@@ -100,6 +101,19 @@ public class GoTypeUtil {
 
   public static boolean isNil(@Nullable GoExpression o) {
     return o instanceof GoReferenceExpression && o.textMatches("nil") && GoPsiImplUtil.builtin(((GoReferenceExpression)o).resolve());
+  }
+
+  private static boolean isArbitraryType(@Nullable GoType type) {
+    if (type != null && type.textMatches("ArbitraryType")) {
+      PsiElement resolve = type.resolve();
+      if (resolve == null) return false;
+      PsiFile file = resolve.getContainingFile();
+      return file instanceof GoFile
+             && "unsafe".equals(((GoFile)file).getPackageName())
+             && "unsafe".equals(((GoFile)file).getImportPath(false))
+             && "unsafe.go".equals(file.getName());
+    }
+    return false;
   }
 
   private static boolean isNumericType(@Nullable GoType type) {
@@ -400,9 +414,13 @@ public class GoTypeUtil {
 
   public static boolean identical(@Nullable GoType left, @Nullable GoType right) {
     if (left == null || right == null) return false;
-    if (left instanceof GoSpecType && right instanceof GoSpecType) {
-      return left.isEquivalentTo(right);
-    }
+
+    if (left instanceof GoCType || right instanceof GoCType) return true;
+
+    if (isArbitraryType(left)) return true;
+
+    if (left instanceof GoSpecType && right instanceof GoSpecType) return left.isEquivalentTo(right);
+
     if (left instanceof GoSpecType) return left.isEquivalentTo(getSpecType(right));
     if (right instanceof GoSpecType) return right.isEquivalentTo(getSpecType(left));
 
@@ -444,9 +462,6 @@ public class GoTypeUtil {
     if (left instanceof GoTypeList) {
       return right instanceof GoTypeList && isListsOfGoTypeIdentical(((GoTypeList)left).getTypeList(), ((GoTypeList)right).getTypeList());
     }
-    if (left instanceof GoCType || right instanceof GoCType) {
-      return true;
-    }
 
     if (isNamedType(left) != isNamedType(right)) return false;
     if (right instanceof GoLightType.LightUntypedNumericType && isNumericType(left)) {
@@ -460,6 +475,7 @@ public class GoTypeUtil {
 
   private static Set INT32_ALIAS = ContainerUtil.newTreeSet("int32", "rune");
   private static Set UINT8_ALIAS = ContainerUtil.newTreeSet("uint8", "byte");
+
   private static boolean isAliases(@NotNull GoType left, @NotNull GoType right) {
     if (!(isBuiltinType(left) && isBuiltinType(right))) return false;
     String l = left.getText();
@@ -595,7 +611,7 @@ public class GoTypeUtil {
   }
 
   @Nullable
-  private static List<GoType> getTypesFromResult(@Nullable GoResult result) {
+  public static List<GoType> getTypesFromResult(@Nullable GoResult result) {
     if (result == null) return null;
     GoType type = result.getType();
     if (type != null) {
@@ -605,7 +621,7 @@ public class GoTypeUtil {
   }
 
   @NotNull
-  private static Pair<List<GoType>, Boolean> getTypesAndIsVariadicFromParameters(@Nullable GoParameters parameters) {
+  public static Pair<List<GoType>, Boolean> getTypesAndIsVariadicFromParameters(@Nullable GoParameters parameters) {
     List<GoType> result = ContainerUtil.newSmartList();
     if (parameters == null) return Pair.create(result, false);
     for (GoParameterDeclaration parameterDecl : parameters.getParameterDeclarationList()) {

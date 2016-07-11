@@ -15,6 +15,10 @@ type (
     f3()
     f4()
   }
+
+  T2 struct {
+    I
+  }
 )
 
 func (*T) f(){}
@@ -33,8 +37,11 @@ func _() {
   t := new(T)
   forI(t)
 
-  t2 := new(AnotherT)
-  forI(<warning descr="Cannot use t2 (type *AnotherT) as type I">t2</warning>)
+  t2:= new(T2)
+  forI(t2)
+
+  t3 := new(AnotherT)
+  forI(<warning descr="Cannot use t3 (type *AnotherT) as type I">t3</warning>)
 }
 
 func forI(I){}

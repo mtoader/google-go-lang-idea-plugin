@@ -38,7 +38,7 @@ public interface GoTypeSpec extends GoNamedElement, StubBasedPsiElement<GoTypeSp
   boolean shouldGoDeeper();
 
   @NotNull
-  List<GoMethodDeclaration> getAllMethods();
+  List<GoNamedSignatureOwner> getAllMethods();
 
   @NotNull
   PsiElement getIdentifier();

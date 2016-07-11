@@ -43,12 +43,19 @@ public class GoGetGoTypeTest extends GoTypesIdenticalTestCase {
       {"var arr = [...]int{1,2,3}", " arr[0:1]", "[]int"},
       {"var arr[]int", " arr[0:1]", "[]int"},
       {"var arr[]int", " arr", "[]int"},
+      {"type T int; func(t T) f(i int, s string){}; var t T", " T.f", "func(T, int, string)"},
+      {"type T int; func(t T) f(i int, s string){}; var t T", " t.f", "func(int, string)"},
+      {"type T int; func(t T) f() T {return nil}; var t T", "t.f()", "T"},
+
+      {"import \"C\"",  " C.gid_t(ug)", "interface{}"},
+      {"import \"C\"",  "C.CString(u.Username)", "interface{}"},
+
     });
   }
 
   @Override
   void doTest() {
-    myFixture.configureByText("a.go", "package main;" + typesAndFuncs + "; var x = " + left + ";var y " + right);
+    myFixture.configureByText("a.go", "package main;" + typesAndFuncs + "\n var x = " + left + "\n var y " + right);
     List<GoVarDefinition> vars = ((GoFile)myFixture.getFile()).getVars();
     int varSize = vars.size();
     GoType left = vars.get(varSize - 2).getGoType(null);

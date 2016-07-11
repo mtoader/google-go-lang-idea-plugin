@@ -128,14 +128,34 @@ public abstract class GoLightType<E extends GoCompositeElement> extends LightEle
   }
 
   static class LightFunctionType extends GoLightType<GoSignatureOwner> implements GoFunctionType {
-    public LightFunctionType(@NotNull GoSignatureOwner o) {
+    public final GoSignature mySignature;
+
+    public LightFunctionType(@NotNull GoSignatureOwner o, boolean addReceiverInSignature) {
       super(o);
+      if (addReceiverInSignature && o instanceof GoMethodDeclaration) {
+        GoMethodDeclaration method = (GoMethodDeclaration)o;
+        GoReceiver receiver = method.getReceiver();
+        GoType type = receiver != null ? receiver.getType() : null;
+        if (type != null) {
+          GoSignature signature = method.getSignature();
+          if (signature != null) {
+            String params = StringUtil.join(GoTypeUtil.getTypesAndIsVariadicFromParameters(
+              signature.getParameters()).first, GoPsiImplUtil.GET_TEXT_FUNCTION, ", ");
+            String receiverWithParams = type.getText() + (params.isEmpty() ? "" : ", " + params);
+            List<GoType> resultTypes = GoTypeUtil.getTypesFromResult(signature.getResult());
+            String result = resultTypes != null ? StringUtil.join(resultTypes, GoPsiImplUtil.GET_TEXT_FUNCTION, ", ") : "";
+            mySignature = GoElementFactory.createFunctionSignatureFromText(o.getProject(), receiverWithParams, result, signature);
+            return;
+          }
+        }
+      }
+      mySignature = o.getSignature();
     }
 
     @Nullable
     @Override
     public GoSignature getSignature() {
-      return myElement.getSignature();
+      return mySignature;
     }
 
     @NotNull
@@ -146,8 +166,7 @@ public abstract class GoLightType<E extends GoCompositeElement> extends LightEle
 
     @Override
     public String getText() {
-      GoSignature signature = myElement.getSignature();
-      return "func " + (signature != null ? signature.getText() : "<null>");
+      return "func " + (mySignature != null ? mySignature.getText() : "<null>");
     }
   }
 

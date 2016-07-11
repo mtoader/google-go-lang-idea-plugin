@@ -122,8 +122,18 @@ public class GoElementFactory {
   }
 
   @NotNull
-  public static GoSignature createFunctionSignatureFromText(@NotNull Project project, @NotNull String text) {
-    GoFile file = createFileFromText(project, "package a; func t(" + text + ") {\n}");
+  public static GoSignature createFunctionSignatureFromText(@NotNull Project project,
+                                                            @NotNull String params) {
+    return createFunctionSignatureFromText(project, params, "", null);
+  }
+
+  @NotNull
+  public static GoSignature createFunctionSignatureFromText(@NotNull Project project,
+                                                            @NotNull String params,
+                                                            @NotNull String result,
+                                                            @Nullable PsiElement context) {
+    GoFile file = createFileFromText(project, "package a; func t(" + params + ") " + (result.isEmpty() ? "" : "(" + result + ")") + " {\n}");
+    if (context != null) file.putUserData(GoReference.FILE_SUBSTITUTION_CONTEXT, context.getContainingFile());
     return ContainerUtil.getFirstItem(file.getFunctions()).getSignature();
   }
 

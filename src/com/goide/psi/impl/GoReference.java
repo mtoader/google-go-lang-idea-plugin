@@ -46,6 +46,7 @@ public class GoReference extends PsiPolyVariantReferenceBase<GoReferenceExpressi
   public static final Key<String> ACTUAL_NAME = Key.create("ACTUAL_NAME");
   private static final Key<Object> POINTER = Key.create("POINTER");
   private static final Key<Object> DONT_PROCESS_METHODS = Key.create("DONT_PROCESS_METHODS");
+  public static final Key<Object> FILE_SUBSTITUTION_CONTEXT = Key.create("FILE_SUBSTITUTION_CONTEXT");
 
   private static final ResolveCache.PolyVariantResolver<PsiPolyVariantReferenceBase> MY_RESOLVER =
     new ResolveCache.PolyVariantResolver<PsiPolyVariantReferenceBase>() {
@@ -138,7 +139,7 @@ public class GoReference extends PsiPolyVariantReferenceBase<GoReferenceExpressi
     }
     if (target instanceof PsiDirectory && !processDirectory((PsiDirectory)target, file, null, processor, state, false)) return false;
     if (target instanceof GoTypeOwner) {
-      GoType type = typeOrParameterType((GoTypeOwner)target, createContextOnElement(myElement));
+      GoType type = typeOrParameterType((GoTypeOwner)target, createContextOnElement(myElement), false);
       if (type instanceof GoCType) return processor.execute(myElement, state);
       if (type != null) {
         if (!processGoType(type, processor, state)) return false;
