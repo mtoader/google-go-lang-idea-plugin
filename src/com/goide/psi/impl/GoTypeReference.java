@@ -89,13 +89,13 @@ public class GoTypeReference extends PsiPolyVariantReferenceBase<GoTypeReference
   public boolean processResolveVariants(@NotNull GoScopeProcessor processor) {
     PsiFile file = myElement.getContainingFile();
     if (!(file instanceof GoFile)) return false;
-    PsiFile substitutionFile = ObjectUtils.notNull((PsiFile)file.getUserData(GoReference.FILE_SUBSTITUTION_CONTEXT), file);
+    GoFile substitutionFile = ObjectUtils.notNull(file.getUserData(GoReference.FILE_SUBSTITUTION_CONTEXT), (GoFile)file);
     ResolveState state = ResolveState.initial();
     GoTypeReferenceExpression qualifier = myElement.getQualifier();
     if (qualifier != null) {
-      return processQualifierExpression((GoFile)substitutionFile, qualifier, processor, state);
+      return processQualifierExpression(substitutionFile, qualifier, processor, state);
     }
-    return processUnqualifiedResolve((GoFile)substitutionFile, processor, state, true);
+    return processUnqualifiedResolve(substitutionFile, processor, state, true);
   }
 
   private boolean processQualifierExpression(@NotNull GoFile file,

@@ -21,6 +21,7 @@ import com.goide.psi.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.impl.PsiParserFacadeImpl;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -133,7 +134,10 @@ public class GoElementFactory {
                                                             @NotNull String result,
                                                             @Nullable PsiElement context) {
     GoFile file = createFileFromText(project, "package a; func t(" + params + ") " + (result.isEmpty() ? "" : "(" + result + ")") + " {\n}");
-    if (context != null) file.putUserData(GoReference.FILE_SUBSTITUTION_CONTEXT, context.getContainingFile());
+    PsiFile containingFile = context == null ? null: context.getContainingFile();
+    if (containingFile instanceof GoFile) {
+      file.putUserData(GoReference.FILE_SUBSTITUTION_CONTEXT, (GoFile)containingFile);
+    }
     return ContainerUtil.getFirstItem(file.getFunctions()).getSignature();
   }
 

@@ -46,7 +46,7 @@ public class GoReference extends PsiPolyVariantReferenceBase<GoReferenceExpressi
   public static final Key<String> ACTUAL_NAME = Key.create("ACTUAL_NAME");
   private static final Key<Object> POINTER = Key.create("POINTER");
   private static final Key<Object> DONT_PROCESS_METHODS = Key.create("DONT_PROCESS_METHODS");
-  public static final Key<Object> FILE_SUBSTITUTION_CONTEXT = Key.create("FILE_SUBSTITUTION_CONTEXT");
+  public static final Key<GoFile> FILE_SUBSTITUTION_CONTEXT = Key.create("FILE_SUBSTITUTION_CONTEXT");
 
   private static final ResolveCache.PolyVariantResolver<PsiPolyVariantReferenceBase> MY_RESOLVER =
     new ResolveCache.PolyVariantResolver<PsiPolyVariantReferenceBase>() {
