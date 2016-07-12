@@ -1002,18 +1002,36 @@ public class GoPsiImplUtil {
   private static List<GoNamedSignatureOwner> calcAllMethods(@NotNull GoTypeSpec o) {
     List<GoNamedSignatureOwner> result = ContainerUtil.newSmartList();
     result.addAll(o.getMethods());
-    GoStructType struct = ObjectUtils.tryCast(o.getSpecType().getType(), GoStructType.class);
-    if (struct != null) {
-      for (GoFieldDeclaration declaration : struct.getFieldDeclarationList()) {
-        GoAnonymousFieldDefinition anon = declaration.getAnonymousFieldDefinition();
-        if (anon != null) {
-          GoTypeReferenceExpression expression = anon.getTypeReferenceExpression();
-          GoTypeSpec resolve = ObjectUtils.tryCast(expression != null ? expression.resolve() : null, GoTypeSpec.class);
-          if (resolve != null) {
-            GoType innerType = resolve.getSpecType().getType();
-            GoType underlyingType = innerType != null ? innerType.getUnderlyingType() : null;
-            result.addAll(underlyingType instanceof GoInterfaceType ? ((GoInterfaceType)underlyingType).getAllMethods() : resolve.getAllMethods());
-          }
+    GoType type = o.getSpecType().getType();
+    if (type instanceof GoStructType) {
+      result.addAll(((GoStructType)type).getAllMethods());
+    }
+    return result;
+  }
+
+  @NotNull
+  public static List<GoNamedSignatureOwner> getAllMethods(@NotNull GoStructType o) {
+    return CachedValuesManager.getCachedValue(o, new CachedValueProvider<List<GoNamedSignatureOwner>>() {
+      @Nullable
+      @Override
+      public Result<List<GoNamedSignatureOwner>> compute() {
+        return Result.create(calcAllMethods(o), PsiModificationTracker.MODIFICATION_COUNT);
+      }
+    });
+  }
+
+  @NotNull
+  private static List<GoNamedSignatureOwner> calcAllMethods(@NotNull GoStructType o) {
+    List<GoNamedSignatureOwner> result = ContainerUtil.newSmartList();
+    for (GoFieldDeclaration declaration : o.getFieldDeclarationList()) {
+      GoAnonymousFieldDefinition anon = declaration.getAnonymousFieldDefinition();
+      if (anon != null) {
+        GoTypeReferenceExpression expression = anon.getTypeReferenceExpression();
+        GoTypeSpec resolve = ObjectUtils.tryCast(expression != null ? expression.resolve() : null, GoTypeSpec.class);
+        if (resolve != null) {
+          GoType innerType = resolve.getSpecType().getType();
+          GoType underlyingType = innerType != null ? innerType.getUnderlyingType() : null;
+          result.addAll(underlyingType instanceof GoInterfaceType ? ((GoInterfaceType)underlyingType).getAllMethods() : resolve.getAllMethods());
         }
       }
     }

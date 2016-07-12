@@ -35,4 +35,7 @@ public interface GoStructType extends GoType {
   @NotNull
   PsiElement getStruct();
 
+  @NotNull
+  List<GoNamedSignatureOwner> getAllMethods();
+
 }

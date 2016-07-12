@@ -470,9 +470,8 @@ public class GoTypeUtil {
     if (isAliases(left, right)) return true;
     // todo: stubs?
     PsiElement lResolve = left.resolve();
-    PsiElement rResolve = right.resolve();
     if (lResolve == null) return true;
-    return lResolve.isEquivalentTo(rResolve);
+    return lResolve.isEquivalentTo(right.resolve());
   }
 
   private static Set INT32_ALIAS = ContainerUtil.newTreeSet("int32", "rune");

@@ -70,4 +70,9 @@ public class GoStructTypeImpl extends GoTypeImpl implements GoStructType {
     return notNullChild(findChildByType(STRUCT));
   }
 
+  @NotNull
+  public List<GoNamedSignatureOwner> getAllMethods() {
+    return GoPsiImplUtil.getAllMethods(this);
+  }
+
 }

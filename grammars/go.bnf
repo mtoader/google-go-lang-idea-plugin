@@ -131,7 +131,7 @@ private TypeLit ::=
 
 ArrayOrSliceType ::= '[' ('...'|Expression?) ']' Type {pin=1 methods = [getLength isArray]}
 
-StructType ::= struct '{' Fields? '}' {pin=1}
+StructType ::= struct '{' Fields? '}' {pin=1 methods=[getAllMethods]}
 private Fields ::= FieldDeclaration (semi FieldDeclaration)* semi? {pin=1}
 FieldDeclaration ::= (FieldDefinitionList Type | AnonymousFieldDefinition) Tag?
 Tag ::= StringLiteral
