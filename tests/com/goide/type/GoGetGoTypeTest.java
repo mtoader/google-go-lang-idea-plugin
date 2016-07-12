@@ -56,6 +56,7 @@ public class GoGetGoTypeTest extends GoTypesIdenticalTestCase {
   @Override
   void doTest() {
     myFixture.configureByText("a.go", "package main;" + typesAndFuncs + "\n var x = " + left + "\n var y " + right);
+    myFixture.checkHighlighting();
     List<GoVarDefinition> vars = ((GoFile)myFixture.getFile()).getVars();
     int varSize = vars.size();
     GoType left = vars.get(varSize - 2).getGoType(null);

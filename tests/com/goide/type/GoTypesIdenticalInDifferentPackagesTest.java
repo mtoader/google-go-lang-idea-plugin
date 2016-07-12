@@ -66,6 +66,7 @@ public class GoTypesIdenticalInDifferentPackagesTest extends GoTypesIdenticalTes
     myFixture.addFileToProject("a/a.go", "package a; type MyType string;");
     PsiFile lFile = myFixture.addFileToProject("l/l.go", "package l\n import (\"r\" ; \"a\") \n" + left);
     PsiFile rFile = myFixture.addFileToProject("r/r.go", "package r\n import (\"l\" ; \"a\") \n" + right);
+    myFixture.testHighlighting("a/a.go", "l/l.go", "r/r.go");
     GoType left = ((GoFile)lFile).getVars().get(0).getGoType(null);
     GoType right = ((GoFile)rFile).getVars().get(0).getGoType(null);
     String leftText = left == null ? null : left.getText();

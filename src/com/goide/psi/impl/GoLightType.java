@@ -130,27 +130,23 @@ public abstract class GoLightType<E extends GoCompositeElement> extends LightEle
   static class LightFunctionType extends GoLightType<GoSignatureOwner> implements GoFunctionType {
     private final GoSignature mySignature;
 
-    public LightFunctionType(@NotNull GoSignatureOwner o, boolean addReceiverInSignature) {
+    public LightFunctionType(@NotNull GoSignatureOwner o, @Nullable String receiver) {
       super(o);
-      mySignature = calcSignature(o, addReceiverInSignature);
+      mySignature = calcSignature(o, receiver);
     }
 
     @Nullable
-    private static GoSignature calcSignature(@NotNull GoSignatureOwner o, boolean addReceiverToSignature) {
-      if (addReceiverToSignature && o instanceof GoMethodDeclaration) {
+    private static GoSignature calcSignature(@NotNull GoSignatureOwner o, @Nullable String receiver) {
+      if (receiver != null && o instanceof GoMethodDeclaration) {
         GoMethodDeclaration method = (GoMethodDeclaration)o;
-        GoReceiver receiver = method.getReceiver();
-        GoType type = receiver != null ? receiver.getType() : null;
-        if (type != null) {
-          GoSignature signature = method.getSignature();
-          if (signature != null) {
-            String params = StringUtil.join(GoTypeUtil.getTypesAndIsVariadicFromParameters(
-              signature.getParameters()).first, GoPsiImplUtil.GET_TEXT_FUNCTION, ", ");
-            String receiverWithParams = type.getText() + (params.isEmpty() ? "" : ", " + params);
-            List<GoType> resultTypes = GoTypeUtil.getTypesFromResult(signature.getResult());
-            String result = resultTypes != null ? StringUtil.join(resultTypes, GoPsiImplUtil.GET_TEXT_FUNCTION, ", ") : "";
-            return GoElementFactory.createFunctionSignatureFromText(o.getProject(), receiverWithParams, result, signature);
-          }
+        GoSignature signature = method.getSignature();
+        if (signature != null) {
+          String params = StringUtil.join(GoTypeUtil.getTypesAndIsVariadicFromParameters(
+            signature.getParameters()).first, GoPsiImplUtil.GET_TEXT_FUNCTION, ", ");
+          String receiverWithParams = receiver + (params.isEmpty() ? "" : ", " + params);
+          List<GoType> resultTypes = GoTypeUtil.getTypesFromResult(signature.getResult());
+          String result = resultTypes != null ? StringUtil.join(resultTypes, GoPsiImplUtil.GET_TEXT_FUNCTION, ", ") : "";
+          return GoElementFactory.createFunctionSignatureFromText(o.getProject(), receiverWithParams, result, signature);
         }
       }
       return o.getSignature();
@@ -284,7 +280,7 @@ public abstract class GoLightType<E extends GoCompositeElement> extends LightEle
 
     @Override
     public String getDefaultTypeName() {
-      return "complex64";
+      return "complex128";
     }
   }
 }

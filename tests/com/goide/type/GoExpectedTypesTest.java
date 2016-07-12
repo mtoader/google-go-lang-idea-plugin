@@ -205,6 +205,7 @@ public class GoExpectedTypesTest extends GoCodeInsightFixtureTestCase {
 
   private void doTopLevelTest(@NotNull String text, @NotNull String expectedTypeText) {
     myFixture.configureByText("a.go", "package a;" + text);
+    myFixture.checkHighlighting();
     PsiElement elementAt = findElementAtCaretOrInSelection();
 
     GoExpression typeOwner = PsiTreeUtil.getNonStrictParentOfType(elementAt, GoExpression.class);

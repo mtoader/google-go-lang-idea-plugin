@@ -21,10 +21,6 @@ func _() {
   f2(1, <warning descr="Cannot use sl (type []int) as type int">sl</warning>...)
   f2(1, 2, 3, <warning descr="Cannot use sl (type []int) as type int">sl</warning>...)
 
-
-
-
-
 }
 
 func f1(slice ... int){

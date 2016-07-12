@@ -417,7 +417,7 @@ public class GoPsiImplUtil {
       return expression != null ? expression.resolveType() : null;
     }
     else if (o instanceof GoFunctionLit) {
-      return new LightFunctionType((GoFunctionLit)o, false);
+      return new LightFunctionType((GoFunctionLit)o, null);
     }
     else if (o instanceof GoBuiltinCallExpr) {
       String text = ((GoBuiltinCallExpr)o).getReferenceExpression().getText();
@@ -432,8 +432,7 @@ public class GoPsiImplUtil {
     else if (o instanceof GoCallExpr) {
       GoExpression e = ((GoCallExpr)o).getExpression();
       if (e instanceof GoReferenceExpression) { // todo: unify Type processing
-        PsiReference ref = e.getReference();
-        PsiElement resolve = ref != null ? ref.resolve() : null;
+        PsiElement resolve = ((GoReferenceExpression)e).resolve();
         if (((GoReferenceExpression)e).getQualifier() == null && "append".equals(((GoReferenceExpression)e).getIdentifier().getText())) {
           if (resolve instanceof GoFunctionDeclaration && isBuiltinFile(resolve.getContainingFile())) {
             List<GoExpression> l = ((GoCallExpr)o).getArgumentList().getExpressionList();
@@ -443,6 +442,10 @@ public class GoPsiImplUtil {
         }
         else if (resolve == e) { // C.call()
           return new GoCType(e);
+        }
+        else if (builtin(resolve)) {
+          if (e.textMatches("imag") || e.textMatches("real")) return new LightUntypedFloatType(o);
+          if (e.textMatches("complex")) return new LightUntypedComplexType(o);
         }
       }
       GoType type = ((GoCallExpr)o).getExpression().getGoType(context);
@@ -458,7 +461,7 @@ public class GoPsiImplUtil {
     else if (o instanceof GoReferenceExpression) {
       GoReferenceExpression reference = (GoReferenceExpression)o;
       PsiElement resolve = reference.resolve();
-      if (resolve instanceof GoTypeOwner) return typeOrParameterType((GoTypeOwner)resolve, context, addReceiverToSignature(reference, context));
+      if (resolve instanceof GoTypeOwner) return typeOrParameterType((GoTypeOwner)resolve, context, getReceiver(reference, context));
     }
     else if (o instanceof GoParenthesesExpr) {
       GoExpression expression = ((GoParenthesesExpr)o).getExpression();
@@ -513,16 +516,26 @@ public class GoPsiImplUtil {
     return null;
   }
 
-  private static boolean addReceiverToSignature(@NotNull GoReferenceExpression o, @Nullable ResolveState context) {
+  @Nullable
+  private static String getReceiver(@NotNull GoReferenceExpression o, @Nullable ResolveState context) {
     GoReferenceExpression qualifier = o.getQualifier();
-    return qualifier != null && qualifier.resolve() instanceof GoTypeSpec || calcTypeFromSelector(o.getParent(), context) instanceof GoSpecType;
+    if (qualifier != null && qualifier.resolve() instanceof GoTypeSpec) return qualifier.getText();
+    return calcTypeNameFromSelector(o.getParent(), context);
   }
 
   @Nullable
-  private static GoType calcTypeFromSelector(@Nullable PsiElement o, @Nullable ResolveState context) {
+  private static String calcTypeNameFromSelector(@Nullable PsiElement o, @Nullable ResolveState context) {
     if (!(o instanceof GoSelectorExpr)) return null;
     GoExpression expression = ContainerUtil.getFirstItem(((GoSelectorExpr)o).getExpressionList());
-    return expression != null ? expression.getGoType(context) : null;
+    if (expression == null || expression instanceof GoCompositeLit || expression instanceof GoCallExpr) return null;
+    GoType type = expression.getGoType(context);
+    if (!(type instanceof GoSpecType)) return null;
+    boolean isPointer = false;
+    if (expression instanceof GoParenthesesExpr) {
+      GoExpression innerExpression = ((GoParenthesesExpr)expression).getExpression();
+      isPointer = innerExpression instanceof GoUnaryExpr && ((GoUnaryExpr)innerExpression).getMul() != null;
+    }
+    return (isPointer ? "*" : "") + ((GoSpecType)type).getIdentifier().getText();
   }
 
   @Nullable
@@ -557,13 +570,13 @@ public class GoPsiImplUtil {
   }
 
   @Nullable
-  public static GoType typeOrParameterType(@NotNull GoTypeOwner resolve, @Nullable ResolveState context, boolean addReceiverInSignature) {
+  public static GoType typeOrParameterType(@NotNull GoTypeOwner resolve, @Nullable ResolveState context, @Nullable String receiver) {
     GoType type = resolve.getGoType(context);
     if (resolve instanceof GoParamDefinition && ((GoParamDefinition)resolve).isVariadic()) {
       return type == null ? null : new LightSliceType(type);
     }
     if (resolve instanceof GoSignatureOwner) {
-      return new LightFunctionType((GoSignatureOwner)resolve, addReceiverInSignature);
+      return new LightFunctionType((GoSignatureOwner)resolve, receiver);
     }
     return type;
   }

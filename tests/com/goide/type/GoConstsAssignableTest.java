@@ -56,8 +56,8 @@ public class GoConstsAssignableTest extends GoTypesIdenticalTestCase {
 
   @Override
   void doTest() {
-    myFixture.configureByText("a.go", "package main;" + typesAndFuncs + "var x " + left + "; const c " + right);
-    GoFile file = (GoFile)myFixture.getFile();
+    GoFile file = (GoFile)myFixture.configureByText("a.go", "package main;" + typesAndFuncs + "var x " + left + "; const c " + right);
+    myFixture.checkHighlighting();
     GoType left = file.getVars().get(0).getGoType(null);
     assert left != null;
     GoType right = file.getConstants().get(0).getGoType(null);

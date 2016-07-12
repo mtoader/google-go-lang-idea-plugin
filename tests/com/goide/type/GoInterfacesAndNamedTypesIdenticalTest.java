@@ -68,7 +68,8 @@ public class GoInterfacesAndNamedTypesIdenticalTest extends GoTypesIdenticalTest
 
   @Override
   void doTest() {
-    myFixture.configureByText("a.go", "package main;"  + typesAndFuncs +"; var x " + left + "; var y " + right);
+    myFixture.configureByText("a.go", "package main\n"  + typesAndFuncs +"\n var x " + left + "\n var y " + right);
+    myFixture.checkHighlighting();
     List<GoVarDefinition> vars = ((GoFile)myFixture.getFile()).getVars();
     GoType left = vars.get(0).getGoType(null);
     GoType right = vars.get(1).getGoType(null);

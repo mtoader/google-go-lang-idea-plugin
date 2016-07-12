@@ -51,6 +51,9 @@ public class GoTypeCompatibilityHighlightingTest extends GoCodeInsightFixtureTes
   public void testInterfaces()               { doTest(); }
   public void testMethods()                  { doTest(); }
   public void testUnsafe()                   { doTest(); }
+  public void testCType()                    { doTest(); }
+  public void testUnresolved()               { doTest(); }
+  public void testBuiltin()                  { doTest(); }
 
   @Override
   protected LightProjectDescriptor getProjectDescriptor() {

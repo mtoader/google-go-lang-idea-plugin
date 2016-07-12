@@ -51,7 +51,7 @@ func main() {
 	foo(make(chan func(), 1e5))
 	foo(make(chan func(), '1'))
 	foo(make(chan func(), <error descr="Non-integer size argument to make">true</error>))
-	foo(make(chan func(), <error descr="Non-integer size argument to make">complex(17,4)</error>))
+	foo(make(chan func(), complex(17,4)))
 	foo(make(chan func(), <error descr="Non-integer size argument to make">"1"</error>))
 
 	type someChan chan int

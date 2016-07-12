@@ -43,6 +43,7 @@ public class GoTypeListsIdenticalTest extends GoTypesIdenticalTestCase {
   void doTest() {
     PsiFile lFile = myFixture.addFileToProject("l.go", "package l; func _() " + left + "{}");
     PsiFile rFile = myFixture.addFileToProject("r.go", "package r; func _() " + right + "{}");
+    myFixture.testHighlighting("l.go", "r.go");
     GoType left = getResultType((GoFile)lFile);
     GoType right = getResultType((GoFile)rFile);
     assert left != null && right != null;

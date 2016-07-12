@@ -276,7 +276,7 @@ public class GoTypeUtil {
         }
       }
     }
-    return Collections.singletonList(Pair.pair(getInterfaceIfNull(null, argumentList), false));
+    return Collections.singletonList(Pair.pair(getInterfaceIfNull(null, argumentList), true));
   }
 
   @NotNull
@@ -415,7 +415,7 @@ public class GoTypeUtil {
   public static boolean identical(@Nullable GoType left, @Nullable GoType right) {
     if (left == null || right == null) return false;
 
-    if (left instanceof GoCType || right instanceof GoCType) return true;
+    if (left.getUnderlyingType() instanceof GoCType || right.getUnderlyingType() instanceof GoCType) return true;
 
     if (isArbitraryType(left)) return true;
 
@@ -470,7 +470,9 @@ public class GoTypeUtil {
     if (isAliases(left, right)) return true;
     // todo: stubs?
     PsiElement lResolve = left.resolve();
-    return lResolve != null && lResolve.isEquivalentTo(right.resolve());
+    PsiElement rResolve = right.resolve();
+    if (lResolve == null) return true;
+    return lResolve.isEquivalentTo(rResolve);
   }
 
   private static Set INT32_ALIAS = ContainerUtil.newTreeSet("int32", "rune");
