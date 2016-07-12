@@ -128,11 +128,16 @@ public abstract class GoLightType<E extends GoCompositeElement> extends LightEle
   }
 
   static class LightFunctionType extends GoLightType<GoSignatureOwner> implements GoFunctionType {
-    public final GoSignature mySignature;
+    private final GoSignature mySignature;
 
     public LightFunctionType(@NotNull GoSignatureOwner o, boolean addReceiverInSignature) {
       super(o);
-      if (addReceiverInSignature && o instanceof GoMethodDeclaration) {
+      mySignature = calcSignature(o, addReceiverInSignature);
+    }
+
+    @Nullable
+    private static GoSignature calcSignature(@NotNull GoSignatureOwner o, boolean addReceiverToSignature) {
+      if (addReceiverToSignature && o instanceof GoMethodDeclaration) {
         GoMethodDeclaration method = (GoMethodDeclaration)o;
         GoReceiver receiver = method.getReceiver();
         GoType type = receiver != null ? receiver.getType() : null;
@@ -144,12 +149,11 @@ public abstract class GoLightType<E extends GoCompositeElement> extends LightEle
             String receiverWithParams = type.getText() + (params.isEmpty() ? "" : ", " + params);
             List<GoType> resultTypes = GoTypeUtil.getTypesFromResult(signature.getResult());
             String result = resultTypes != null ? StringUtil.join(resultTypes, GoPsiImplUtil.GET_TEXT_FUNCTION, ", ") : "";
-            mySignature = GoElementFactory.createFunctionSignatureFromText(o.getProject(), receiverWithParams, result, signature);
-            return;
+            return GoElementFactory.createFunctionSignatureFromText(o.getProject(), receiverWithParams, result, signature);
           }
         }
       }
-      mySignature = o.getSignature();
+      return o.getSignature();
     }
 
     @Nullable

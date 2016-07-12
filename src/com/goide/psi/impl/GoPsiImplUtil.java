@@ -457,16 +457,8 @@ public class GoPsiImplUtil {
     }
     else if (o instanceof GoReferenceExpression) {
       GoReferenceExpression reference = (GoReferenceExpression)o;
-      PsiElement parent = reference.getParent();
-      GoType type = null;
-      if (parent instanceof GoSelectorExpr) {
-        GoExpression expression = ContainerUtil.getFirstItem(((GoSelectorExpr)parent).getExpressionList());
-         type = expression != null ? expression.getGoType(context) : null;
-      }
-      GoReferenceExpression qualifier = reference.getQualifier();
-      boolean addReceiverInSignature = qualifier != null && qualifier.resolve() instanceof GoTypeSpec || type instanceof GoSpecType;
       PsiElement resolve = reference.resolve();
-      if (resolve instanceof GoTypeOwner) return typeOrParameterType((GoTypeOwner)resolve, context, addReceiverInSignature);
+      if (resolve instanceof GoTypeOwner) return typeOrParameterType((GoTypeOwner)resolve, context, addReceiverToSignature(reference, context));
     }
     else if (o instanceof GoParenthesesExpr) {
       GoExpression expression = ((GoParenthesesExpr)o).getExpression();
@@ -519,6 +511,18 @@ public class GoPsiImplUtil {
       return getBuiltinType("bool", o);
     }
     return null;
+  }
+
+  private static boolean addReceiverToSignature(@NotNull GoReferenceExpression o, @Nullable ResolveState context) {
+    GoReferenceExpression qualifier = o.getQualifier();
+    return qualifier != null && qualifier.resolve() instanceof GoTypeSpec || calcTypeFromSelector(o.getParent(), context) instanceof GoSpecType;
+  }
+
+  @Nullable
+  private static GoType calcTypeFromSelector(@Nullable PsiElement o, @Nullable ResolveState context) {
+    if (!(o instanceof GoSelectorExpr)) return null;
+    GoExpression expression = ContainerUtil.getFirstItem(((GoSelectorExpr)o).getExpressionList());
+    return expression != null ? expression.getGoType(context) : null;
   }
 
   @Nullable
@@ -995,12 +999,7 @@ public class GoPsiImplUtil {
           if (resolve != null) {
             GoType innerType = resolve.getSpecType().getType();
             GoType underlyingType = innerType != null ? innerType.getUnderlyingType() : null;
-            if (underlyingType instanceof GoInterfaceType) {
-              result.addAll(((GoInterfaceType)underlyingType).getAllMethods());
-            }
-            else {
-              result.addAll(resolve.getAllMethods());
-            }
+            result.addAll(underlyingType instanceof GoInterfaceType ? ((GoInterfaceType)underlyingType).getAllMethods() : resolve.getAllMethods());
           }
         }
       }
