@@ -42,6 +42,8 @@ func _() {
 
   t3 := new(AnotherT)
   forI(<warning descr="Cannot use t3 (type *AnotherT) as type I">t3</warning>)
+
+  forI(struct{I}{nil})
 }
 
 func forI(I){}

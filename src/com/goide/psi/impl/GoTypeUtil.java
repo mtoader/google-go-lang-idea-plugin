@@ -598,6 +598,7 @@ public class GoTypeUtil {
     }
     GoType type = GoPsiImplUtil.unwrapPointerIfNeeded(o);
     if (type == null) return null;
+    if (type instanceof GoStructType) return ((GoStructType)type).getAllMethods();
     GoTypeSpec spec = ObjectUtils.tryCast(type instanceof GoSpecType ? GoPsiImplUtil.getTypeSpecSafe(type) : // todo
                                           type.resolve(), GoTypeSpec.class);
     if (spec == null) return null;
