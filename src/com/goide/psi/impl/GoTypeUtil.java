@@ -58,9 +58,13 @@ public class GoTypeUtil {
     }
   };
 
-  private static final Set NUMERIC_TYPES = ContainerUtil.newHashSet("int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16",
+  // todo: unify with DlvApi.Variable.Kind
+  public static final Set NUMERIC_TYPES = ContainerUtil.newHashSet("int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16",
                                                                     "uint32", "uint64", "float32", "float64", "complex64", "complex128",
                                                                     "rune", "byte", "uintptr");
+
+  private static final Set<String> INTEGER_TYPES = ContainerUtil.newHashSet("int", "int8", "int16", "int32", "int64", "uint", "uint8",
+                                                                            "uint16", "uint32", "uint64", "rune", "byte", "uintptr");
 
   /**
    * https://golang.org/ref/spec#For_statements
@@ -118,6 +122,10 @@ public class GoTypeUtil {
 
   private static boolean isNumericType(@Nullable GoType type) {
     return type != null && NUMERIC_TYPES.contains(type.getText()) && isBuiltinType(type);
+  }
+
+  public static boolean isIntegerType(@Nullable GoType type) {
+    return type != null && INTEGER_TYPES.contains(type.getText()) && isBuiltinType(type);
   }
 
   @NotNull

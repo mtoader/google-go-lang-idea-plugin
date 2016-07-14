@@ -280,6 +280,9 @@ public class GoDocumentationProvider extends AbstractDocumentationProvider {
       if (type instanceof GoCType) {
         return "C";
       }
+      if (type instanceof GoLightType.LightUntypedNumericType) {
+        return type.getText();
+      }
       if (type instanceof GoLightType) {
         LOG.error("Cannot build presentable text for type: " + type.getClass().getSimpleName() + " - " + type.getText());
         return "";

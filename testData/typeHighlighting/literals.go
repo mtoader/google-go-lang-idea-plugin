@@ -27,7 +27,7 @@ func _() {
   fString(<warning descr="Cannot use 'r' (type untyped rune) as type string">'r'</warning>)
   fString(<warning descr="Cannot use 2 (type untyped int) as type string">2</warning>)
   fString(<warning descr="Cannot use 3.6 (type untyped float64) as type string">3.6</warning>)
-  fString(<warning descr="Cannot use 3.5 + 6i (type untyped float64) as type string">3.5 + 6i</warning>)
+  fString(<warning descr="Cannot use 3.5 + 6i (type untyped complex128) as type string">3.5 + 6i</warning>)
 
   fRune(<warning descr="Cannot use \"qwe\" (type string) as type rune">"qwe"</warning>)
   fInt32(<warning descr="Cannot use \"qwe\" (type string) as type int32">"qwe"</warning>)

@@ -27,7 +27,6 @@ import com.goide.psi.impl.GoTypeUtil;
 import com.goide.quickfix.GoDeleteRangeQuickFix;
 import com.goide.quickfix.GoEmptySignatureQuickFix;
 import com.goide.quickfix.GoReplaceWithReturnStatementQuickFix;
-import com.google.common.collect.Sets;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
@@ -42,13 +41,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Set;
 
 public class GoAnnotator implements Annotator {
-  private static final Set<String> INT_TYPE_NAMES = Sets.newHashSet(
-    "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64", "uintptr",
-    "rune", "float32", "float64"
-  ); // todo: unify with DlvApi.Variable.Kind
 
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
@@ -319,7 +313,7 @@ public class GoAnnotator implements Annotator {
     if (type instanceof GoLightType.LightUntypedNumericType) return true;
     GoTypeReferenceExpression ref = type.getTypeReferenceExpression();
     if (ref == null) return false;
-    return INT_TYPE_NAMES.contains(ref.getText()) && GoPsiImplUtil.builtin(ref.resolve());
+    return GoTypeUtil.NUMERIC_TYPES.contains(ref.getText()) && GoPsiImplUtil.builtin(ref.resolve());
   }
 
   private static void checkSelfReference(@NotNull GoReferenceExpression o, PsiElement definition, AnnotationHolder holder) {

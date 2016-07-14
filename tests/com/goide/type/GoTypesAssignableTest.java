@@ -36,6 +36,8 @@ public class GoTypesAssignableTest extends GoTypesIdenticalTestCase {
       {"type MyType int", "MyType", "MyType", true},
       {"type MyType int", "MyType", "int", true},
 
+      {"type T int64", " = T(3)", "T", true},
+
       {"type (T1 int; T2 T1; T3 T1);", "T2", "T3", false},
       {"type (T1 int; T2 T1; T3 T1);", "T1", "int", true},
       {"type (T1 int; T2 T1; T3 T1);", "int", "T2", true},

@@ -38,7 +38,7 @@ func _() {
   fString(<warning descr="Cannot use r (type untyped rune) as type string">r</warning>)
   fString(<warning descr="Cannot use i (type untyped int) as type string">i</warning>)
   fString(<warning descr="Cannot use f (type untyped float64) as type string">f</warning>)
-  fString(<warning descr="Cannot use c (type untyped float64) as type string">c</warning>)
+  fString(<warning descr="Cannot use c (type untyped complex128) as type string">c</warning>)
 
   fRune(<warning descr="Cannot use s (type string) as type rune">s</warning>)
   fInt32(<warning descr="Cannot use s (type string) as type int32">s</warning>)

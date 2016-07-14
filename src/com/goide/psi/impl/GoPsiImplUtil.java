@@ -389,6 +389,50 @@ public class GoPsiImplUtil {
   }
 
   @Nullable
+  private static GoType getTypeOfClass(@NotNull GoType l, @NotNull GoType r, @NotNull Class clazz) {
+    if (clazz.isInstance(l)) return l;
+    if (clazz.isInstance(r)) return r;
+    return null;
+  }
+
+  private static GoType getIntegerType(@NotNull GoType o) {
+    GoType type = o.getUnderlyingType();
+    return !(GoTypeUtil.isIntegerType(type) || type instanceof LightUntypedRuneType || type instanceof LightUntypedIntType)
+           ? new LightUntypedIntType(type) : type;
+  }
+
+  @Nullable
+  private static GoType getGeneralType(@NotNull GoExpression left,
+                                       @Nullable GoExpression right,
+                                       @Nullable ResolveState context,
+                                       boolean onlyInt) {
+    GoType l = left.getGoType(context);
+    if (right == null) return l;
+    GoType r = right.getGoType(context);
+    if (l == null) return r;
+    if (r == null) return l;
+    if (!(l instanceof LightUntypedNumericType)) return onlyInt ? getIntegerType(l) : l;
+    if (!(r instanceof LightUntypedNumericType)) return onlyInt ? getIntegerType(r) : r;
+    if (!onlyInt) {
+      GoType complex = getTypeOfClass(l, r, LightUntypedComplexType.class);
+      if (complex != null) return complex;
+      GoType floatType = getTypeOfClass(l, r, LightUntypedFloatType.class);
+      if (floatType != null) return floatType;
+    }
+    GoType rune = getTypeOfClass(l, r, LightUntypedRuneType.class);
+    if (rune != null) return rune;
+    GoType intType = getTypeOfClass(l, r, LightUntypedIntType.class);
+    if (intType != null) return intType;
+
+    if (onlyInt) {
+      if (GoTypeUtil.isIntegerType(l.getUnderlyingType())) return l;
+      if (GoTypeUtil.isIntegerType(r.getUnderlyingType())) return r;
+      return new LightUntypedIntType(l);
+    }
+    return l;
+  }
+
+  @Nullable
   public static GoType getGoTypeInner(@NotNull GoExpression o, @Nullable ResolveState context) {
     if (o instanceof GoUnaryExpr) {
       GoUnaryExpr u = (GoUnaryExpr)o;
@@ -401,25 +445,31 @@ public class GoPsiImplUtil {
       if (u.getMul() != null) return base instanceof GoPointerType ? ((GoPointerType)base).getType() : type;
       return type;
     }
-    if (o instanceof GoAddExpr) {
-      return ((GoAddExpr)o).getLeft().getGoType(context);
+    if (o instanceof GoAddExpr || o instanceof GoMulExpr) {
+      GoMulExpr mul = ObjectUtils.tryCast(o, GoMulExpr.class);
+      if (mul != null && (mul.getShiftLeft() != null || mul.getShiftRight() != null)) {
+        GoType type = mul.getLeft().getGoType(context);
+        return type != null ? getIntegerType(type) : null;
+      }
+      GoAddExpr and = ObjectUtils.tryCast(o, GoAddExpr.class);
+      boolean onlyInt = mul != null && (mul.getBitAnd() != null || mul.getRemainder() != null || mul.getBitClear() != null) ||
+        and != null && (and.getBitOr() != null || and.getBitXor() != null);
+      GoBinaryExpr expr = (GoBinaryExpr)o;
+      return getGeneralType(expr.getLeft(), expr.getRight(), context, onlyInt);
     }
-    if (o instanceof GoMulExpr) {
-      GoExpression left = ((GoMulExpr)o).getLeft();
-      if (!(left instanceof GoLiteral)) return left.getGoType(context);
-      GoExpression right = ((GoBinaryExpr)o).getRight();
-      if (right != null) return right.getGoType(context);
+    if (o instanceof GoOrExpr || o instanceof GoAndExpr) {
+      return getBuiltinType("bool", o);
     }
-    else if (o instanceof GoCompositeLit) {
+    if (o instanceof GoCompositeLit) {
       GoType type = ((GoCompositeLit)o).getType();
       if (type != null) return type;
       GoTypeReferenceExpression expression = ((GoCompositeLit)o).getTypeReferenceExpression();
       return expression != null ? expression.resolveType() : null;
     }
-    else if (o instanceof GoFunctionLit) {
+    if (o instanceof GoFunctionLit) {
       return new LightFunctionType((GoFunctionLit)o, null);
     }
-    else if (o instanceof GoBuiltinCallExpr) {
+    if (o instanceof GoBuiltinCallExpr) {
       String text = ((GoBuiltinCallExpr)o).getReferenceExpression().getText();
       boolean isNew = "new".equals(text);
       boolean isMake = "make".equals(text);
@@ -461,7 +511,8 @@ public class GoPsiImplUtil {
     else if (o instanceof GoReferenceExpression) {
       GoReferenceExpression reference = (GoReferenceExpression)o;
       PsiElement resolve = reference.resolve();
-      if (resolve instanceof GoTypeOwner) return typeOrParameterType((GoTypeOwner)resolve, context, getReceiver(reference, context));
+      if ((o.textMatches("true") || o.textMatches("false")) && builtin(resolve)) return getBuiltinType("bool", o);
+      if (resolve instanceof GoTypeOwner) return typeOrParameterType((GoTypeOwner)resolve, context, reference);
     }
     else if (o instanceof GoParenthesesExpr) {
       GoExpression expression = ((GoParenthesesExpr)o).getExpression();
@@ -517,7 +568,8 @@ public class GoPsiImplUtil {
   }
 
   @Nullable
-  private static String getReceiver(@NotNull GoReferenceExpression o, @Nullable ResolveState context) {
+  private static String getReceiver(@Nullable GoReferenceExpression o, @Nullable ResolveState context) {
+    if (o == null) return null;
     GoReferenceExpression qualifier = o.getQualifier();
     if (qualifier != null && qualifier.resolve() instanceof GoTypeSpec) return qualifier.getText();
     return calcTypeNameFromSelector(o.getParent(), context);
@@ -570,13 +622,15 @@ public class GoPsiImplUtil {
   }
 
   @Nullable
-  public static GoType typeOrParameterType(@NotNull GoTypeOwner resolve, @Nullable ResolveState context, @Nullable String receiver) {
+  public static GoType typeOrParameterType(@NotNull GoTypeOwner resolve,
+                                           @Nullable ResolveState context,
+                                           @Nullable GoReferenceExpression reference) {
     GoType type = resolve.getGoType(context);
     if (resolve instanceof GoParamDefinition && ((GoParamDefinition)resolve).isVariadic()) {
       return type == null ? null : new LightSliceType(type);
     }
     if (resolve instanceof GoSignatureOwner) {
-      return new LightFunctionType((GoSignatureOwner)resolve, receiver);
+      return new LightFunctionType((GoSignatureOwner)resolve, getReceiver(reference, context));
     }
     return type;
   }
