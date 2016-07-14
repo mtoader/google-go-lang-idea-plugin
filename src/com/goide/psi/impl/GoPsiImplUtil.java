@@ -577,16 +577,32 @@ public class GoPsiImplUtil {
   @Nullable
   private static String calcTypeNameFromSelector(@Nullable PsiElement o, @Nullable ResolveState context) {
     if (!(o instanceof GoSelectorExpr)) return null;
-    GoExpression expression = ContainerUtil.getFirstItem(((GoSelectorExpr)o).getExpressionList());
-    if (expression == null || expression instanceof GoCompositeLit || expression instanceof GoCallExpr) return null;
-    GoType type = expression.getGoType(context);
-    if (!(type instanceof GoSpecType)) return null;
-    boolean isPointer = false;
-    if (expression instanceof GoParenthesesExpr) {
-      GoExpression innerExpression = ((GoParenthesesExpr)expression).getExpression();
-      isPointer = innerExpression instanceof GoUnaryExpr && ((GoUnaryExpr)innerExpression).getMul() != null;
+    return getTypeNameFromExpression(ContainerUtil.getFirstItem(((GoSelectorExpr)o).getExpressionList()));
+  }
+
+  @Nullable
+  private static String getTypeNameFromExpression(@Nullable GoExpression o) { //todo: process all variants? more tests?
+    if (o == null || o instanceof GoCompositeLit || o instanceof GoCallExpr) return null;
+    if (o instanceof GoParenthesesExpr) {
+      return getTypeNameFromExpression(((GoParenthesesExpr)o).getExpression());
     }
-    return (isPointer ? "*" : "") + ((GoSpecType)type).getIdentifier().getText();
+    if (o instanceof GoUnaryExpr) {
+      GoUnaryExpr unaryExpr = (GoUnaryExpr)o;
+      if (unaryExpr.getMul() != null) {
+        String result = getTypeNameFromExpression(unaryExpr.getExpression());
+        return result != null ? "*" + result : null;
+      }
+    }
+    if (o instanceof GoReferenceExpression) {
+      PsiElement resolve = ((GoReferenceExpression)o).resolve();
+      if (resolve instanceof GoTypeSpec) {
+        return ((GoTypeSpec)resolve).getIdentifier().getText();
+      }
+      return null;
+    }
+    GoType type = o.getGoType(null);
+    if (!(type instanceof GoSpecType)) return null;
+    return ((GoSpecType)type).getIdentifier().getText();
   }
 
   @Nullable

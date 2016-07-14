@@ -5,6 +5,7 @@ type T []complex128
 type T2 struct{ i int }
 type T3 struct { q T2 }
 type S struct { T }
+type P struct { s *S }
 
 func (T) f(int) T {return nil}
 func (*T) f1(int) T {return nil}
@@ -19,7 +20,11 @@ func foo3( func(int) T){}
 func foo4() T2 { return *new(T2)}
 func foo5(func (*S, int) T){}
 
+func (P) fp (int) T {return nil}
+const p = P(something)
+
 func main() {
+
   var x T
   var y T2
   var z T3
@@ -41,4 +46,7 @@ func main() {
   foo(<warning descr="Cannot use x.f(1) (type T) as type func(T, int) T">x.f(1)</warning>)
 
   foo5((*S).f1)
+
+  foo5(<warning descr="Cannot use p.s.f1 (type func (int) T) as type func (*S, int) T">p.s.f1</warning>)
+  foo5(<warning descr="Cannot use p.fp (type func (int) T) as type func (*S, int) T">p.fp</warning>)
 }

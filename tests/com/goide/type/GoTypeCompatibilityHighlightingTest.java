@@ -18,6 +18,7 @@ package com.goide.type;
 
 import com.goide.GoCodeInsightFixtureTestCase;
 import com.goide.inspections.GoTypesCompatibilityInspection;
+import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.LightProjectDescriptor;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,7 +33,7 @@ public class GoTypeCompatibilityHighlightingTest extends GoCodeInsightFixtureTes
   }
 
   private void doTest() {
-    myFixture.testHighlighting(true, false, false, getTestName(true) + ".go");
+    myFixture.testHighlighting(true, false, true, getTestName(true) + ".go");
   }
 
   @NotNull
@@ -54,6 +55,13 @@ public class GoTypeCompatibilityHighlightingTest extends GoCodeInsightFixtureTes
   public void testCType()                    { doTest(); }
   public void testUnresolved()               { doTest(); }
   public void testBuiltin()                  { doTest(); }
+
+  public void testMethodsWithSelector() {
+    myFixture.addFileToProject("a/a.go", "package a; type T []int; const C = T(3); func (a.T) F (int){};");
+    PsiFile file =  myFixture.addFileToProject("b/b.go", "package b; import \"a\";   func foo(func(int)){}; func main(){ foo(a.C.F)}");
+    myFixture.testHighlighting(true, false, true, file.getVirtualFile());
+  }
+
 
   @Override
   protected LightProjectDescriptor getProjectDescriptor() {
