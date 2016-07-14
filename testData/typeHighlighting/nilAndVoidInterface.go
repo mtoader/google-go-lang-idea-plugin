@@ -1,5 +1,7 @@
 package main
 
+import "C"
+
 type T []complex128
 
 func _() {
@@ -22,9 +24,13 @@ func _() {
   f3 (1)
   f3(nil)
 
+  f4(nil)
+  f4(<warning descr="Cannot use nil (type int) as type C.scmp_cast_t">nil</warning>...)
 }
 
 func f1(T){}
-func f2(...string)
+func f2(...string){}
 
-func f3(interface{})()
+func f3(interface{}){}
+
+func f4(C.scmp_cast_t){}

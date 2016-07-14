@@ -375,7 +375,7 @@ public class GoTypeUtil {
   }
 
   public static boolean isAssignable(@NotNull GoType left, @Nullable GoType right) {
-    if (right == null) return false;
+    if (right == null) return true;
     if (left == right || left.equals(right)) return true;
 
     // A value x is assignable to a variable of type T ("x is assignable to T") in any of these cases:
@@ -421,16 +421,25 @@ public class GoTypeUtil {
   }
 
   public static boolean identical(@Nullable GoType left, @Nullable GoType right) {
-    if (left == null || right == null) return false;
+    if (left == null || right == null) return true;
 
     if (left.getUnderlyingType() instanceof GoCType || right.getUnderlyingType() instanceof GoCType) return true;
 
     if (isArbitraryType(left)) return true;
 
-    if (left instanceof GoSpecType && right instanceof GoSpecType) return left.isEquivalentTo(right);
+    PsiElement lResolve = left.resolve();
+    boolean lNamed = isNamedType(left);
+    if (lResolve == null && lNamed) return true; // l unresolved
+    PsiElement rResolve = right.resolve();
+    boolean rNamed = isNamedType(right);
+    if (rResolve == null && rNamed) return true; // r unresolved
+    if (isAliases(left, right)) return true;
+    if (lNamed || lResolve != null && isBuiltinType(left)) {
+      return isSpecTypesEquals(left, right) || lResolve.isEquivalentTo(rResolve);
+    }
 
-    if (left instanceof GoSpecType) return left.isEquivalentTo(getSpecType(right));
-    if (right instanceof GoSpecType) return right.isEquivalentTo(getSpecType(left));
+    if (isSpecTypesEquals(left, right)) return true;
+    if (rNamed) return false;
 
     if (left instanceof GoArrayOrSliceType) {
       if (!(right instanceof GoArrayOrSliceType)) return false;
@@ -471,15 +480,19 @@ public class GoTypeUtil {
       return right instanceof GoTypeList && isListsOfGoTypeIdentical(((GoTypeList)left).getTypeList(), ((GoTypeList)right).getTypeList());
     }
 
-    if (isNamedType(left) != isNamedType(right)) return false;
     if (right instanceof GoLightType.LightUntypedNumericType && isNumericType(left)) {
       return true;
     }
-    if (isAliases(left, right)) return true;
     // todo: stubs?
-    PsiElement lResolve = left.resolve();
-    if (lResolve == null) return true;
-    return lResolve.isEquivalentTo(right.resolve());
+    //assert false;
+    return false;
+  }
+
+  private static boolean isSpecTypesEquals(@NotNull GoType left, @NotNull GoType right) {
+    if (left instanceof GoSpecType && right instanceof GoSpecType) return left.isEquivalentTo(right);
+    if (left instanceof GoSpecType) return left.isEquivalentTo(getSpecType(right));
+    if (right instanceof GoSpecType) return right.isEquivalentTo(getSpecType(left));
+    return false;
   }
 
   private static Set INT32_ALIAS = ContainerUtil.newTreeSet("int32", "rune");
@@ -553,7 +566,7 @@ public class GoTypeUtil {
     return true;
   }
 
-  private static boolean isNamedType(@Nullable GoType type) {
+  public static boolean isNamedType(@Nullable GoType type) {
     if (type == null ||
         type instanceof GoArrayOrSliceType ||
         type instanceof GoStructType ||
@@ -564,7 +577,8 @@ public class GoTypeUtil {
         type instanceof GoChannelType ||
         type instanceof GoTypeList ||
         type instanceof GoCType ||
-        type instanceof GoSpecType) {
+        type instanceof GoSpecType ||
+        type instanceof GoLightType.LightUntypedNumericType) {
       return false;
     }
     return !GoPsiImplUtil.builtin(type.resolve());
@@ -573,8 +587,10 @@ public class GoTypeUtil {
   private static boolean isImplementsInterface(@NotNull GoInterfaceType interfaceType, @NotNull GoType type) {
     List<GoMethodSpec> interfaceMethods = interfaceType.getAllMethods();
     if (interfaceMethods.isEmpty()) return true;
+    if (hasUnresolvedFields(type)) return true;
     List<? extends GoNamedSignatureOwner> methodsForType = getOwners(type);
-    if (methodsForType == null || methodsForType.isEmpty()) return false;
+    if (methodsForType == null) return true;
+    if (methodsForType.isEmpty()) return false;
     ContainerUtil.sort(methodsForType, BY_NAME);
     ContainerUtil.sort(interfaceMethods, BY_NAME);
     int j = 0;
@@ -588,6 +604,39 @@ public class GoTypeUtil {
       }
     }
     return true;
+  }
+
+  private static boolean hasUnresolvedFields(@Nullable GoType o) {
+    if (o == null) return true;
+    GoType type = o.getUnderlyingType();
+    if (type instanceof GoInterfaceType) {
+      for (GoMethodSpec method : ((GoInterfaceType)type).getMethodSpecList()) {
+        if (method.getIdentifier() == null) {
+          GoTypeReferenceExpression reference = method.getTypeReferenceExpression();
+          PsiElement resolve = reference != null ? reference.resolve() : null;
+          if (resolve == null) return true;
+          if (resolve instanceof GoTypeSpec) {
+            GoInterfaceType innerInterface = ObjectUtils.tryCast(((GoTypeSpec)resolve).getSpecType().getType(), GoInterfaceType.class);
+            if (hasUnresolvedFields(innerInterface)) return true;
+          }
+        }
+      }
+    }
+    if (type instanceof GoStructType) {
+      for(GoFieldDeclaration decl : ((GoStructType)type).getFieldDeclarationList()) {
+        GoAnonymousFieldDefinition anon = decl.getAnonymousFieldDefinition();
+        if (anon != null) {
+          GoTypeReferenceExpression expression = anon.getTypeReferenceExpression();
+          GoType resolve = expression != null ? expression.resolveType() : null;
+          if (resolve == null) return true;
+          if (hasUnresolvedFields(resolve)) return true;
+        }
+      }
+    }
+    if (type instanceof GoPointerType) {
+      return hasUnresolvedFields(((GoPointerType)type).getType());
+    }
+    return isNamedType(type) && type.resolve() == null;
   }
 
   @Nullable

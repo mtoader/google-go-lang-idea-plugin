@@ -17,6 +17,7 @@
 package com.goide.inspections;
 
 import com.goide.psi.*;
+import com.goide.psi.impl.GoCType;
 import com.goide.psi.impl.GoPsiImplUtil;
 import com.goide.psi.impl.GoTypeUtil;
 import com.intellij.codeInspection.LocalInspectionToolSession;
@@ -74,7 +75,10 @@ public class GoTypesCompatibilityInspection extends GoInspectionBase {
                   expType instanceof GoInterfaceType ||
                   expType instanceof GoMapType ||
                   expType instanceof GoChannelType ||
-                  expType instanceof GoArrayOrSliceType && !((GoArrayOrSliceType)expType).isArray()) {
+                  expType instanceof GoArrayOrSliceType && !((GoArrayOrSliceType)expType).isArray() ||
+                  GoTypeUtil.isNamedType(expType) && expType.resolve() == null || // means expType unresolved
+                  expType instanceof GoCType
+                ) {
                 return;
               }
             }

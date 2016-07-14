@@ -407,10 +407,9 @@ public class GoPsiImplUtil {
                                        @Nullable ResolveState context,
                                        boolean onlyInt) {
     GoType l = left.getGoType(context);
-    if (right == null) return l;
+    if (right == null) return null;
     GoType r = right.getGoType(context);
-    if (l == null) return r;
-    if (r == null) return l;
+    if (l == null || r == null) return null;
     if (!(l instanceof LightUntypedNumericType)) return onlyInt ? getIntegerType(l) : l;
     if (!(r instanceof LightUntypedNumericType)) return onlyInt ? getIntegerType(r) : r;
     if (!onlyInt) {
