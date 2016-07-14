@@ -112,8 +112,8 @@ public class GoGetGoTypeTest extends GoTypesIdenticalTestCase {
     GoType right = vars.get(varSize - 1).getGoType(null);
     String leftText = left == null ? null : left.getText();
     String rightText = right == null ? null : right.getText();
-    assertTrue(leftText + " should" + (!ok ? " not " : " ") + "equal " + rightText, left == null && "null".equals(rightText) ||
-                                                                                    ok == GoTypeUtil.identical(left, right));
+    assertTrue(leftText + " should" + (!ok ? " not " : " ") + "equal " + rightText,
+               left == null && "null".equals(rightText) || ok == GoTypeUtil.identical(left, right));
   }
 
   @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")

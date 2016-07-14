@@ -444,17 +444,18 @@ public class GoPsiImplUtil {
       if (u.getMul() != null) return base instanceof GoPointerType ? ((GoPointerType)base).getType() : type;
       return type;
     }
-    if (o instanceof GoAddExpr || o instanceof GoMulExpr) {
-      GoMulExpr mul = ObjectUtils.tryCast(o, GoMulExpr.class);
-      if (mul != null && (mul.getShiftLeft() != null || mul.getShiftRight() != null)) {
+    if (o instanceof GoAddExpr) {
+      boolean onlyInt = ((GoAddExpr)o).getBitOr() != null || ((GoAddExpr)o).getBitXor() != null;
+      return getGeneralType(((GoBinaryExpr)o).getLeft(), ((GoBinaryExpr)o).getRight(), context, onlyInt);
+    }
+    if (o instanceof GoMulExpr) {
+      GoMulExpr mul = (GoMulExpr)o;
+      if (mul.getShiftLeft() != null || mul.getShiftRight() != null) {
         GoType type = mul.getLeft().getGoType(context);
         return type != null ? getIntegerType(type) : null;
       }
-      GoAddExpr and = ObjectUtils.tryCast(o, GoAddExpr.class);
-      boolean onlyInt = mul != null && (mul.getBitAnd() != null || mul.getRemainder() != null || mul.getBitClear() != null) ||
-        and != null && (and.getBitOr() != null || and.getBitXor() != null);
-      GoBinaryExpr expr = (GoBinaryExpr)o;
-      return getGeneralType(expr.getLeft(), expr.getRight(), context, onlyInt);
+      boolean onlyInt = mul.getBitAnd() != null || mul.getRemainder() != null || mul.getBitClear() != null;
+      return getGeneralType(((GoBinaryExpr)o).getLeft(), ((GoBinaryExpr)o).getRight(), context, onlyInt);
     }
     if (o instanceof GoOrExpr || o instanceof GoAndExpr) {
       return getBuiltinType("bool", o);
@@ -567,15 +568,15 @@ public class GoPsiImplUtil {
   }
 
   @Nullable
-  private static String getReceiver(@Nullable GoReferenceExpression o, @Nullable ResolveState context) {
+  private static String getReceiver(@Nullable GoReferenceExpression o) {
     if (o == null) return null;
     GoReferenceExpression qualifier = o.getQualifier();
     if (qualifier != null && qualifier.resolve() instanceof GoTypeSpec) return qualifier.getText();
-    return calcTypeNameFromSelector(o.getParent(), context);
+    return calcTypeNameFromSelector(o.getParent());
   }
 
   @Nullable
-  private static String calcTypeNameFromSelector(@Nullable PsiElement o, @Nullable ResolveState context) {
+  private static String calcTypeNameFromSelector(@Nullable PsiElement o) {
     if (!(o instanceof GoSelectorExpr)) return null;
     return getTypeNameFromExpression(ContainerUtil.getFirstItem(((GoSelectorExpr)o).getExpressionList()));
   }
@@ -645,7 +646,7 @@ public class GoPsiImplUtil {
       return type == null ? null : new LightSliceType(type);
     }
     if (resolve instanceof GoSignatureOwner) {
-      return new LightFunctionType((GoSignatureOwner)resolve, getReceiver(reference, context));
+      return new LightFunctionType((GoSignatureOwner)resolve, getReceiver(reference));
     }
     return type;
   }

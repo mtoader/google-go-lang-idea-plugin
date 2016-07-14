@@ -587,7 +587,6 @@ public class GoTypeUtil {
   private static boolean isImplementsInterface(@NotNull GoInterfaceType interfaceType, @NotNull GoType type) {
     List<GoMethodSpec> interfaceMethods = interfaceType.getAllMethods();
     if (interfaceMethods.isEmpty()) return true;
-    if (hasUnresolvedFields(type)) return true;
     List<? extends GoNamedSignatureOwner> methodsForType = getOwners(type);
     if (methodsForType == null) return true;
     if (methodsForType.isEmpty()) return false;
@@ -604,39 +603,6 @@ public class GoTypeUtil {
       }
     }
     return true;
-  }
-
-  private static boolean hasUnresolvedFields(@Nullable GoType o) {
-    if (o == null) return true;
-    GoType type = o.getUnderlyingType();
-    if (type instanceof GoInterfaceType) {
-      for (GoMethodSpec method : ((GoInterfaceType)type).getMethodSpecList()) {
-        if (method.getIdentifier() == null) {
-          GoTypeReferenceExpression reference = method.getTypeReferenceExpression();
-          PsiElement resolve = reference != null ? reference.resolve() : null;
-          if (resolve == null) return true;
-          if (resolve instanceof GoTypeSpec) {
-            GoInterfaceType innerInterface = ObjectUtils.tryCast(((GoTypeSpec)resolve).getSpecType().getType(), GoInterfaceType.class);
-            if (hasUnresolvedFields(innerInterface)) return true;
-          }
-        }
-      }
-    }
-    if (type instanceof GoStructType) {
-      for(GoFieldDeclaration decl : ((GoStructType)type).getFieldDeclarationList()) {
-        GoAnonymousFieldDefinition anon = decl.getAnonymousFieldDefinition();
-        if (anon != null) {
-          GoTypeReferenceExpression expression = anon.getTypeReferenceExpression();
-          GoType resolve = expression != null ? expression.resolveType() : null;
-          if (resolve == null) return true;
-          if (hasUnresolvedFields(resolve)) return true;
-        }
-      }
-    }
-    if (type instanceof GoPointerType) {
-      return hasUnresolvedFields(((GoPointerType)type).getType());
-    }
-    return isNamedType(type) && type.resolve() == null;
   }
 
   @Nullable
