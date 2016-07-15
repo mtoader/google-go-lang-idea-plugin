@@ -11,11 +11,23 @@ const (
   s = "asd"
   )
 
+type T int
+const C T = 3
+
+const (
+  q1 = C
+  q2 = C
+  str = "str"
+  q3 = C
+)
+
 
 func _() {
-  /*fRune(r)
+  fString(str)
+
+  fRune(r)
   fRune(i)
-  fRune(f2)*/
+  fRune(f2)
   fRune(c2)
 
   fInt32(r)
