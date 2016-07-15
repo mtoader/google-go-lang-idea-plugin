@@ -441,7 +441,10 @@ public class GoPsiImplUtil {
       GoType base = type == null || type.getTypeReferenceExpression() == null ? type : type.getUnderlyingType();
       if (u.getBitAnd() != null) return type != null ? new LightPointerType(type) : null;
       if (u.getSendChannel() != null) return base instanceof GoChannelType ? ((GoChannelType)base).getType() : type;
-      if (u.getMul() != null) return base instanceof GoPointerType ? ((GoPointerType)base).getType() : type;
+      if (u.getMul() != null) {
+        return base instanceof GoPointerType ? ((GoPointerType)base).getType() :
+               type instanceof GoSpecType ? new LightPointerType(type) : type;
+      }
       return type;
     }
     if (o instanceof GoAddExpr) {
@@ -464,7 +467,7 @@ public class GoPsiImplUtil {
       GoType type = ((GoCompositeLit)o).getType();
       if (type != null) return type;
       GoTypeReferenceExpression expression = ((GoCompositeLit)o).getTypeReferenceExpression();
-      return expression != null ? expression.resolveType() : null;
+      return expression != null ? getTypeFromSpecIfNeeded(expression.resolveType()) : null;
     }
     if (o instanceof GoFunctionLit) {
       return new LightFunctionType((GoFunctionLit)o, null);
@@ -506,7 +509,7 @@ public class GoPsiImplUtil {
       if (byRef instanceof GoFunctionType) {
         return funcType(byRef);
       }
-      return type;
+      return getTypeFromSpecIfNeeded(type);
     }
     else if (o instanceof GoReferenceExpression) {
       GoReferenceExpression reference = (GoReferenceExpression)o;
@@ -568,42 +571,28 @@ public class GoPsiImplUtil {
   }
 
   @Nullable
-  private static String getReceiver(@Nullable GoReferenceExpression o) {
+  private static GoType getTypeFromSpecIfNeeded(@Nullable GoType type) {
+    return type instanceof GoSpecType ? ((GoSpecType)type).getTypeFromIdentifier() : type;
+  }
+
+  @Nullable
+  private static String getReceiver(@Nullable GoReferenceExpression o, ResolveState context) {
     if (o == null) return null;
     GoReferenceExpression qualifier = o.getQualifier();
     if (qualifier != null && qualifier.resolve() instanceof GoTypeSpec) return qualifier.getText();
-    return calcTypeNameFromSelector(o.getParent());
+    return calcTypeNameFromSelector(o.getParent(), context);
   }
 
   @Nullable
-  private static String calcTypeNameFromSelector(@Nullable PsiElement o) {
+  private static String calcTypeNameFromSelector(@Nullable PsiElement o, ResolveState context) {
     if (!(o instanceof GoSelectorExpr)) return null;
-    return getTypeNameFromExpression(ContainerUtil.getFirstItem(((GoSelectorExpr)o).getExpressionList()));
-  }
-
-  @Nullable
-  private static String getTypeNameFromExpression(@Nullable GoExpression o) { //todo: process all variants? more tests?
-    if (o == null || o instanceof GoCompositeLit || o instanceof GoCallExpr) return null;
-    if (o instanceof GoParenthesesExpr) {
-      return getTypeNameFromExpression(((GoParenthesesExpr)o).getExpression());
-    }
-    if (o instanceof GoUnaryExpr) {
-      GoUnaryExpr unaryExpr = (GoUnaryExpr)o;
-      if (unaryExpr.getMul() != null) {
-        String result = getTypeNameFromExpression(unaryExpr.getExpression());
-        return result != null ? "*" + result : null;
-      }
-    }
-    if (o instanceof GoReferenceExpression) {
-      PsiElement resolve = ((GoReferenceExpression)o).resolve();
-      if (resolve instanceof GoTypeSpec) {
-        return ((GoTypeSpec)resolve).getIdentifier().getText();
-      }
-      return null;
-    }
-    GoType type = o.getGoType(null);
-    if (!(type instanceof GoSpecType)) return null;
-    return ((GoSpecType)type).getIdentifier().getText();
+    GoExpression e = ContainerUtil.getFirstItem(((GoSelectorExpr)o).getExpressionList());
+    if (e == null || e instanceof GoCompositeLit || e instanceof GoCallExpr) return null;
+    GoType type = e.getGoType(context);
+    boolean isPointer = type instanceof GoPointerType;
+    GoType inner = isPointer ? ((GoPointerType)type).getType() : type;
+    if (!(inner instanceof GoSpecType)) return null;
+    return (isPointer ? "*" : "") + ((GoSpecType)inner).getIdentifier().getText();
   }
 
   @Nullable
@@ -646,7 +635,7 @@ public class GoPsiImplUtil {
       return type == null ? null : new LightSliceType(type);
     }
     if (resolve instanceof GoSignatureOwner) {
-      return new LightFunctionType((GoSignatureOwner)resolve, getReceiver(reference));
+      return new LightFunctionType((GoSignatureOwner)resolve, getReceiver(reference, context));
     }
     return type;
   }
@@ -1843,6 +1832,11 @@ public class GoPsiImplUtil {
     }*/
     // todo: length
     return -2;
+  }
+
+  @Nullable
+  public static GoType getTypeFromIdentifier(@NotNull GoSpecType o) {
+    return GoElementFactory.createType(o.getProject(), o.getIdentifier().getText(), o);
   }
 
   public static boolean isArray(@NotNull GoArrayOrSliceType o) {

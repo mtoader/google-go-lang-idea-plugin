@@ -41,6 +41,7 @@ public class GoGetGoTypeTest extends GoTypesIdenticalTestCase {
       {"type T func(int)", "T(1)", "T"},
       {"type (T int32; T2 T; T3 T2)", "T3(3)", "T3"},
 
+      {"type T struct{}" , "&T{}", "*T"},
 
       {"", "2 + 2.0 + 2", "float64"},
       {"", "2 / 23", "int"},
