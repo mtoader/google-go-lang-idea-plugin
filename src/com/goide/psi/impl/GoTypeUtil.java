@@ -414,18 +414,14 @@ public class GoTypeUtil {
     return false;
   }
 
-  @Nullable
-  private static GoSpecType getSpecType(@NotNull GoType type) {
-    PsiElement e = type.resolve();
-    return e instanceof GoTypeSpec ? ((GoTypeSpec)e).getSpecType() : null;
-  }
-
   public static boolean identical(@Nullable GoType left, @Nullable GoType right) {
     if (left == null || right == null) return true;
 
     if (left.getUnderlyingType() instanceof GoCType || right.getUnderlyingType() instanceof GoCType) return true;
 
     if (isArbitraryType(left)) return true;
+
+    if (left instanceof GoSpecType && right instanceof GoSpecType) return left.isEquivalentTo(right);
 
     PsiElement lResolve = left.resolve();
     boolean lNamed = isNamedType(left);
@@ -435,10 +431,9 @@ public class GoTypeUtil {
     if (rResolve == null && rNamed) return true; // r unresolved
     if (isAliases(left, right)) return true;
     if (lNamed || lResolve != null && isBuiltinType(left)) {
-      return isSpecTypesEquals(left, right) || lResolve.isEquivalentTo(rResolve);
+      return lResolve.isEquivalentTo(rResolve);
     }
 
-    if (isSpecTypesEquals(left, right)) return true;
     if (rNamed) return false;
 
     if (left instanceof GoArrayOrSliceType) {
@@ -488,15 +483,8 @@ public class GoTypeUtil {
     return false;
   }
 
-  private static boolean isSpecTypesEquals(@NotNull GoType left, @NotNull GoType right) {
-    if (left instanceof GoSpecType && right instanceof GoSpecType) return left.isEquivalentTo(right);
-    if (left instanceof GoSpecType) return left.isEquivalentTo(getSpecType(right));
-    if (right instanceof GoSpecType) return right.isEquivalentTo(getSpecType(left));
-    return false;
-  }
-
-  private static Set INT32_ALIAS = ContainerUtil.newTreeSet("int32", "rune");
-  private static Set UINT8_ALIAS = ContainerUtil.newTreeSet("uint8", "byte");
+  private static final Set INT32_ALIAS = ContainerUtil.newTreeSet("int32", "rune");
+  private static final Set UINT8_ALIAS = ContainerUtil.newTreeSet("uint8", "byte");
 
   private static boolean isAliases(@NotNull GoType left, @NotNull GoType right) {
     if (!(isBuiltinType(left) && isBuiltinType(right))) return false;

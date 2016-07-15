@@ -21,7 +21,6 @@ import com.goide.psi.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.impl.PsiParserFacadeImpl;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -134,10 +133,7 @@ public class GoElementFactory {
                                                             @NotNull String result,
                                                             @Nullable PsiElement context) {
     GoFile file = createFileFromText(project, "package a; func t(" + params + ") " + (result.isEmpty() ? "" : "(" + result + ")") + " {\n}");
-    PsiFile containingFile = context == null ? null: context.getContainingFile();
-    if (containingFile instanceof GoFile) {
-      file.putUserData(GoReference.FILE_SUBSTITUTION_CONTEXT, (GoFile)containingFile);
-    }
+    if (context != null) file.putUserData(GoReference.SUBSTITUTION_CONTEXT, context);
     return ContainerUtil.getFirstItem(file.getFunctions()).getSignature();
   }
 
@@ -261,7 +257,12 @@ public class GoElementFactory {
   }
 
   public static GoType createType(@NotNull Project project, @NotNull String text) {
+    return createType(project, text, null);
+  }
+
+  public static GoType createType(@NotNull Project project, @NotNull String text, @Nullable PsiElement context) {
     GoFile file = createFileFromText(project, "package a; var a " + text);
+    if (context != null) file.putUserData(GoReference.SUBSTITUTION_CONTEXT, context);
     return PsiTreeUtil.findChildOfType(file, GoType.class);
   }
 

@@ -89,7 +89,9 @@ public class GoTypeReference extends PsiPolyVariantReferenceBase<GoTypeReference
   public boolean processResolveVariants(@NotNull GoScopeProcessor processor) {
     PsiFile file = myElement.getContainingFile();
     if (!(file instanceof GoFile)) return false;
-    GoFile substitutionFile = ObjectUtils.notNull(file.getUserData(GoReference.FILE_SUBSTITUTION_CONTEXT), (GoFile)file);
+    PsiElement context = file.getUserData(GoReference.SUBSTITUTION_CONTEXT);
+    GoFile contextFile = ObjectUtils.tryCast(context != null ? context.getContainingFile() : null, GoFile.class);
+    GoFile substitutionFile = ObjectUtils.notNull(contextFile, (GoFile)file);
     ResolveState state = ResolveState.initial();
     GoTypeReferenceExpression qualifier = myElement.getQualifier();
     if (qualifier != null) {
@@ -119,7 +121,8 @@ public class GoTypeReference extends PsiPolyVariantReferenceBase<GoTypeReference
                                             @NotNull ResolveState state,
                                             boolean localResolve) {
     GoScopeProcessorBase delegate = createDelegate(processor);
-    ResolveUtil.treeWalkUp(myElement, delegate);
+    PsiElement context = myElement.getContainingFile().getUserData(GoReference.SUBSTITUTION_CONTEXT);
+    ResolveUtil.treeWalkUp(ObjectUtils.chooseNotNull(context, myElement), delegate);
     Collection<? extends GoNamedElement> result = delegate.getVariants();
     if (!processNamedElements(processor, state, result, localResolve)) return false;
     if (!processNamedElements(processor, state, file.getTypes(), localResolve)) return false;

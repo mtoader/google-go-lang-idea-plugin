@@ -58,4 +58,9 @@ public class GoSpecTypeImpl extends GoTypeImpl implements GoSpecType {
     return notNullChild(findChildByType(IDENTIFIER));
   }
 
+  @Nullable
+  public GoType getTypeFromIdentifier() {
+    return GoPsiImplUtil.getTypeFromIdentifier(this);
+  }
+
 }

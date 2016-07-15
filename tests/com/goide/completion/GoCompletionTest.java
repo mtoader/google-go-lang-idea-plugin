@@ -585,7 +585,7 @@ public class GoCompletionTest extends GoCompletionTestBase {
     assertNotNull(first);
     LookupElementPresentation presentation = new LookupElementPresentation();
     first.renderElement(presentation);
-    assertEquals("*main.a", presentation.getTypeText());
+    assertEquals("*a", presentation.getTypeText());
   }
 
   public void testPackageNamesInEmptyDirectory() {

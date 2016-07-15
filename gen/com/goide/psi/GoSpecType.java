@@ -31,4 +31,7 @@ public interface GoSpecType extends GoType, StubBasedPsiElement<GoTypeStub> {
   @NotNull
   PsiElement getIdentifier();
 
+  @Nullable
+  GoType getTypeFromIdentifier();
+
 }
