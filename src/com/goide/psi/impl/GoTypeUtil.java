@@ -581,6 +581,12 @@ public class GoTypeUtil {
         type instanceof GoLightType.LightUntypedNumericType) {
       return false;
     }
+
+    // optimization: builtin type should be unqualified
+    GoTypeReferenceExpression e = type.getTypeReferenceExpression();
+    if (e == null) return false;
+    if (e.getQualifier() != null) return true;
+    
     return !GoPsiImplUtil.builtin(type.resolve());
   }
 
