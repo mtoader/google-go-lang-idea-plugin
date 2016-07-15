@@ -455,7 +455,7 @@ public class GoPsiImplUtil {
         return type != null ? getIntegerType(type) : null;
       }
       boolean onlyInt = mul.getBitAnd() != null || mul.getRemainder() != null || mul.getBitClear() != null;
-      return getGeneralType(((GoBinaryExpr)o).getLeft(), ((GoBinaryExpr)o).getRight(), context, onlyInt);
+      return getGeneralType(mul.getLeft(), mul.getRight(), context, onlyInt);
     }
     if (o instanceof GoOrExpr || o instanceof GoAndExpr) {
       return getBuiltinType("bool", o);
