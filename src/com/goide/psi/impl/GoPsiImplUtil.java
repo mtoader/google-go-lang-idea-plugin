@@ -61,7 +61,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static com.goide.psi.impl.GoLightType.*;
 import static com.intellij.codeInsight.highlighting.ReadWriteAccessDetector.Access.*;
@@ -324,45 +323,17 @@ public class GoPsiImplUtil {
 
   @Nullable
   private static GoType findTypeInConstSpec(@NotNull GoConstDefinition o) {
-    GoConstDefinitionStub stub = o.getStub();
     PsiElement parent = PsiTreeUtil.getStubOrPsiParent(o);
     if (!(parent instanceof GoConstSpec)) return null;
     GoConstSpec spec = (GoConstSpec)parent;
     GoType commonType = spec.getType();
-    if (commonType != null) return getConstType(commonType);
+    if (commonType != null) return commonType;
     List<GoConstDefinition> varList = spec.getConstDefinitionList();
     int i = Math.max(varList.indexOf(o), 0);
-    if (stub != null) return null;
     GoConstSpecStub specStub = spec.getStub();
     List<GoExpression> es = specStub != null ? specStub.getExpressionList() : spec.getExpressionList(); // todo: move to constant spec
     if (es.size() <= i) return null;
-    return getConstType(es.get(i).getGoType(null));
-  }
-
-  private static final Set INT_TYPES_NAMES = ContainerUtil.newHashSet("int", "int32", "int64", "uint", "uint8", "uint16", "uint32",
-                                                                      "uint64", "uintptr", "IntegerType");
-
-  @Nullable
-  private static GoType getConstType(@Nullable GoType type) {
-    if (!builtin(type)) return type;
-    String name = type.getText();
-    if ("complex128".equals(name) || "complex64".equals(name) || "ComplexType".equals(name)) {
-      return new LightUntypedComplexType(type);
-    }
-
-    if ("float32".equals(name) || "float64".equals(name) || "FloatType".equals(name)) {
-      return new LightUntypedFloatType(type);
-    }
-
-    if (INT_TYPES_NAMES.contains(name)) {
-      return new LightUntypedIntType(type);
-    }
-
-    if ("rune".equals(name)) {
-      return new LightUntypedRuneType(type);
-    }
-
-    return type;
+    return es.get(i).getGoType(null);
   }
 
   @Nullable
