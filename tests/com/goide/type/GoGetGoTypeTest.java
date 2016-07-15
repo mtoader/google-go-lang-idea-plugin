@@ -100,6 +100,8 @@ public class GoGetGoTypeTest extends GoTypesIdenticalTestCase {
       {"", "T(3)", "null"},
       {"var t T = 3", "3 + t", "null"},
 
+      {"var m map[int]string; var a,b = m[3]", "b", "bool"},
+      {"type T int; var a interface{}; var b, c= a.(T)", "c", "bool"},
     });
   }
 

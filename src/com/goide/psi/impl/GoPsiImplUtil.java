@@ -731,8 +731,18 @@ public class GoPsiImplUtil {
       }
       return type;
     }
+    if (exprs.size() == 1 && i == 1 && (isMapIndexExpr(exprs.get(0), context) || exprs.get(0) instanceof GoTypeAssertionExpr)) {
+      return getBuiltinType("bool", o);
+    }
     if (exprs.size() <= i) return null;
     return GoTypeUtil.getDefaultType(exprs.get(i).getGoType(context));
+  }
+
+  private static boolean isMapIndexExpr(@Nullable GoExpression e, ResolveState context) {
+    if (!(e instanceof GoIndexOrSliceExpr)) return false;
+    GoExpression mapExpr = ((GoIndexOrSliceExpr)e).getExpression();
+    GoType mapType = mapExpr != null ? mapExpr.getGoType(context) : null;
+    return mapType != null && mapType.getUnderlyingType() instanceof GoMapType;
   }
 
   @Nullable
