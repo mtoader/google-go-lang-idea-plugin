@@ -1,6 +1,13 @@
 package main
 
+type T struct{ name string }
+
+func f(*T){}
+
 func _() {
+  x := &T{name : "name"}
+  f(x)
+
   fRune(123)
   fRune(1.0)
   fRune(1.0 + 0i)

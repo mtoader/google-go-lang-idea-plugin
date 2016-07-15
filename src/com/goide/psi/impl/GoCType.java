@@ -23,4 +23,9 @@ public class GoCType extends GoLightType<GoCompositeElement> {
   protected GoCType(@NotNull GoCompositeElement expression) {
     super(expression);
   }
+
+  @Override
+  public String getText() {
+    return "CType";
+  }
 }
