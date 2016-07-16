@@ -98,4 +98,8 @@ public class GoImportSpecImpl extends GoNamedElementImpl<GoImportSpecStub> imple
     return GoPsiImplUtil.isCImport(this);
   }
 
+  public boolean isSDKImport() {
+    return GoPsiImplUtil.isSDKImport(this);
+  }
+
 }

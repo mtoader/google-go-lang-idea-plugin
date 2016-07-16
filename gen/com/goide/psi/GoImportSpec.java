@@ -51,4 +51,6 @@ public interface GoImportSpec extends GoNamedElement, StubBasedPsiElement<GoImpo
 
   boolean isCImport();
 
+  boolean isSDKImport();
+
 }
