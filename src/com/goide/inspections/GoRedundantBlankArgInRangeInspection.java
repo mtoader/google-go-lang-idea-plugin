@@ -37,6 +37,7 @@ public class GoRedundantBlankArgInRangeInspection extends GoInspectionBase imple
     return new GoVisitor() {
       @Override
       public void visitRangeClause(@NotNull GoRangeClause o) {
+        super.visitRangeClause(o);
         List<GoExpression> leftExpressions = o.getLeftExpressionsList();
         PsiElement range = o.getRange();
         if (range == null) return;

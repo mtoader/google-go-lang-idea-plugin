@@ -36,6 +36,7 @@ public class GoReceiverNamesInspection extends GoInspectionBase {
     return new GoVisitor() {
       @Override
       public void visitReceiver(@NotNull GoReceiver o) {
+        super.visitReceiver(o);
         if (genericNamesSet.contains(o.getName())) {
           PsiElement identifier = o.getIdentifier();
           if (identifier == null) return;

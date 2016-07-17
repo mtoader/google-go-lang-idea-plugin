@@ -22,6 +22,7 @@ import com.intellij.codeInspection.CleanupLocalInspectionTool;
 import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +37,7 @@ public class GoRedundantTypeDeclInCompositeLit extends GoInspectionBase implemen
     return new GoVisitor() {
       @Override
       public void visitCompositeLit(@NotNull GoCompositeLit o) {
+        super.visitCompositeLit(o);
         GoLiteralValue literalValue = o.getLiteralValue();
         if (literalValue == null) return;
 
@@ -45,6 +47,7 @@ public class GoRedundantTypeDeclInCompositeLit extends GoInspectionBase implemen
 
         if (expectedType != null) {
           for (GoElement element : literalValue.getElementList()) {
+            ProgressManager.checkCanceled();
             GoValue elementValue = element.getValue();
             if (elementValue != null) {
               GoExpression expr = elementValue.getExpression();

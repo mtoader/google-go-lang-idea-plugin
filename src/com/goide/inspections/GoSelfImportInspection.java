@@ -21,6 +21,7 @@ import com.goide.psi.GoImportSpec;
 import com.goide.quickfix.GoDeleteImportQuickFix;
 import com.goide.runconfig.testing.GoTestFinder;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.PsiDirectory;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,6 +32,7 @@ public class GoSelfImportInspection extends GoInspectionBase {
     PsiDirectory directory = file.getContainingDirectory();
     if (directory != null) {
       for (GoImportSpec importSpec : file.getImports()) {
+        ProgressManager.checkCanceled();
         PsiDirectory resolve = importSpec.getImportString().resolve();
         if (directory.equals(resolve)) {
           problemsHolder.registerProblem(importSpec, "Self import is not allowed", new GoDeleteImportQuickFix());

@@ -18,6 +18,7 @@ package com.goide.inspections;
 
 import com.goide.psi.*;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,6 +45,7 @@ public class GoDuplicateReturnArgumentInspection extends GoDuplicateArgumentInsp
     List<GoParameterDeclaration> params = o.getParameters().getParameterDeclarationList();
     Set<String> names = new LinkedHashSet<String>();
     for (GoParameterDeclaration fp : params) {
+      ProgressManager.checkCanceled();
       for (GoParamDefinition parameter : fp.getParamDefinitionList()) {
         if (parameter.isBlank()) continue;
         ContainerUtil.addIfNotNull(names, parameter.getName());

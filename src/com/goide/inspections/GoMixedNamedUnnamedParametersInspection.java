@@ -54,6 +54,8 @@ public class GoMixedNamedUnnamedParametersInspection extends GoInspectionBase {
     GoParameters parameters = signature.getParameters();
     visitParameterList(holder, parameters, ownerType, "parameters");
 
+    ProgressManager.checkCanceled();
+
     GoResult result = signature.getResult();
     parameters = result != null ? result.getParameters() : null;
     visitParameterList(holder, parameters, ownerType, "return parameters");

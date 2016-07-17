@@ -42,6 +42,7 @@ public class GoRedundantSecondIndexInSlicesInspection extends GoInspectionBase i
     return new GoVisitor() {
       @Override
       public void visitIndexOrSliceExpr(@NotNull GoIndexOrSliceExpr o) {
+        super.visitIndexOrSliceExpr(o);
         GoExpression expression = o.getExpression();
         PsiReference reference = expression != null ? expression.getReference() : null;
         PsiElement resolvedArrayReference = reference != null ? reference.resolve() : null;

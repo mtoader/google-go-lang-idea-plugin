@@ -41,6 +41,7 @@ public class GoUnusedFunctionInspection extends GoInspectionBase {
     return new GoVisitor() {
       @Override
       public void visitFunctionDeclaration(@NotNull GoFunctionDeclaration o) {
+        super.visitFunctionDeclaration(o);
         if (o.isBlank()) return;
         GoFile file = o.getContainingFile();
         String name = o.getName();

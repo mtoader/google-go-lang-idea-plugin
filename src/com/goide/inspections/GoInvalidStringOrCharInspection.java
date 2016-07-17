@@ -34,6 +34,7 @@ public class GoInvalidStringOrCharInspection extends GoInspectionBase {
 
       @Override
       public void visitStringLiteral(@NotNull GoStringLiteral o) {
+        super.visitStringLiteral(o);
         PsiElement s = o.getString();
         if (s instanceof LeafPsiElement) {
           int length = ((LeafPsiElement)s).getCachedLength();
@@ -45,6 +46,7 @@ public class GoInvalidStringOrCharInspection extends GoInspectionBase {
 
       @Override
       public void visitLiteral(@NotNull GoLiteral o) {
+        super.visitLiteral(o);
         PsiElement c = o.getChar();
         if (c instanceof LeafPsiElement) {
           int length = ((LeafPsiElement)c).getCachedLength();

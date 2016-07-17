@@ -21,6 +21,7 @@ import com.intellij.codeInspection.*;
 import com.intellij.diagnostic.AttachmentFactory;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
@@ -40,8 +41,10 @@ public class GoExportedOwnDeclarationInspection extends GoInspectionBase {
     return new GoVisitor() {
       @Override
       public void visitConstDeclaration(@NotNull GoConstDeclaration o) {
+        super.visitConstDeclaration(o);
         if (o.getParent() instanceof GoFile) {
           for (GoConstSpec spec : o.getConstSpecList()) {
+            ProgressManager.checkCanceled();
             boolean first = true;
             for (GoConstDefinition constDefinition : spec.getConstDefinitionList()) {
               if (!first && constDefinition.isPublic()) {
@@ -56,8 +59,10 @@ public class GoExportedOwnDeclarationInspection extends GoInspectionBase {
 
       @Override
       public void visitVarDeclaration(@NotNull GoVarDeclaration o) {
+        super.visitVarDeclaration(o);
         if (o.getParent() instanceof GoFile) {
           for (GoVarSpec spec : o.getVarSpecList()) {
+            ProgressManager.checkCanceled();
             boolean first = true;
             for (GoVarDefinition varDefinition : spec.getVarDefinitionList()) {
               if (!first && varDefinition.isPublic()) {

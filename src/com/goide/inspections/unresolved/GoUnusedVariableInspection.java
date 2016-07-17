@@ -40,6 +40,7 @@ public class GoUnusedVariableInspection extends GoInspectionBase {
     return new GoVisitor() {
       @Override
       public void visitVarDefinition(@NotNull final GoVarDefinition o) {
+        super.visitVarDefinition(o);
         if (o.isBlank()) return;
         GoCompositeElement varSpec = PsiTreeUtil.getParentOfType(o, GoVarSpec.class, GoTypeSwitchGuard.class);
         GoVarDeclaration decl = PsiTreeUtil.getParentOfType(o, GoVarDeclaration.class);

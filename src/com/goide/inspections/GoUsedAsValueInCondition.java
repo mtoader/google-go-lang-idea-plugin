@@ -41,6 +41,7 @@ public class GoUsedAsValueInCondition extends GoInspectionBase {
     return new GoVisitor() {
       @Override
       public void visitAssignmentStatement(@NotNull GoAssignmentStatement o) {
+        super.visitAssignmentStatement(o);
         if (o.getParent() != null && o.getParent() instanceof GoIfStatement && ((GoIfStatement)o.getParent()).getExpression() == null) {
           String left = GoPsiImplUtil.joinPsiElementText(o.getLeftHandExprList().getExpressionList());
           String right = GoPsiImplUtil.joinPsiElementText(o.getExpressionList());
@@ -51,6 +52,7 @@ public class GoUsedAsValueInCondition extends GoInspectionBase {
 
       @Override
       public void visitShortVarDeclaration(@NotNull GoShortVarDeclaration o) {
+        super.visitShortVarDeclaration(o);
         PsiElement parent = o.getParent();
         if (parent != null) {
           PsiElement gradParent = parent.getParent();

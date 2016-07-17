@@ -32,6 +32,7 @@ public class GoMethodOnNonLocalTypeInspection extends GoInspectionBase {
     return new GoVisitor() {
       @Override
       public void visitMethodDeclaration(@NotNull GoMethodDeclaration method) {
+        super.visitMethodDeclaration(method);
         if (method.getIdentifier() == null || method.isBlank()) return;
         GoFile methodContainingFile = method.getContainingFile();
         String methodImportPath = methodContainingFile.getImportPath(false);

@@ -34,6 +34,7 @@ import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -61,6 +62,7 @@ public class GoInvalidPackageImportInspection extends GoInspectionBase {
     boolean supportsInternalPackagesInSdk = sdkHome != null && GoVendoringUtil.supportsSdkInternalPackages(sdkVersion);
 
     for (GoImportSpec importSpec : file.getImports()) {
+      ProgressManager.checkCanceled();
       if (importSpec.isCImport()) {
         PsiElement dot = importSpec.getDot();
         if (dot != null) {

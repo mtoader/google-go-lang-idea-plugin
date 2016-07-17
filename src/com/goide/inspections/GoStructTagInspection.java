@@ -23,6 +23,7 @@ import com.goide.psi.GoVisitor;
 import com.goide.psi.impl.GoPsiImplUtil;
 import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.openapi.progress.ProgressManager;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -38,6 +39,7 @@ public class GoStructTagInspection extends GoInspectionBase {
       @Override
       public void visitStructType(@NotNull GoStructType o) {
         for (GoFieldDeclaration field : o.getFieldDeclarationList()) {
+          ProgressManager.checkCanceled();
           GoTag tag = field.getTag();
           if (tag == null) continue;
           if (!isValidTag(tag)) {

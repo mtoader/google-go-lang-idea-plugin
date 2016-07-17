@@ -21,6 +21,7 @@ import com.goide.quickfix.GoDeleteQuickFix;
 import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,10 +38,12 @@ public class GoFunctionVariadicParameterInspection extends GoInspectionBase {
     return new GoVisitor() {
       @Override
       public void visitCompositeElement(@NotNull GoCompositeElement o) {
+        super.visitCompositeElement(o);
         if (o instanceof GoSignatureOwner) {
           GoSignature signature = ((GoSignatureOwner)o).getSignature();
           if (signature != null) {
             checkResult(signature, holder);
+            ProgressManager.checkCanceled();
             checkParameters(signature, holder);
           }
         }

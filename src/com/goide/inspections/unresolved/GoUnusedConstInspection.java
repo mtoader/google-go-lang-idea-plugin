@@ -33,6 +33,7 @@ public class GoUnusedConstInspection extends GoInspectionBase {
     return new GoVisitor() {
       @Override
       public void visitConstDefinition(@NotNull GoConstDefinition o) {
+        super.visitConstDefinition(o);
         if (o.isBlank()) return;
         if (ReferencesSearch.search(o, o.getUseScope()).findFirst() == null) {
           String constName = o.getName();

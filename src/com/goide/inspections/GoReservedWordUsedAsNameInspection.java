@@ -35,11 +35,13 @@ public class GoReservedWordUsedAsNameInspection extends GoInspectionBase {
     return new GoVisitor() {
       @Override
       public void visitFunctionDeclaration(@NotNull GoFunctionDeclaration o) {
+        super.visitFunctionDeclaration(o);
         check(o, holder);
       }
 
       @Override
       public void visitVarDefinition(@NotNull GoVarDefinition o) {
+        super.visitVarDefinition(o);
         check(o, holder);
       }
     };
