@@ -118,11 +118,14 @@ public class GoReference extends PsiPolyVariantReferenceBase<GoReferenceExpressi
   public boolean processResolveVariants(@NotNull GoScopeProcessor processor) {
     PsiFile file = myElement.getContainingFile();
     if (!(file instanceof GoFile)) return false;
-    ResolveState state = createContextOnElement(myElement);
+    PsiElement context = file.getUserData(SUBSTITUTION_CONTEXT);
+    GoFile contextFile = ObjectUtils.tryCast(context != null ? context.getContainingFile() : null, GoFile.class);
+    GoFile substitutionFile = ObjectUtils.notNull(contextFile, (GoFile)file);
+    ResolveState state = createContextOnElement(ObjectUtils.chooseNotNull(context, myElement));
     GoReferenceExpressionBase qualifier = myElement.getQualifier();
     return qualifier != null
-           ? processQualifierExpression((GoFile)file, qualifier, processor, state)
-           : processUnqualifiedResolve((GoFile)file, processor, state);
+           ? processQualifierExpression(substitutionFile, qualifier, processor, state)
+           : processUnqualifiedResolve(substitutionFile, processor, state);
   }
 
   private boolean processQualifierExpression(@NotNull GoFile file,

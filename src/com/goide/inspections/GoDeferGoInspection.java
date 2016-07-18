@@ -74,7 +74,7 @@ public class GoDeferGoInspection extends GoInspectionBase {
     public static PsiElement addParensIfNeeded(@NotNull Project project, @Nullable PsiElement element) {
       if (element instanceof GoExpression && !(element instanceof GoCallExpr || element instanceof GoBuiltinCallExpr)) {
         if (((GoExpression)element).getGoType(null) instanceof GoFunctionType) {
-          return element.replace(GoElementFactory.createExpression(project, element.getText() + "()"));
+          return element.replace(GoElementFactory.createExpression(project, element.getText() + "()", null));
         }
       }
       return null;
@@ -95,7 +95,7 @@ public class GoDeferGoInspection extends GoInspectionBase {
           innerExpression = ((GoParenthesesExpr)innerExpression).getExpression();
         }
         if (innerExpression != null) {
-          element.replace(GoElementFactory.createExpression(project, innerExpression.getText()));
+          element.replace(GoElementFactory.createExpression(project, innerExpression.getText(), null));
         }
       }
     }

@@ -38,7 +38,7 @@ public abstract class GoExpressionSurrounder implements Surrounder {
     if (expression == null) return null;
 
     String text = (withNot ? "!" : "") + "(" + expression.getText() + ")";
-    GoExpression parenthExprNode = GoElementFactory.createExpression(expression.getProject(), text);
+    GoExpression parenthExprNode = GoElementFactory.createExpression(expression.getProject(), text, null);
     PsiElement replace = expression.replace(parenthExprNode);
     int endOffset = replace.getTextRange().getEndOffset();
     return TextRange.create(endOffset, endOffset);

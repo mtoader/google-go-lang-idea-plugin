@@ -56,7 +56,7 @@ public class GoConstSpecStub extends StubBase<GoConstSpec> {
       myList = ContainerUtil.map(split, new Function<String, GoExpression>() {
         @Override
         public GoExpression fun(@NotNull String s) {
-          return GoElementFactory.createExpression(project, s);
+          return GoElementFactory.createExpression(project, s, getPsi());
         }
       });
     }

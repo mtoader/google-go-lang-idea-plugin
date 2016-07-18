@@ -76,7 +76,7 @@ public class GoUsedAsValueInCondition extends GoInspectionBase {
       if (element instanceof GoAssignmentStatement) {
         String left = GoPsiImplUtil.joinPsiElementText(((GoAssignmentStatement)element).getLeftHandExprList().getExpressionList());
         String right = GoPsiImplUtil.joinPsiElementText(((GoAssignmentStatement)element).getExpressionList());
-        element.replace(GoElementFactory.createExpression(project, left + " == " + right));
+        element.replace(GoElementFactory.createExpression(project, left + " == " + right, null));
       }
       else if (element instanceof GoShortVarDeclaration) {
         String left = GoPsiImplUtil.joinPsiElementText(((GoShortVarDeclaration)element).getVarDefinitionList());
