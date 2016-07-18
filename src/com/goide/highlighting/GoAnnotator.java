@@ -20,8 +20,6 @@ import com.goide.GoConstants;
 import com.goide.GoTypes;
 import com.goide.inspections.GoInspectionUtil;
 import com.goide.psi.*;
-import com.goide.psi.impl.GoCType;
-import com.goide.psi.impl.GoLightType;
 import com.goide.psi.impl.GoPsiImplUtil;
 import com.goide.psi.impl.GoTypeUtil;
 import com.goide.quickfix.GoDeleteRangeQuickFix;
@@ -296,24 +294,12 @@ public class GoAnnotator implements Annotator {
       GoType type = expression.getGoType(null); // todo: context
       if (type != null) {
         GoType expressionBaseType = type.getUnderlyingType();
-        if (!(isIntegerConvertibleType(expressionBaseType) || isCType(type))) {
+        if (!GoTypeUtil.isNumericType(expressionBaseType)) {
           String argName = i == 0 ? "size" : "capacity";
           holder.createErrorAnnotation(expression, "Non-integer " + argName + " argument to make");
         }
       }
     }
-  }
-
-  private static boolean isCType(@Nullable GoType type) {
-    return type instanceof GoCType;
-  }
-
-  private static boolean isIntegerConvertibleType(@Nullable GoType type) {
-    if (type == null) return false;
-    if (type instanceof GoLightType.LightUntypedNumericType) return true;
-    GoTypeReferenceExpression ref = type.getTypeReferenceExpression();
-    if (ref == null) return false;
-    return GoTypeUtil.NUMERIC_TYPES.contains(ref.getText()) && GoPsiImplUtil.builtin(ref.resolve());
   }
 
   private static void checkSelfReference(@NotNull GoReferenceExpression o, PsiElement definition, AnnotationHolder holder) {
