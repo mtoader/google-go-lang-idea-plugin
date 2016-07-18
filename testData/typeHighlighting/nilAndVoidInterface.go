@@ -12,20 +12,20 @@ func _() {
   f3(nil)
 
 
-  f2(<warning descr="Cannot use nil as type string">nil</warning>)
-  f2(<warning descr="Cannot use nil as type string">nil</warning>, <warning descr="Cannot use nil as type string">nil</warning>)
+  f2(<error descr="Cannot use nil as type string">nil</error>)
+  f2(<error descr="Cannot use nil as type string">nil</error>, <error descr="Cannot use nil as type string">nil</error>)
 
   nil := 1
 
-  f1(<warning descr="Cannot use nil (type int) as type T">nil</warning>)
-  f2(<warning descr="Cannot use nil (type int) as type string">nil</warning>, <warning descr="Cannot use nil (type int) as type string">nil</warning>)
-  f2(<warning descr="Cannot use nil (type int) as type string">nil</warning>...)
+  f1(<error descr="Cannot use nil (type int) as type T">nil</error>)
+  f2(<error descr="Cannot use nil (type int) as type string">nil</error>, <error descr="Cannot use nil (type int) as type string">nil</error>)
+  f2(<error descr="Cannot use nil (type int) as type string">nil</error>...)
 
   f3 (1)
   f3(nil)
 
   f4(nil)
-  f4(<warning descr="Cannot use nil (type int) as type C.scmp_cast_t">nil</warning>...)
+  f4(<error descr="Cannot use nil (type int) as type C.scmp_cast_t">nil</error>...)
 }
 
 func f1(T){}

@@ -352,7 +352,7 @@
                      groupName="General" enabledByDefault="true" level="ERROR"
                      implementationClass="com.goide.inspections.GoMixedNamedUnnamedParametersInspection"/>
     <localInspection language="go" displayName="Go types compatibility check" groupPath="Go"
-                     groupName="General" enabledByDefault="false" level="WARNING"
+                     groupName="General" enabledByDefault="true" level="ERROR"
                      implementationClass="com.goide.inspections.GoTypesCompatibilityInspection"/>
     <!-- /general -->
 
