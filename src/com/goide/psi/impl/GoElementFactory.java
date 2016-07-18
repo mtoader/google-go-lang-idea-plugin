@@ -201,8 +201,9 @@ public class GoElementFactory {
   }
 
   @NotNull
-  public static GoExpression createExpression(@NotNull Project project, @NotNull String text) {
+  public static GoExpression createExpression(@NotNull Project project, @NotNull String text, PsiElement context) {
     GoFile file = createFileFromText(project, "package a; func a() {\n a := " + text + "}");
+    if (context != null) file.putUserData(GoReference.SUBSTITUTION_CONTEXT, context);
     return PsiTreeUtil.findChildOfType(file, GoExpression.class);
   }
 

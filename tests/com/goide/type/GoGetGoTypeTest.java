@@ -98,10 +98,12 @@ public class GoGetGoTypeTest extends GoTypesIdenticalTestCase {
       {"import \"C\"",  "C.CString(u.Username)", "interface{}"},
 
       {"", "T(3)", "null"},
-      {"var t T = 3", "3 + t", "null"},
+      {"var t T = 3", "3 + t", "T"},
 
       {"var m map[int]string; var a,b = m[3]", "b", "bool"},
       {"type T int; var a interface{}; var b, c= a.(T)", "c", "bool"},
+
+      {"const( a int = 3 ; b  = r * 4)", "b", "null"}
     });
   }
 
@@ -115,8 +117,9 @@ public class GoGetGoTypeTest extends GoTypesIdenticalTestCase {
     GoType right = vars.get(varSize - 1).getGoType(null);
     String leftText = left == null ? null : left.getText();
     String rightText = right == null ? null : right.getText();
-    assertTrue(leftText + " should" + (!ok ? " not " : " ") + "equal " + rightText,
-               left == null && "null".equals(rightText) || ok == GoTypeUtil.identical(left, right));
+    boolean isIdentical = left == null && "null".equals(rightText) ||
+                    left != null && right != null && !right.textMatches("null") && ok == GoTypeUtil.identical(left, right);
+    assertTrue(leftText + " should" + (!ok ? " not " : " ") + "equal " + rightText, isIdentical);
   }
 
   @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")

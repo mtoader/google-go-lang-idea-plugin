@@ -301,9 +301,9 @@ public class GoPsiImplUtil {
 
   @Nullable
   public static GoType getGoTypeInner(@NotNull final GoConstDefinition o, @Nullable final ResolveState context) {
-    GoType fromSpec = findTypeInConstSpec(o);
-    if (fromSpec != null) return fromSpec;
-    // todo: stubs 
+    Pair<GoType, Boolean> fromSpec = findTypeInConstSpec(o);
+    if (fromSpec.second) return fromSpec.first;
+    // todo: stubs
     return RecursionManager.doPreventingRecursion(o, true, new NullableComputable<GoType>() {
       @Nullable
       @Override
@@ -321,19 +321,19 @@ public class GoPsiImplUtil {
     });
   }
 
-  @Nullable
-  private static GoType findTypeInConstSpec(@NotNull GoConstDefinition o) {
+  @NotNull
+  private static Pair<GoType, Boolean> findTypeInConstSpec(@NotNull GoConstDefinition o) {
     PsiElement parent = PsiTreeUtil.getStubOrPsiParent(o);
-    if (!(parent instanceof GoConstSpec)) return null;
+    if (!(parent instanceof GoConstSpec)) return Pair.create(null, false);
     GoConstSpec spec = (GoConstSpec)parent;
     GoType commonType = spec.getType();
-    if (commonType != null) return commonType;
+    if (commonType != null) return Pair.create(commonType, true);
     List<GoConstDefinition> varList = spec.getConstDefinitionList();
     int i = Math.max(varList.indexOf(o), 0);
     GoConstSpecStub specStub = spec.getStub();
     List<GoExpression> es = specStub != null ? specStub.getExpressionList() : spec.getExpressionList(); // todo: move to constant spec
-    if (es.size() <= i) return null;
-    return es.get(i).getGoType(null);
+    if (es.size() <= i) return Pair.create(null, false);
+    return Pair.create(es.get(i).getGoType(null), true);
   }
 
   @Nullable
