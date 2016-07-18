@@ -37,16 +37,16 @@ func main() {
   foo3(z.q.t2f)
   foo3(foo4().t2f)
 
-  foo3(<warning descr="Cannot use (*T).f1 (type func (*T, int) (T)) as type func(int) T">(*T).f1</warning>)
-  foo(<warning descr="Cannot use x.f (type func (int) T) as type func(T, int) T">x.f</warning>)
+  foo3(<error descr="Cannot use (*T).f1 (type func (*T, int) (T)) as type func(int) T">(*T).f1</error>)
+  foo(<error descr="Cannot use x.f (type func (int) T) as type func(T, int) T">x.f</error>)
 
   foo2(x.f(1))
   foo2(x.f(1).f(100))
 
-  foo(<warning descr="Cannot use x.f(1) (type T) as type func(T, int) T">x.f(1)</warning>)
+  foo(<error descr="Cannot use x.f(1) (type T) as type func(T, int) T">x.f(1)</error>)
 
   foo5((*S).f1)
 
-  foo5(<warning descr="Cannot use p.s.f1 (type func (int) T) as type func (*S, int) T">p.s.f1</warning>)
-  foo5(<warning descr="Cannot use p.fp (type func (int) T) as type func (*S, int) T">p.fp</warning>)
+  foo5(<error descr="Cannot use p.s.f1 (type func (int) T) as type func (*S, int) T">p.s.f1</error>)
+  foo5(<error descr="Cannot use p.fp (type func (int) T) as type func (*S, int) T">p.fp</error>)
 }

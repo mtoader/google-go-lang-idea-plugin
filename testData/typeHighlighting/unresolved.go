@@ -35,5 +35,5 @@ func _() {
   s := new(S)
   f4(*s.F)
 
-  f3(<warning descr="Cannot use s (type *S) as type I">s</warning>)
+  f3(<error descr="Cannot use s (type *S) as type I">s</error>)
 }

@@ -41,7 +41,7 @@ func _() {
   forI(t2)
 
   t3 := new(AnotherT)
-  forI(<warning descr="Cannot use t3 (type *AnotherT) as type I">t3</warning>)
+  forI(<error descr="Cannot use t3 (type *AnotherT) as type I">t3</error>)
 
   forI(struct{I}{nil})
 }

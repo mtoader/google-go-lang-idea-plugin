@@ -15,11 +15,11 @@ func _() {
   f2(1, 2, sl...)
   f1(c...)
 
-  f1(1, <warning descr="Cannot use sl (type []int) as type int">sl</warning>...)
-  f1(<warning descr="Cannot use \"s\" (type string) as type int">"s"</warning>)
-  f1(<warning descr="Cannot use sl (type []int) as type int">sl</warning>)
-  f2(1, <warning descr="Cannot use sl (type []int) as type int">sl</warning>...)
-  f2(1, 2, 3, <warning descr="Cannot use sl (type []int) as type int">sl</warning>...)
+  f1(1, <error descr="Cannot use sl (type []int) as type int">sl</error>...)
+  f1(<error descr="Cannot use \"s\" (type string) as type int">"s"</error>)
+  f1(<error descr="Cannot use sl (type []int) as type int">sl</error>)
+  f2(1, <error descr="Cannot use sl (type []int) as type int">sl</error>...)
+  f2(1, 2, 3, <error descr="Cannot use sl (type []int) as type int">sl</error>...)
 
 }
 
