@@ -33,6 +33,7 @@ import com.intellij.diagnostic.AttachmentFactory;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.*;
@@ -46,10 +47,7 @@ import com.intellij.psi.impl.source.tree.LeafElement;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.tree.TokenSet;
-import com.intellij.psi.util.CachedValueProvider;
-import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.psi.util.PsiModificationTracker;
-import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.*;
 import com.intellij.util.NotNullFunction;
 import com.intellij.util.ObjectUtils;
 import com.intellij.util.PathUtil;
@@ -1136,6 +1134,23 @@ public class GoPsiImplUtil {
 
   public static boolean isCImport(@NotNull GoImportSpec importSpec) {
     return GoConstants.C_PATH.equals(importSpec.getPath());
+  }
+
+  public static boolean isSDKImport(@NotNull GoImportSpec importSpec) {
+    GoImportString importString = importSpec.getImportString();
+    Project project = importString.getProject();
+    Module module = ModuleUtilCore.findModuleForPsiElement(importString.getContainingFile());
+
+    PsiDirectory psiDirectory = importString.resolve();
+    if (psiDirectory == null) return false;
+    VirtualFile fileDirectory = psiDirectory.getVirtualFile();
+
+    VirtualFile sdkHome = GoSdkUtil.getSdkSrcDir(project, module);
+    if (sdkHome == null) return false;
+
+    String sdkPath = PathUtil.getCanonicalPath(sdkHome.getPath());
+    String filePath = PathUtil.getCanonicalPath(fileDirectory.getPath());
+    return filePath.startsWith(sdkPath);
   }
 
   public static boolean isDot(@NotNull GoImportSpec importSpec) {

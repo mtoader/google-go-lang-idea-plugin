@@ -355,6 +355,10 @@
                      implementationClass="com.goide.inspections.GoMixedNamedUnnamedParametersInspection"/>
     <!-- /general -->
 
+    <intentionAction>
+      <className>com.goide.intentions.GoUpdatePackage</className>
+    </intentionAction>
+
     <!-- color schemes -->
     <bundledColorScheme path="colorscheme/Darcula - dlsniper"/>
     <!-- /color schemes -->
