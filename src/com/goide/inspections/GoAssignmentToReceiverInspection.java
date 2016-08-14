@@ -16,15 +16,12 @@
 
 package com.goide.inspections;
 
-import com.goide.psi.GoPointerType;
-import com.goide.psi.GoReceiver;
-import com.goide.psi.GoReferenceExpression;
-import com.goide.psi.GoVisitor;
-import com.intellij.codeInsight.highlighting.ReadWriteAccessDetector;
+import com.goide.psi.*;
 import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.codeInspection.ProblemHighlightType.WEAK_WARNING;
 
@@ -34,19 +31,41 @@ public class GoAssignmentToReceiverInspection extends GoInspectionBase {
   protected GoVisitor buildGoVisitor(@NotNull ProblemsHolder holder, @NotNull LocalInspectionToolSession session) {
     return new GoVisitor() {
       @Override
-      public void visitReferenceExpression(@NotNull GoReferenceExpression o) {
-        super.visitReferenceExpression(o);
-        if (o.getReadWriteAccess() == ReadWriteAccessDetector.Access.Write) {
-          PsiElement resolve = o.resolve();
-          if (resolve instanceof GoReceiver) {
-            String message = "Assignment to method receiver doesn't propagate to other calls";
-            if (((GoReceiver)resolve).getType() instanceof GoPointerType) {
-              message = "Assignment to method receiver propagates only to callees but not to callers";
+      public void visitAssignmentStatement(@NotNull GoAssignmentStatement o) {
+        super.visitAssignmentStatement(o);
+        for (GoExpression expr : o.getLeftHandExprList().getExpressionList()) {
+          if (expr instanceof GoReferenceExpression) {
+            GoReferenceExpression refExpr = (GoReferenceExpression)expr;
+            PsiElement resolve = refExpr.resolve();
+            if (resolve instanceof GoReceiver) {
+              if (!canInspect(refExpr, (GoReceiver)resolve)) return;
+              String message = "Assignment to method receiver doesn't propagate to other calls";
+              if (((GoReceiver)resolve).getType() instanceof GoPointerType) {
+                message = "Assignment to method receiver propagates only to callees but not to callers";
+              }
+              holder.registerProblem(expr, message, WEAK_WARNING);
             }
-            holder.registerProblem(o, message, WEAK_WARNING);
           }
         }
       }
     };
+  }
+
+  private static boolean canInspect(GoReferenceExpression o, @Nullable GoReceiver receiver) {
+    if (receiver == null) return false;
+    GoType resolveType = receiver.getType();
+    if (resolveType == null) return false;
+    PsiElement parent = o.getParent();
+
+    if (resolveType instanceof GoPointerType) {
+      if (parent instanceof GoUnaryExpr) {
+        if (((GoUnaryExpr)parent).getMul() != null) return false;
+      }
+    }
+
+    GoType underlyingType = resolveType.getUnderlyingType();
+    return !(underlyingType instanceof GoChannelType ||
+             underlyingType instanceof GoArrayOrSliceType ||
+             underlyingType instanceof GoMapType);
   }
 }

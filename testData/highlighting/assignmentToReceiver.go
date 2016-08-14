@@ -36,3 +36,25 @@ func _() {
 	d.change3()
 	d.myVal()
 }
+
+type Flags chan string
+
+func (f Flags) Add(flag string) {
+	f <- flag
+}
+
+type Flagz []string
+
+func (f *Flagz) Add(flag string) {
+	*f = append(*f, flag)
+}
+
+func (f *Flagz) Clear() {
+	<weak_warning descr="Assignment to method receiver propagates only to callees but not to callers">f</weak_warning> = nil
+}
+
+type Flagm map[string]string
+
+func (f Flagm) Add(flag string) {
+	f = make(map[string]string)
+}
