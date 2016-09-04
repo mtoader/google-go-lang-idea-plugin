@@ -25,7 +25,7 @@ public class GoCommenter implements CodeDocumentationAwareCommenter {
   @Nullable
   @Override
   public String getLineCommentPrefix() {
-    return "//";
+    return "// ";
   }
 
   @Nullable
