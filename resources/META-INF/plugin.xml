@@ -373,6 +373,7 @@
 
     <!-- color schemes -->
     <bundledColorScheme path="colorscheme/Darcula - dlsniper"/>
+    <bundledColorScheme path="colorscheme/Atomic"/>
     <!-- /color schemes -->
   </extensions>
   <actions>
