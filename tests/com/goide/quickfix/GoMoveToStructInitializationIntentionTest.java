@@ -68,5 +68,6 @@ public class GoMoveToStructInitializationIntentionTest extends GoQuickFixTestBas
   public void testJustAssignedFieldParens()                 { doTestNoFix(); }
   public void testStructDeclarationMultipleExpressions()    { doTestNoFix(); }
   public void testStructDeclarationWrongQualifier()         { doTestNoFix(); }
+  public void testFieldOfAnonymousField()                   { doTestNoFix(); }
 }
 
