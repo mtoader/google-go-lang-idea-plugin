@@ -139,11 +139,6 @@ public final class DlvDebugProcess extends DebugProcessImpl<VmConnection<?>> imp
   }
 
   @Override
-  protected boolean isVmStepOutCorrect() {
-    return false;
-  }
-
-  @Override
   public void dispose() {
     // todo
   }
@@ -189,7 +184,7 @@ public final class DlvDebugProcess extends DebugProcessImpl<VmConnection<?>> imp
     }
   }
 
-  private void command(@NotNull @MagicConstant(stringValues = {NEXT, CONTINUE, HALT, SWITCH_THREAD, STEP}) String name) {
+  private void command(@NotNull @MagicConstant(stringValues = {NEXT, CONTINUE, HALT, SWITCH_THREAD, STEP, STEPOUT}) String name) {
     send(new DlvRequest.Command(name)).done(myStateConsumer);
   }
 
@@ -207,7 +202,7 @@ public final class DlvDebugProcess extends DebugProcessImpl<VmConnection<?>> imp
         command(NEXT);
         break;
       case OUT:
-        // todo
+        command(STEPOUT);
         break;
     }
     return null;

@@ -254,6 +254,7 @@ public class DlvApi {
   public static final String CONTINUE = "continue";
   public static final String STEP = "step";
   public static final String NEXT = "next";
+  public static final String STEPOUT = "stepOut";
   public static final String SWITCH_THREAD = "switchThread";
   public static final String HALT = "halt";
   public static final String SWITCH_GOROUTINE = "switchGoroutine";
