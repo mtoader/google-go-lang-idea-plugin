@@ -23,7 +23,6 @@ import org.jetbrains.jsonProtocol.OutMessage;
 import org.jetbrains.jsonProtocol.Request;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Please add your requests as a subclasses, otherwise reflection won't work.
@@ -129,15 +128,7 @@ public abstract class DlvRequest<T> extends OutMessage implements Request<T> {
     Locals(int frameId, int goroutineId) {
       try {
         beginArguments();
-        writeScope(frameId, goroutineId, getWriter())
-          // This was introduced in: https://github.com/derekparker/delve/pull/444 and the values below are the v1 compatible ones
-          .name("Cfg").beginObject()
-            .name("FollowPointers").value(true)
-            .name("MaxStringLen").value(100)
-            .name("MaxVariableRecurse").value(1)
-            .name("MaxArrayValues").value(64)
-            .name("MaxStructFields").value(-1)
-          .endObject();
+        writeScope(frameId, goroutineId, getWriter());
       }
       catch (IOException e) {
         throw new RuntimeException(e);
@@ -195,6 +186,14 @@ public abstract class DlvRequest<T> extends OutMessage implements Request<T> {
   private static JsonWriter writeScope(int frameId, int goroutineId, @NotNull JsonWriter writer) throws IOException {
     // todo: ask vladimir how to simplify this
     return writer
+      // This was introduced in: https://github.com/derekparker/delve/pull/444 and the values below are the v1 compatible ones
+      .name("Cfg").beginObject()
+        .name("FollowPointers").value(true)
+        .name("MaxStringLen").value(100)
+        .name("MaxVariableRecurse").value(1)
+        .name("MaxArrayValues").value(64)
+        .name("MaxStructFields").value(-1)
+      .endObject()
       .name("Scope").beginObject()
       .name("GoroutineID").value(goroutineId)
       .name("Frame").value(frameId).endObject();
