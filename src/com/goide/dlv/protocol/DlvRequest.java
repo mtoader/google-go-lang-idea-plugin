@@ -17,6 +17,7 @@
 package com.goide.dlv.protocol;
 
 import com.google.gson.stream.JsonWriter;
+import com.intellij.xdebugger.frame.XValueNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jsonProtocol.OutMessage;
@@ -186,10 +187,9 @@ public abstract class DlvRequest<T> extends OutMessage implements Request<T> {
   private static JsonWriter writeScope(int frameId, int goroutineId, @NotNull JsonWriter writer) throws IOException {
     // todo: ask vladimir how to simplify this
     return writer
-      // This was introduced in: https://github.com/derekparker/delve/pull/444 and the values below are the v1 compatible ones
       .name("Cfg").beginObject()
         .name("FollowPointers").value(true)
-        .name("MaxStringLen").value(100)
+        .name("MaxStringLen").value(XValueNode.MAX_VALUE_LENGTH)
         .name("MaxVariableRecurse").value(1)
         .name("MaxArrayValues").value(64)
         .name("MaxStructFields").value(-1)
