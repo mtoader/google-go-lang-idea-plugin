@@ -20,6 +20,7 @@ import com.goide.GoConstants;
 import com.goide.GoFileType;
 import com.goide.dlv.breakpoint.DlvBreakpointProperties;
 import com.goide.dlv.breakpoint.DlvBreakpointType;
+import com.goide.dlv.protocol.DlvApi;
 import com.goide.dlv.protocol.DlvRequest;
 import com.goide.util.GoUtil;
 import com.intellij.execution.ExecutionResult;
@@ -75,17 +76,20 @@ public final class DlvDebugProcess extends DebugProcessImpl<VmConnection<?>> imp
   private static final Consumer<Throwable> THROWABLE_CONSUMER = LOG::info;
 
   @NotNull
-  private final Consumer<DebuggerState> myStateConsumer = new Consumer<DebuggerState>() {
+  private final Consumer<DebuggerStateOut> myStateConsumer = new Consumer<DebuggerStateOut>() {
     @Override
-    public void consume(@NotNull DebuggerState o) {
+    public void consume(@NotNull final DebuggerStateOut so) {
+      DebuggerState o = so.State;
       if (o.exited) {
         stop();
         return;
       }
 
-      XBreakpoint<DlvBreakpointProperties> find = findBreak(o.breakPoint);
-      send(new DlvRequest.StacktraceGoroutine()).done(locations -> {
-          DlvSuspendContext context = new DlvSuspendContext(DlvDebugProcess.this, o.currentThread.id, locations, getProcessor());
+      final XBreakpoint<DlvBreakpointProperties> find = findBreak(o.breakPoint);
+      send(new DlvRequest.Stacktrace())
+        .done(stacktraceOut -> {
+          List<DlvApi.Location> locations = stacktraceOut.Locations;
+          DlvSuspendContext context = new DlvSuspendContext(DlvDebugProcess.this, o.currentThread.id, o.currentGoroutine.id, locations, getProcessor());
           XDebugSession session = getSession();
           if (find == null) {
             session.positionReached(context);
@@ -135,11 +139,6 @@ public final class DlvDebugProcess extends DebugProcessImpl<VmConnection<?>> imp
   }
 
   @Override
-  protected boolean isVmStepOutCorrect() {
-    return false;
-  }
-
-  @Override
   public void dispose() {
     // todo
   }
@@ -185,7 +184,7 @@ public final class DlvDebugProcess extends DebugProcessImpl<VmConnection<?>> imp
     }
   }
 
-  private void command(@NotNull @MagicConstant(stringValues = {NEXT, CONTINUE, HALT, SWITCH_THREAD, STEP}) String name) {
+  private void command(@NotNull @MagicConstant(stringValues = {NEXT, CONTINUE, HALT, SWITCH_THREAD, STEP, STEPOUT}) String name) {
     send(new DlvRequest.Command(name)).done(myStateConsumer);
   }
 
@@ -203,7 +202,7 @@ public final class DlvDebugProcess extends DebugProcessImpl<VmConnection<?>> imp
         command(NEXT);
         break;
       case OUT:
-        // todo
+        command(STEPOUT);
         break;
     }
     return null;

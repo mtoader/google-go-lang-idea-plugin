@@ -197,6 +197,11 @@ public class GoExecutor {
     return this;
   }
 
+  @Nullable
+  public String getWorkDirectory() {
+    return myWorkDirectory;
+  }
+
   @NotNull
   public GoExecutor showNotifications(boolean onError, boolean onSuccess) {
     myShowNotificationsOnError = onError;
