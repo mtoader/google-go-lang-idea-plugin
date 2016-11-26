@@ -70,11 +70,11 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
 
     @Override
     public void processTerminated(ProcessEvent event) {
-      try {
-        if (new File(myCoverageFilePath).exists()) {
-          return;
-        }
+      if (event.getExitCode() != 0 || new File(myCoverageFilePath).exists()) {
+        return;
+      }
 
+      try {
         try (
           FileWriter stream = new FileWriter(myCoverageFilePath, false);
           BufferedWriter writer = new BufferedWriter(stream)
