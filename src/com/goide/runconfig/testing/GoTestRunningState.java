@@ -83,7 +83,8 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
           writer.newLine();
           mergeCoverage(writer, new File(myConfiguration.getDirectoryPath()));
         }
-      } catch (IOException e) {
+      }
+      catch (IOException e) {
         LOG.error(e.getMessage());
       }
     }
@@ -165,7 +166,8 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
     if (isRecursiveCoverage) {
       executor.withExePath(packageCoverageExecutable.getPath());
       executor.withParameters("-p", "-c");
-    } else {
+    }
+    else {
       executor.withParameters("test", "-v");
       executor.withParameterString(myConfiguration.getGoToolParams());
     }
@@ -215,7 +217,8 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
     if (isRecursiveCoverage) {
       executor.withParameters("-v");
       executor.withParameterString(myConfiguration.getGoToolParams());
-    } else if (isCoverage) {
+    }
+    else if (isCoverage) {
       executor.withParameters("-coverprofile=" + myCoverageFilePath, "-covermode=atomic");
     }
 
