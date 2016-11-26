@@ -20,6 +20,7 @@ import com.goide.psi.GoFile;
 import com.goide.psi.GoFunctionDeclaration;
 import com.goide.runconfig.GoConsoleFilter;
 import com.goide.runconfig.GoRunningState;
+import com.goide.sdk.GoSdkUtil;
 import com.goide.util.GoExecutor;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
@@ -27,7 +28,9 @@ import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
+import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.process.ProcessListener;
 import com.intellij.execution.process.ProcessTerminatedListener;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
@@ -37,7 +40,9 @@ import com.intellij.execution.testframework.autotest.ToggleAutoTestAction;
 import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil;
 import com.intellij.execution.testframework.sm.runner.ui.SMTRunnerConsoleView;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -49,13 +54,73 @@ import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
+import java.io.*;
 import java.util.Collection;
 import java.util.List;
 
 public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
   private String myCoverageFilePath;
   private String myFailedTestsPattern;
+
+  private class CoverageMerger implements ProcessListener {
+    protected final Logger LOG = Logger.getInstance("#com.goide.runconfig.testing.GoTestRunningState.CoverageMerger");
+
+    @Override
+    public void startNotified(ProcessEvent event) {}
+
+    @Override
+    public void processTerminated(ProcessEvent event) {
+      try {
+        if (new File(myCoverageFilePath).exists()) {
+          return;
+        }
+
+        try (
+          FileWriter stream = new FileWriter(myCoverageFilePath, false);
+          BufferedWriter writer = new BufferedWriter(stream)
+        ) {
+          writer.write("mode: set");
+          writer.newLine();
+          mergeCoverage(writer, new File(myConfiguration.getDirectoryPath()));
+        }
+      } catch (IOException e) {
+        LOG.error(e.getMessage());
+      }
+    }
+
+    @Override
+    public void processWillTerminate(ProcessEvent event, boolean willBeDestroyed) {}
+
+    @Override
+    public void onTextAvailable(ProcessEvent event, Key outputType) {}
+
+    private void mergeCoverage(BufferedWriter writer, File directory) throws IOException {
+      for (File file: directory.listFiles()) {
+        if (file.isDirectory()) {
+          mergeCoverage(writer, file);
+        } else if ("profile.cov".equals(file.getName())) {
+          try (FileReader stream = new FileReader(file)) {
+            try (BufferedReader reader = new BufferedReader(stream)) {
+              copyCoverage(writer, reader);
+            }
+          }
+        }
+      }
+    }
+
+    private void copyCoverage(BufferedWriter writer, BufferedReader reader) throws IOException {
+      boolean modeLine = false;
+      for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+        if (!modeLine && "mode: set".equals(line)) {
+          modeLine = true;
+          continue;
+        }
+
+        writer.write(line);
+        writer.newLine();
+      }
+    }
+  }
 
   public GoTestRunningState(@NotNull ExecutionEnvironment env, @NotNull Module module, @NotNull GoTestRunConfiguration configuration) {
     super(env, module, configuration);
@@ -74,6 +139,10 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
     consoleView.addMessageFilter(new GoConsoleFilter(myConfiguration.getProject(), myModule, myConfiguration.getWorkingDirectoryUrl()));
     ProcessTerminatedListener.attach(processHandler);
 
+    if (myCoverageFilePath != null) {
+      processHandler.addProcessListener(new CoverageMerger());
+    }
+
     DefaultExecutionResult executionResult = new DefaultExecutionResult(consoleView, processHandler);
     AbstractRerunFailedTestsAction rerunFailedTestsAction = consoleProperties.createRerunFailedTestsAction(consoleView);
     if (rerunFailedTestsAction != null) {
@@ -88,8 +157,22 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
 
   @Override
   protected GoExecutor patchExecutor(@NotNull GoExecutor executor) throws ExecutionException {
-    executor.withParameters("test", "-v");
+    boolean isCoverage = myCoverageFilePath != null;
+    VirtualFile packageCoverageExecutable = GoSdkUtil.findExecutableInGoPath(
+      "package-coverage",
+      myConfiguration.getProject(),
+      myConfiguration.getConfigurationModule().getModule());
+    boolean isRecursiveCoverage = isCoverage && packageCoverageExecutable != null;
+
+    if (isRecursiveCoverage) {
+      executor.withExePath(packageCoverageExecutable.getPath());
+      executor.withParameters("-p", "-c");
+    } else {
+      executor.withParameters("test", "-v");
+    }
+
     executor.withParameterString(myConfiguration.getGoToolParams());
+
     switch (myConfiguration.getKind()) {
       case DIRECTORY:
         String relativePath = FileUtil.getRelativePath(myConfiguration.getWorkingDirectory(),
@@ -97,7 +180,7 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
                                                        File.separatorChar);
         // TODO Once Go gets support for covering multiple packages the ternary condition should be reverted
         // See https://golang.org/issues/6909
-        String pathSuffix = myCoverageFilePath == null ? "..." : ".";
+        String pathSuffix = isRecursiveCoverage ? "." : "...";
         if (relativePath != null && !".".equals(relativePath)) {
           executor.withParameters("./" + relativePath + "/" + pathSuffix);
         }
@@ -132,7 +215,7 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
         break;
     }
 
-    if (myCoverageFilePath != null) {
+    if (isCoverage && !isRecursiveCoverage) {
       executor.withParameters("-coverprofile=" + myCoverageFilePath, "-covermode=atomic");
     }
 
