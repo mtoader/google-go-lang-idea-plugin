@@ -98,12 +98,16 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
       for (File file: directory.listFiles()) {
         if (file.isDirectory()) {
           mergeCoverage(writer, file);
-        } else if ("profile.cov".equals(file.getName())) {
-          try (FileReader stream = new FileReader(file)) {
-            try (BufferedReader reader = new BufferedReader(stream)) {
-              copyCoverage(writer, reader);
-            }
+        }
+        else if ("profile.cov".equals(file.getName())) {
+          try (
+            FileReader stream = new FileReader(file);
+            BufferedReader reader = new BufferedReader(stream)
+          ) {
+            copyCoverage(writer, reader);
           }
+
+          file.delete();
         }
       }
     }
