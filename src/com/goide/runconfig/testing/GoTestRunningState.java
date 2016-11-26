@@ -169,9 +169,8 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
       executor.withParameters("-p", "-c");
     } else {
       executor.withParameters("test", "-v");
+      executor.withParameterString(myConfiguration.getGoToolParams());
     }
-
-    executor.withParameterString(myConfiguration.getGoToolParams());
 
     switch (myConfiguration.getKind()) {
       case DIRECTORY:
@@ -215,7 +214,10 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
         break;
     }
 
-    if (isCoverage && !isRecursiveCoverage) {
+    if (isRecursiveCoverage) {
+      executor.withParameters("-v");
+      executor.withParameterString(myConfiguration.getGoToolParams());
+    } else if (isCoverage) {
       executor.withParameters("-coverprofile=" + myCoverageFilePath, "-covermode=atomic");
     }
 
