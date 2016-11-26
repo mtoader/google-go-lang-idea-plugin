@@ -113,13 +113,7 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
     }
 
     private void copyCoverage(BufferedWriter writer, BufferedReader reader) throws IOException {
-      boolean modeLine = false;
       for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-        if (!modeLine && "mode: set".equals(line)) {
-          modeLine = true;
-          continue;
-        }
-
         writer.write(line);
         writer.newLine();
       }
