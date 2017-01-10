@@ -165,7 +165,7 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
 
     if (isRecursiveCoverage) {
       executor.withExePath(packageCoverageExecutable.getPath());
-      executor.withParameters("-p", "-c");
+      executor.withParameters("-p", "-q=false", "-c");
     }
     else {
       executor.withParameters("test", "-v");
