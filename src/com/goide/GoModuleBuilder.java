@@ -21,11 +21,13 @@ import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.ide.util.projectWizard.JavaModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleBuilderListener;
 import com.intellij.ide.util.projectWizard.SourcePathsBuilder;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -58,5 +60,8 @@ public class GoModuleBuilder extends JavaModuleBuilder implements SourcePathsBui
   @Override
   public void moduleCreated(@NotNull Module module) {
     CompilerWorkspaceConfiguration.getInstance(module.getProject()).CLEAR_OUTPUT_DIRECTORY = false;
+    ModifiableRootModel rootModel = ModuleRootManager.getInstance(module).getModifiableModel();
+    rootModel.inheritSdk();
+    ApplicationManager.getApplication().runWriteAction(rootModel::commit);
   }
 }
