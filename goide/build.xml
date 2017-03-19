@@ -1,0 +1,73 @@
+<!--
+  ~ Copyright 2013-2015 Sergey Ignatov, Alexander Zolotov, Florin Patan
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<project name="GoIDE" default="all">
+  <property name="project.home" value="${basedir}/../"/>
+  <property name="goide.home" value="${basedir}"/>
+  <property name="out.dir" value="${goide.home}/build/goide"/>
+  <property name="tmp.dir" value="${goide.home}/build/goide/tmp"/>
+
+  <target name="cleanup">
+    <delete dir="${out.dir}" failonerror="false"/>
+  </target>
+
+  <target name="init">
+    <mkdir dir="${out.dir}"/>
+    <mkdir dir="${tmp.dir}"/>
+    <java classname="org.apache.tools.ant.Main" fork="true" failonerror="true" dir="${goide.home}">
+      <sysproperty key="gant.script" value="${goide.home}/build/scripts/download_kotlin.gant"/>
+      <classpath>
+        <fileset dir="${goide.home}/lib/ant/lib">
+          <include name="*.jar"/>
+        </fileset>
+      </classpath>
+      <arg value="-f"/>
+      <arg value="${goide.home}/build/gant.xml"/>
+    </java>
+  </target>
+
+  <macrodef name="call_gant">
+    <attribute name="script" />
+    <sequential>
+      <java failonerror="true" jar="${goide.home}/lib/ant/lib/ant-launcher.jar" fork="true">
+        <jvmarg line="-Xmx612m -XX:MaxPermSize=152m -Didea.build.number=${idea.build.number} &quot;-DideaPath=${idea.path}&quot;"/>
+        <sysproperty key="java.awt.headless" value="true"/>
+        <arg line="&quot;-Dgant.script=@{script}&quot;"/>
+        <arg line="&quot;-Dteamcity.build.tempDir=${tmp.dir}&quot;"/>
+        <arg line="&quot;-Didea.build.number=${idea.build.number}&quot;"/>
+        <arg line="&quot;-Didea.test.group=ALL_EXCLUDE_DEFINED&quot;"/>
+        <arg value="-f"/>
+        <arg value="${goide.home}/build/gant.xml"/>
+      </java>
+    </sequential>
+  </macrodef>
+
+  <target name="build" depends="init">
+    <call_gant script="${goide.home}/goide_build.gant"/>
+  </target>
+
+  <!-- TODO florin: build plugin -->
+  <!--target name="plugin" depends="init">
+    <call_gant script="${goide.home}/build/python_plugin_build.gant"/>
+  </target-->
+  <!--
+  <target name="test" depends="init">
+    <call_gant script="${project.home}/build/scripts/tests.gant"/>
+  </target>
+  -->
+
+  <target name="all" depends="cleanup,build"/>
+</project>
