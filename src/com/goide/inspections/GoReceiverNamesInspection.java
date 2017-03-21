@@ -16,15 +16,16 @@
 
 package com.goide.inspections;
 
-import com.goide.psi.GoReceiver;
-import com.goide.psi.GoVisitor;
-import com.goide.quickfix.GoRenameQuickFix;
+import com.goide.psi.*;
+import com.goide.quickfix.GoRenameReceiverQuickFix;
 import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.ObjectUtils;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Set;
 
 public class GoReceiverNamesInspection extends GoInspectionBase {
@@ -39,7 +40,37 @@ public class GoReceiverNamesInspection extends GoInspectionBase {
         if (genericNamesSet.contains(o.getName())) {
           PsiElement identifier = o.getIdentifier();
           if (identifier == null) return;
-          holder.registerProblem(identifier, "Receiver has generic name", new GoRenameQuickFix(o));
+          holder.registerProblem(identifier, "Receiver has generic name", new GoRenameReceiverQuickFix(identifier, false),
+                                 new GoRenameReceiverQuickFix(identifier, true));
+        }
+      }
+
+      @Override
+
+      public void visitMethodDeclaration(@NotNull GoMethodDeclaration o) {
+        GoFile file = o.getContainingFile();
+        GoReceiver methodReceiver = o.getReceiver();
+        if (methodReceiver == null) return;
+        String name = methodReceiver.getName();
+        if (name == null) return;
+        GoType type = methodReceiver.getType();
+        type = type instanceof GoPointerType ? ((GoPointerType)type).getType() : type;
+        if (type == null) return;
+        GoTypeReferenceExpression reference = type.getTypeReferenceExpression();
+        if (reference == null) return;
+        GoTypeSpec typeSpec = ObjectUtils.tryCast(reference.resolve(), GoTypeSpec.class);
+        if (typeSpec == null) return;
+        List<GoMethodDeclaration> methods = typeSpec.getMethods();
+        for (GoMethodDeclaration method : methods) {
+          if (!file.isEquivalentTo(method.getContainingFile())) continue;
+          GoReceiver receiver = method.getReceiver();
+          if (receiver != null && !name.equals(receiver.getName())) {
+            PsiElement identifier = methodReceiver.getIdentifier();
+            if (identifier == null) continue;
+            holder.registerProblem(identifier, "Receiver names are different", new GoRenameReceiverQuickFix(identifier, true),
+                                   new GoRenameReceiverQuickFix(identifier, false));
+            return;
+          }
         }
       }
     };
