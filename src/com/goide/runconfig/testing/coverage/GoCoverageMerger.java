@@ -5,7 +5,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import java.io.*;
 
 public class GoCoverageMerger {
-  protected static final Logger LOG = Logger.getInstance("#com.goide.runconfig.testing.coverage.CoverageMerger");
+  protected static final Logger LOG = Logger.getInstance("#com.goide.runconfig.testing.coverage.GoCoverageMerger");
 
   public static void MergeCoverage(String fromPath, String toFile) {
     try {

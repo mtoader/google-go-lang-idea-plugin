@@ -74,6 +74,9 @@ public class GoCoverageProgramRunner extends GenericProgramRunner {
     if (executionResult == null) {
       return null;
     }
+    executionResult.getProcessHandler().addProcessListener(new GoCoverageProcessListener(
+        runConfiguration.getDirectoryPath(),
+        coverageEnabledConfiguration.getCoverageFilePath()));
     CoverageHelper.attachToProcess(runConfiguration, executionResult.getProcessHandler(), environment.getRunnerSettings());
     return new RunContentBuilder(executionResult, environment).showRunContent(environment.getContentToReuse());
   }
