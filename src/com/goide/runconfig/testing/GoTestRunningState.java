@@ -20,7 +20,6 @@ import com.goide.psi.GoFile;
 import com.goide.psi.GoFunctionDeclaration;
 import com.goide.runconfig.GoConsoleFilter;
 import com.goide.runconfig.GoRunningState;
-import com.goide.sdk.GoSdkUtil;
 import com.goide.util.GoExecutor;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
@@ -48,14 +47,12 @@ import com.intellij.psi.PsiManager;
 import com.intellij.util.ObjectUtils;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
 public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
-  private String myCoverageFilePath;
   private String myFailedTestsPattern;
   private ExecutorPatcher myPatcher;
 
@@ -172,10 +169,6 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
     if (StringUtil.isNotEmpty(pattern)) {
       executor.withParameters("-run", pattern);
     }
-  }
-
-  public void setCoverageFilePath(@Nullable String coverageFile) {
-    myCoverageFilePath = coverageFile;
   }
 
   public void setFailedTests(@NotNull List<AbstractTestProxy> failedTests) {

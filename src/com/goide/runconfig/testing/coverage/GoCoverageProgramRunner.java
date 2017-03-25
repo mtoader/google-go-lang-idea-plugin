@@ -119,7 +119,6 @@ public class GoCoverageProgramRunner extends GenericProgramRunner {
     }
     FileDocumentManager.getInstance().saveAllDocuments();
     CoverageEnabledConfiguration coverageEnabledConfiguration = CoverageEnabledConfiguration.getOrCreate(runConfiguration);
-    runningState.setCoverageFilePath(coverageEnabledConfiguration.getCoverageFilePath());
     runningState.setPatcher(new CoveragePatcher(coverageEnabledConfiguration, runConfiguration));
 
     ExecutionResult executionResult = state.execute(environment.getExecutor(), this);
