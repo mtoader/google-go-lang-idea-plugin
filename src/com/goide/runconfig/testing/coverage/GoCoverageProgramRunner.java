@@ -16,6 +16,7 @@
 
 package com.goide.runconfig.testing.coverage;
 
+import com.goide.GoConstants;
 import com.goide.runconfig.testing.GoTestRunConfiguration;
 import com.goide.runconfig.testing.GoTestRunningState;
 import com.goide.sdk.GoSdkUtil;
@@ -42,8 +43,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GoCoverageProgramRunner extends GenericProgramRunner {
-  private static final String ID = "GoCoverageProgramRunner";
-
   private class CoveragePatcher extends GoTestRunningState.ExecutorPatcher {
     private boolean isRecursiveCoverage;
     private GoTestRunConfiguration myConfiguration;
@@ -62,20 +61,7 @@ public class GoCoverageProgramRunner extends GenericProgramRunner {
 
     @Override
     public boolean canRecursiveCoverage() {
-      if (hasPackageCoverageExecutable()) {
-        return true;
-      }
-
-      NotificationGroup group = new NotificationGroup(
-          ID, NotificationDisplayType.BALLOON, true
-      );
-      Notification notification = group.createNotification(
-          "Recursive Directory Coverage",
-          "Directory coverage can be computed recursively if the <code>corsc/go-tools/package-coverage</code> package is installed on this computer",
-          NotificationType.INFORMATION,
-          null);
-      Notifications.Bus.notify(notification, null);
-      return false;
+      return hasPackageCoverageExecutable();
     }
 
     private boolean hasPackageCoverageExecutable() {
@@ -133,7 +119,18 @@ public class GoCoverageProgramRunner extends GenericProgramRunner {
     }
     FileDocumentManager.getInstance().saveAllDocuments();
     CoverageEnabledConfiguration coverageEnabledConfiguration = CoverageEnabledConfiguration.getOrCreate(runConfiguration);
-    runningState.setPatcher(new CoveragePatcher(coverageEnabledConfiguration, runConfiguration));
+    CoveragePatcher runningStatePatcher = new CoveragePatcher(coverageEnabledConfiguration, runConfiguration);
+    runningState.setPatcher(runningStatePatcher);
+
+    if (runConfiguration.getKind() == GoTestRunConfiguration.Kind.DIRECTORY &&
+        !runningStatePatcher.hasPackageCoverageExecutable()) {
+      Notification notification = GoConstants.GO_NOTIFICATION_GROUP.createNotification(
+          "Recursive Directory Coverage",
+          "Directory coverage can be computed recursively if the <code>corsc/go-tools/package-coverage</code> package is installed on this computer",
+          NotificationType.INFORMATION,
+          null);
+      Notifications.Bus.notify(notification, null);
+    }
 
     ExecutionResult executionResult = state.execute(environment.getExecutor(), this);
     if (executionResult == null) {
