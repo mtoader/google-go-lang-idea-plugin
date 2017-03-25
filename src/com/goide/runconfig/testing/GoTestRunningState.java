@@ -20,6 +20,7 @@ import com.goide.psi.GoFile;
 import com.goide.psi.GoFunctionDeclaration;
 import com.goide.runconfig.GoConsoleFilter;
 import com.goide.runconfig.GoRunningState;
+import com.goide.runconfig.testing.coverage.GoCoverageMerger;
 import com.goide.sdk.GoSdkUtil;
 import com.goide.util.GoExecutor;
 import com.intellij.execution.DefaultExecutionResult;
@@ -63,8 +64,6 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
   private String myFailedTestsPattern;
 
   private class CoverageMerger implements ProcessListener {
-    protected final Logger LOG = Logger.getInstance("#com.goide.runconfig.testing.GoTestRunningState.CoverageMerger");
-
     @Override
     public void startNotified(ProcessEvent event) {}
 
@@ -74,19 +73,7 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
         return;
       }
 
-      try {
-        try (
-          FileWriter stream = new FileWriter(myCoverageFilePath, false);
-          BufferedWriter writer = new BufferedWriter(stream)
-        ) {
-          writer.write("mode: set");
-          writer.newLine();
-          mergeCoverage(writer, new File(myConfiguration.getDirectoryPath()));
-        }
-      }
-      catch (IOException e) {
-        LOG.error(e.getMessage());
-      }
+      GoCoverageMerger.MergeCoverage(myConfiguration.getDirectoryPath(), myCoverageFilePath);
     }
 
     @Override
@@ -94,31 +81,6 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
 
     @Override
     public void onTextAvailable(ProcessEvent event, Key outputType) {}
-
-    private void mergeCoverage(BufferedWriter writer, File directory) throws IOException {
-      for (File file: directory.listFiles()) {
-        if (file.isDirectory()) {
-          mergeCoverage(writer, file);
-        }
-        else if ("profile.cov".equals(file.getName())) {
-          try (
-            FileReader stream = new FileReader(file);
-            BufferedReader reader = new BufferedReader(stream)
-          ) {
-            copyCoverage(writer, reader);
-          }
-
-          file.delete();
-        }
-      }
-    }
-
-    private void copyCoverage(BufferedWriter writer, BufferedReader reader) throws IOException {
-      for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-        writer.write(line);
-        writer.newLine();
-      }
-    }
   }
 
   public GoTestRunningState(@NotNull ExecutionEnvironment env, @NotNull Module module, @NotNull GoTestRunConfiguration configuration) {
