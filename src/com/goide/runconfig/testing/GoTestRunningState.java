@@ -57,47 +57,31 @@ import java.util.List;
 public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
   private String myCoverageFilePath;
   private String myFailedTestsPattern;
-  private ExecutorPatcher myPatcher = new ExecutorPatcher();
+  private ExecutorPatcher myPatcher;
 
-  public class ExecutorPatcher {
-    private boolean isCoverage;
-    private boolean isRecursiveCoverage;
+  public static class ExecutorPatcher {
+    private GoTestRunConfiguration myConfiguration;
+
+    public ExecutorPatcher(GoTestRunConfiguration configuration) {
+      myConfiguration = configuration;
+    }
 
     public boolean canRecursiveCoverage() {
       return false;
     }
 
     public void beforeTarget(@NotNull GoExecutor executor) {
-      isCoverage = myCoverageFilePath != null;
-      VirtualFile packageCoverageExecutable = GoSdkUtil.findExecutableInGoPath(
-          "package-coverage",
-          myConfiguration.getProject(),
-          myConfiguration.getConfigurationModule().getModule());
-      isRecursiveCoverage = isCoverage && packageCoverageExecutable != null;
-
-      if (isRecursiveCoverage) {
-        executor.withExePath(packageCoverageExecutable.getPath());
-        executor.withParameters("-p", "-q=false", "-c");
-      }
-      else {
-        executor.withParameters("test", "-v");
-        executor.withParameterString(myConfiguration.getGoToolParams());
-      }
+      executor.withParameters("test", "-v");
+      executor.withParameterString(myConfiguration.getGoToolParams());
     }
 
     public void afterTarget(@NotNull GoExecutor executor) {
-      if (isRecursiveCoverage) {
-        executor.withParameters("--", "-v");
-        executor.withParameterString(myConfiguration.getGoToolParams());
-      }
-      else if (isCoverage) {
-        executor.withParameters("-coverprofile=" + myCoverageFilePath, "-covermode=atomic");
-      }
     }
   }
 
   public GoTestRunningState(@NotNull ExecutionEnvironment env, @NotNull Module module, @NotNull GoTestRunConfiguration configuration) {
     super(env, module, configuration);
+    myPatcher = new ExecutorPatcher(configuration);
   }
 
   @NotNull

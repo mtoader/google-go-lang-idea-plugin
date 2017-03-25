@@ -18,6 +18,8 @@ package com.goide.runconfig.testing.coverage;
 
 import com.goide.runconfig.testing.GoTestRunConfiguration;
 import com.goide.runconfig.testing.GoTestRunningState;
+import com.goide.sdk.GoSdkUtil;
+import com.goide.util.GoExecutor;
 import com.intellij.coverage.CoverageExecutor;
 import com.intellij.coverage.CoverageHelper;
 import com.intellij.coverage.CoverageRunnerData;
@@ -33,12 +35,61 @@ import com.intellij.execution.runners.GenericProgramRunner;
 import com.intellij.execution.runners.RunContentBuilder;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GoCoverageProgramRunner extends GenericProgramRunner {
   private static final String ID = "GoCoverageProgramRunner";
+
+  private class CoveragePatcher extends GoTestRunningState.ExecutorPatcher {
+    private boolean isRecursiveCoverage;
+    private GoTestRunConfiguration myConfiguration;
+    private CoverageEnabledConfiguration myCoverageConfiguration;
+    private VirtualFile myPackageCoverageExecutable;
+
+    public CoveragePatcher(CoverageEnabledConfiguration coverageConfiguration, GoTestRunConfiguration configuration) {
+      super(configuration);
+      myConfiguration = configuration;
+      myCoverageConfiguration = coverageConfiguration;
+      myPackageCoverageExecutable = GoSdkUtil.findExecutableInGoPath(
+          "package-coverage",
+          myConfiguration.getProject(),
+          myConfiguration.getConfigurationModule().getModule());
+    }
+
+    @Override
+    public boolean canRecursiveCoverage() {
+      return hasPackageCoverageExecutable();
+    }
+
+    private boolean hasPackageCoverageExecutable() {
+      return myPackageCoverageExecutable != null;
+    }
+
+    @Override
+    public void beforeTarget(@NotNull GoExecutor executor) {
+      if (hasPackageCoverageExecutable()) {
+        executor.withExePath(myPackageCoverageExecutable.getPath());
+        executor.withParameters("-p", "-q=false", "-c");
+      }
+      else {
+        super.beforeTarget(executor);
+      }
+    }
+
+    @Override
+    public void afterTarget(@NotNull GoExecutor executor) {
+      if (hasPackageCoverageExecutable()) {
+        executor.withParameters("--", "-v");
+        executor.withParameterString(myConfiguration.getGoToolParams());
+      }
+      else {
+        executor.withParameters("-coverprofile=" + myCoverageConfiguration.getCoverageFilePath(), "-covermode=atomic");
+      }
+    }
+  }
 
   @NotNull
   @Override
@@ -69,6 +120,7 @@ public class GoCoverageProgramRunner extends GenericProgramRunner {
     FileDocumentManager.getInstance().saveAllDocuments();
     CoverageEnabledConfiguration coverageEnabledConfiguration = CoverageEnabledConfiguration.getOrCreate(runConfiguration);
     runningState.setCoverageFilePath(coverageEnabledConfiguration.getCoverageFilePath());
+    runningState.setPatcher(new CoveragePatcher(coverageEnabledConfiguration, runConfiguration));
 
     ExecutionResult executionResult = state.execute(environment.getExecutor(), this);
     if (executionResult == null) {
