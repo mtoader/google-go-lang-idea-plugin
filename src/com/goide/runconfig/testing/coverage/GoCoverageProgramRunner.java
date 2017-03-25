@@ -34,6 +34,7 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.GenericProgramRunner;
 import com.intellij.execution.runners.RunContentBuilder;
 import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.notification.*;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ObjectUtils;
@@ -61,7 +62,20 @@ public class GoCoverageProgramRunner extends GenericProgramRunner {
 
     @Override
     public boolean canRecursiveCoverage() {
-      return hasPackageCoverageExecutable();
+      if (hasPackageCoverageExecutable()) {
+        return true;
+      }
+
+      NotificationGroup group = new NotificationGroup(
+          ID, NotificationDisplayType.BALLOON, true
+      );
+      Notification notification = group.createNotification(
+          "Recursive Directory Coverage",
+          "Directory coverage can be computed recursively if the <code>corsc/go-tools/package-coverage</code> package is installed on this computer",
+          NotificationType.INFORMATION,
+          null);
+      Notifications.Bus.notify(notification, null);
+      return false;
     }
 
     private boolean hasPackageCoverageExecutable() {
