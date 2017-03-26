@@ -43,6 +43,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GoCoverageProgramRunner extends GenericProgramRunner {
+  private static final String ID = "GoCoverageProgramRunner";
+
   private class CoveragePatcher extends GoTestRunningState.ExecutorPatcher {
     private boolean isRecursiveCoverage;
     private GoTestRunConfiguration myConfiguration;
