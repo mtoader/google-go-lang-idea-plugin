@@ -587,7 +587,7 @@ public class GoCompletionTest extends GoCompletionTestBase {
     myFixture.configureByText("test_file.go", "package myFromFile");
     myFixture.configureByText("test.go", "package m<caret>");
     myFixture.completeBasic();
-    assertSameElements(myFixture.getLookupElementStrings(), "myFromTest", "myFromFile", "main");
+    assertSameElements(myFixture.getLookupElementStrings(), "myFromTest", "myFromFile");
   }
 
   @SuppressWarnings("ConstantConditions")
@@ -595,7 +595,55 @@ public class GoCompletionTest extends GoCompletionTestBase {
     myFixture.configureByText("foo.go", "package foo");
     myFixture.configureByText("foo_test.go", "package <caret>");
     myFixture.completeBasic();
-    assertSameElements(myFixture.getLookupElementStrings(), "foo", "foo_test", "main");
+    assertSameElements(myFixture.getLookupElementStrings(), "foo", "foo_test");
+  }
+
+  @SuppressWarnings("ConstantConditions")
+  public void testPackageNamesInTestFilePartialName() {
+    myFixture.configureByText("foo.go", "package mypack");
+    myFixture.configureByText("foo_test.go", "package m<caret>");
+    myFixture.completeBasic();
+    assertSameElements(myFixture.getLookupElementStrings(), "mypack", "mypack_test");
+  }
+
+  @SuppressWarnings("ConstantConditions")
+  public void testPackageNamesFromTestPackage() {
+    myFixture.configureByText("foo_test.go", "package mypack_test");
+    myFixture.configureByText("foo.go", "package <caret>");
+    myFixture.completeBasic();
+    assertSameElements(myFixture.getLookupElementStrings(), "mypack");
+  }
+
+  @SuppressWarnings("ConstantConditions")
+  public void testPackageNamesFromTestPackagePartialName() {
+    myFixture.configureByText("foo_test.go", "package mypack_test");
+    myFixture.configureByText("foo.go", "package m<caret>");
+    myFixture.completeBasic();
+    assertSameElements(myFixture.getLookupElementStrings(), "mypack");
+  }
+
+  @SuppressWarnings("ConstantConditions")
+  public void testPackageNamesFromMainPackagePartialName() {
+    myFixture.configureByText("foo.go", "package main");
+    myFixture.configureByText("foo_test.go", "package m<caret>");
+    myFixture.completeBasic();
+    assertSameElements(myFixture.getLookupElementStrings(), "main", "main_test");
+  }
+
+  @SuppressWarnings("ConstantConditions")
+  public void testPackageNamesFromMainPackagePartialName2() {
+    myFixture.configureByText("foo.go", "package main");
+    myFixture.configureByText("foo_test.go", "package m<caret>");
+    myFixture.completeBasic();
+    assertSameElements(myFixture.getLookupElementStrings(), "main", "main_test");
+  }
+
+  @SuppressWarnings("ConstantConditions")
+  public void testPackageNamesFromMainTestPackagePartialName() {
+    myFixture.configureByText("foo_test.go", "package main");
+    myFixture.configureByText("foo.go", "package m<caret>");
+    myFixture.completeBasic();
+    assertSameElements(myFixture.getLookupElementStrings(), "main");
   }
 
   public void testPointerSpecType() {
@@ -611,6 +659,15 @@ public class GoCompletionTest extends GoCompletionTestBase {
 
   public void testPackageNamesInEmptyDirectory() {
     PsiFile file = myFixture.addFileToProject("my-directory-name/test.go", "package m<caret>");
+    myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
+    myFixture.completeBasic();
+    List<String> strings = myFixture.getLookupElementStrings();
+    assertNotNull(strings);
+    assertSameElements(strings, "my_directory_name", "main", "m");
+  }
+
+  public void testPackageNamesInEmptyDirectory2() {
+    PsiFile file = myFixture.addFileToProject("my-directory-name/test.go", "package <caret>");
     myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
     myFixture.completeBasic();
     List<String> strings = myFixture.getLookupElementStrings();
