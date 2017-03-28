@@ -17,6 +17,7 @@
 package com.goide.runconfig.testing.coverage;
 
 import com.goide.GoConstants;
+import com.goide.codeInsight.imports.GoGetPackageFix;
 import com.goide.runconfig.testing.GoTestRunConfiguration;
 import com.goide.runconfig.testing.GoTestRunningState;
 import com.goide.sdk.GoSdkUtil;
@@ -41,6 +42,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.event.HyperlinkEvent;
 
 public class GoCoverageProgramRunner extends GenericProgramRunner {
   private static final String ID = "GoCoverageProgramRunner";
@@ -126,12 +129,7 @@ public class GoCoverageProgramRunner extends GenericProgramRunner {
 
     if (runConfiguration.getKind() == GoTestRunConfiguration.Kind.DIRECTORY &&
         !runningStatePatcher.hasPackageCoverageExecutable()) {
-      Notification notification = GoConstants.GO_NOTIFICATION_GROUP.createNotification(
-          "Recursive Directory Coverage",
-          "Directory coverage can be computed recursively if the <code>corsc/go-tools/package-coverage</code> package is installed on this computer",
-          NotificationType.INFORMATION,
-          null);
-      Notifications.Bus.notify(notification, null);
+      promptForPackageCoverageTool(runConfiguration);
     }
 
     ExecutionResult executionResult = state.execute(environment.getExecutor(), this);
@@ -143,5 +141,29 @@ public class GoCoverageProgramRunner extends GenericProgramRunner {
         coverageEnabledConfiguration.getCoverageFilePath()));
     CoverageHelper.attachToProcess(runConfiguration, executionResult.getProcessHandler(), environment.getRunnerSettings());
     return new RunContentBuilder(executionResult, environment).showRunContent(environment.getContentToReuse());
+  }
+
+  private static final String GO_GET_PACKAGE_COVERAGE_LINK = "goGetPackageCoverageLink";
+  private static final String GO_GET_PACKAGE_COVERAGE_NAME = "github.com/corsc/go-tools/package-coverage";
+
+  private void promptForPackageCoverageTool(@NotNull final GoTestRunConfiguration configuration) {
+    Notification notification = GoConstants.GO_NOTIFICATION_GROUP.createNotification(
+        "Recursive Directory Coverage",
+        "Directory coverage can be computed recursively if the <code>" + GO_GET_PACKAGE_COVERAGE_NAME + "</code> package is installed.<br><br><a href=\"" + GO_GET_PACKAGE_COVERAGE_LINK + "\">Install Package Coverage</a>",
+        NotificationType.INFORMATION,
+        (notification1, hyperlinkEvent) -> {
+          if (hyperlinkEvent.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+            String description = hyperlinkEvent.getDescription();
+            if (GO_GET_PACKAGE_COVERAGE_LINK.equals(description)) {
+              GoGetPackageFix.applyFix(
+                configuration.getProject(),
+                configuration.getConfigurationModule().getModule(),
+                GO_GET_PACKAGE_COVERAGE_NAME,
+                false);
+              notification1.expire();
+            }
+          }
+        });
+    Notifications.Bus.notify(notification, configuration.getProject());
   }
 }
