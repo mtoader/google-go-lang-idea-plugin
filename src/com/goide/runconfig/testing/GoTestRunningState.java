@@ -63,10 +63,6 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
       myConfiguration = configuration;
     }
 
-    public boolean canRecursiveCoverage() {
-      return false;
-    }
-
     public void beforeTarget(@NotNull GoExecutor executor) {
       executor.withParameters("test", "-v");
       executor.withParameterString(myConfiguration.getGoToolParams());
@@ -115,9 +111,7 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
         String relativePath = FileUtil.getRelativePath(myConfiguration.getWorkingDirectory(),
                                                        myConfiguration.getDirectoryPath(),
                                                        File.separatorChar);
-        // TODO Once Go gets support for covering multiple packages the ternary condition should be reverted
-        // See https://golang.org/issues/6909
-        String pathSuffix = myPatcher.canRecursiveCoverage() ? "." : "...";
+        String pathSuffix = "...";
         if (relativePath != null && !".".equals(relativePath)) {
           executor.withParameters("./" + relativePath + "/" + pathSuffix);
         }

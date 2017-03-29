@@ -47,9 +47,11 @@ import javax.swing.event.HyperlinkEvent;
 
 public class GoCoverageProgramRunner extends GenericProgramRunner {
   private static final String ID = "GoCoverageProgramRunner";
+  private static final String GO_GET_BINARY_LINK = "goGetPackageCoverageLink";
+  private static final String GO_GET_BINARY_NAME = "github.com/haya14busa/goverage";
+  private static final String GO_GET_BINARY = "goverage";
 
   private class CoveragePatcher extends GoTestRunningState.ExecutorPatcher {
-    private boolean isRecursiveCoverage;
     private GoTestRunConfiguration myConfiguration;
     private CoverageEnabledConfiguration myCoverageConfiguration;
     private VirtualFile myPackageCoverageExecutable;
@@ -59,14 +61,9 @@ public class GoCoverageProgramRunner extends GenericProgramRunner {
       myConfiguration = configuration;
       myCoverageConfiguration = coverageConfiguration;
       myPackageCoverageExecutable = GoSdkUtil.findExecutableInGoPath(
-          "package-coverage",
+          GO_GET_BINARY,
           myConfiguration.getProject(),
           myConfiguration.getConfigurationModule().getModule());
-    }
-
-    @Override
-    public boolean canRecursiveCoverage() {
-      return hasPackageCoverageExecutable();
     }
 
     private boolean hasPackageCoverageExecutable() {
@@ -77,22 +74,17 @@ public class GoCoverageProgramRunner extends GenericProgramRunner {
     public void beforeTarget(@NotNull GoExecutor executor) {
       if (hasPackageCoverageExecutable()) {
         executor.withExePath(myPackageCoverageExecutable.getPath());
-        executor.withParameters("-p", "-q=false", "-c");
+        executor.withParameters("-v");
       }
       else {
         super.beforeTarget(executor);
       }
+      executor.withParameters("-coverprofile=" + myCoverageConfiguration.getCoverageFilePath(), "-covermode=atomic");
     }
 
     @Override
     public void afterTarget(@NotNull GoExecutor executor) {
-      if (hasPackageCoverageExecutable()) {
-        executor.withParameters("--", "-v");
-        executor.withParameterString(myConfiguration.getGoToolParams());
-      }
-      else {
-        executor.withParameters("-coverprofile=" + myCoverageConfiguration.getCoverageFilePath(), "-covermode=atomic");
-      }
+      executor.withParameterString(myConfiguration.getGoToolParams());
     }
   }
 
@@ -136,29 +128,23 @@ public class GoCoverageProgramRunner extends GenericProgramRunner {
     if (executionResult == null) {
       return null;
     }
-    executionResult.getProcessHandler().addProcessListener(new GoCoverageProcessListener(
-        runConfiguration.getDirectoryPath(),
-        coverageEnabledConfiguration.getCoverageFilePath()));
     CoverageHelper.attachToProcess(runConfiguration, executionResult.getProcessHandler(), environment.getRunnerSettings());
     return new RunContentBuilder(executionResult, environment).showRunContent(environment.getContentToReuse());
   }
 
-  private static final String GO_GET_PACKAGE_COVERAGE_LINK = "goGetPackageCoverageLink";
-  private static final String GO_GET_PACKAGE_COVERAGE_NAME = "github.com/corsc/go-tools/package-coverage";
-
   private void promptForPackageCoverageTool(@NotNull final GoTestRunConfiguration configuration) {
     Notification notification = GoConstants.GO_NOTIFICATION_GROUP.createNotification(
         "Recursive Directory Coverage",
-        "Directory coverage can be computed recursively if the <code>" + GO_GET_PACKAGE_COVERAGE_NAME + "</code> package is installed.<br><br><a href=\"" + GO_GET_PACKAGE_COVERAGE_LINK + "\">Install Package Coverage</a>",
+        "Directory coverage can be computed recursively if the <code>" + GO_GET_BINARY_NAME + "</code> package is installed.<br><br><a href=\"" + GO_GET_BINARY_LINK + "\">Install Package Coverage</a>",
         NotificationType.INFORMATION,
         (notification1, hyperlinkEvent) -> {
           if (hyperlinkEvent.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
             String description = hyperlinkEvent.getDescription();
-            if (GO_GET_PACKAGE_COVERAGE_LINK.equals(description)) {
+            if (GO_GET_BINARY_LINK.equals(description)) {
               GoGetPackageFix.applyFix(
                 configuration.getProject(),
                 configuration.getConfigurationModule().getModule(),
-                GO_GET_PACKAGE_COVERAGE_NAME,
+                GO_GET_BINARY_NAME,
                 false);
               notification1.expire();
             }
