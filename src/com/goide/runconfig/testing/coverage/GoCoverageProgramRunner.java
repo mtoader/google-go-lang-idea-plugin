@@ -16,8 +16,12 @@
 
 package com.goide.runconfig.testing.coverage;
 
+import com.goide.GoConstants;
+import com.goide.codeInsight.imports.GoGetPackageFix;
 import com.goide.runconfig.testing.GoTestRunConfiguration;
 import com.goide.runconfig.testing.GoTestRunningState;
+import com.goide.sdk.GoSdkUtil;
+import com.goide.util.GoExecutor;
 import com.intellij.coverage.CoverageExecutor;
 import com.intellij.coverage.CoverageHelper;
 import com.intellij.coverage.CoverageRunnerData;
@@ -32,13 +36,57 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.GenericProgramRunner;
 import com.intellij.execution.runners.RunContentBuilder;
 import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.notification.*;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.event.HyperlinkEvent;
+
 public class GoCoverageProgramRunner extends GenericProgramRunner {
   private static final String ID = "GoCoverageProgramRunner";
+  private static final String GO_GET_BINARY_LINK = "goGetPackageCoverageLink";
+  private static final String GO_GET_BINARY_NAME = "github.com/haya14busa/goverage";
+  private static final String GO_GET_BINARY = "goverage";
+
+  private class CoveragePatcher extends GoTestRunningState.ExecutorPatcher {
+    private GoTestRunConfiguration myConfiguration;
+    private CoverageEnabledConfiguration myCoverageConfiguration;
+    private VirtualFile myPackageCoverageExecutable;
+
+    public CoveragePatcher(CoverageEnabledConfiguration coverageConfiguration, GoTestRunConfiguration configuration) {
+      super(configuration);
+      myConfiguration = configuration;
+      myCoverageConfiguration = coverageConfiguration;
+      myPackageCoverageExecutable = GoSdkUtil.findExecutableInGoPath(
+          GO_GET_BINARY,
+          myConfiguration.getProject(),
+          myConfiguration.getConfigurationModule().getModule());
+    }
+
+    private boolean hasPackageCoverageExecutable() {
+      return myPackageCoverageExecutable != null;
+    }
+
+    @Override
+    public void beforeTarget(@NotNull GoExecutor executor) {
+      if (hasPackageCoverageExecutable()) {
+        executor.withExePath(myPackageCoverageExecutable.getPath());
+        executor.withParameters("-v");
+      }
+      else {
+        super.beforeTarget(executor);
+      }
+      executor.withParameters("-coverprofile=" + myCoverageConfiguration.getCoverageFilePath(), "-covermode=atomic");
+    }
+
+    @Override
+    public void afterTarget(@NotNull GoExecutor executor) {
+      executor.withParameterString(myConfiguration.getGoToolParams());
+    }
+  }
 
   @NotNull
   @Override
@@ -68,7 +116,13 @@ public class GoCoverageProgramRunner extends GenericProgramRunner {
     }
     FileDocumentManager.getInstance().saveAllDocuments();
     CoverageEnabledConfiguration coverageEnabledConfiguration = CoverageEnabledConfiguration.getOrCreate(runConfiguration);
-    runningState.setCoverageFilePath(coverageEnabledConfiguration.getCoverageFilePath());
+    CoveragePatcher runningStatePatcher = new CoveragePatcher(coverageEnabledConfiguration, runConfiguration);
+    runningState.setPatcher(runningStatePatcher);
+
+    if (runConfiguration.getKind() == GoTestRunConfiguration.Kind.DIRECTORY &&
+        !runningStatePatcher.hasPackageCoverageExecutable()) {
+      promptForPackageCoverageTool(runConfiguration);
+    }
 
     ExecutionResult executionResult = state.execute(environment.getExecutor(), this);
     if (executionResult == null) {
@@ -76,5 +130,26 @@ public class GoCoverageProgramRunner extends GenericProgramRunner {
     }
     CoverageHelper.attachToProcess(runConfiguration, executionResult.getProcessHandler(), environment.getRunnerSettings());
     return new RunContentBuilder(executionResult, environment).showRunContent(environment.getContentToReuse());
+  }
+
+  private void promptForPackageCoverageTool(@NotNull final GoTestRunConfiguration configuration) {
+    Notification notification = GoConstants.GO_NOTIFICATION_GROUP.createNotification(
+        "Recursive Directory Coverage",
+        "Directory coverage can be computed recursively if the <code>" + GO_GET_BINARY_NAME + "</code> package is installed.<br><br><a href=\"" + GO_GET_BINARY_LINK + "\">Install Package Coverage</a>",
+        NotificationType.INFORMATION,
+        (notification1, hyperlinkEvent) -> {
+          if (hyperlinkEvent.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+            String description = hyperlinkEvent.getDescription();
+            if (GO_GET_BINARY_LINK.equals(description)) {
+              GoGetPackageFix.applyFix(
+                configuration.getProject(),
+                configuration.getConfigurationModule().getModule(),
+                GO_GET_BINARY_NAME,
+                false);
+              notification1.expire();
+            }
+          }
+        });
+    Notifications.Bus.notify(notification, configuration.getProject());
   }
 }

@@ -47,18 +47,34 @@ import com.intellij.psi.PsiManager;
 import com.intellij.util.ObjectUtils;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
 public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
-  private String myCoverageFilePath;
   private String myFailedTestsPattern;
+  private ExecutorPatcher myPatcher;
+
+  public static class ExecutorPatcher {
+    private GoTestRunConfiguration myConfiguration;
+
+    public ExecutorPatcher(GoTestRunConfiguration configuration) {
+      myConfiguration = configuration;
+    }
+
+    public void beforeTarget(@NotNull GoExecutor executor) {
+      executor.withParameters("test", "-v");
+      executor.withParameterString(myConfiguration.getGoToolParams());
+    }
+
+    public void afterTarget(@NotNull GoExecutor executor) {
+    }
+  }
 
   public GoTestRunningState(@NotNull ExecutionEnvironment env, @NotNull Module module, @NotNull GoTestRunConfiguration configuration) {
     super(env, module, configuration);
+    myPatcher = new ExecutorPatcher(configuration);
   }
 
   @NotNull
@@ -88,16 +104,14 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
 
   @Override
   protected GoExecutor patchExecutor(@NotNull GoExecutor executor) throws ExecutionException {
-    executor.withParameters("test", "-v");
-    executor.withParameterString(myConfiguration.getGoToolParams());
+    myPatcher.beforeTarget(executor);
+
     switch (myConfiguration.getKind()) {
       case DIRECTORY:
         String relativePath = FileUtil.getRelativePath(myConfiguration.getWorkingDirectory(),
                                                        myConfiguration.getDirectoryPath(),
                                                        File.separatorChar);
-        // TODO Once Go gets support for covering multiple packages the ternary condition should be reverted
-        // See https://golang.org/issues/6909
-        String pathSuffix = myCoverageFilePath == null ? "..." : ".";
+        String pathSuffix = "...";
         if (relativePath != null && !".".equals(relativePath)) {
           executor.withParameters("./" + relativePath + "/" + pathSuffix);
         }
@@ -132,10 +146,7 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
         break;
     }
 
-    if (myCoverageFilePath != null) {
-      executor.withParameters("-coverprofile=" + myCoverageFilePath, "-covermode=atomic");
-    }
-
+    myPatcher.afterTarget(executor);
     return executor;
   }
 
@@ -154,11 +165,11 @@ public class GoTestRunningState extends GoRunningState<GoTestRunConfiguration> {
     }
   }
 
-  public void setCoverageFilePath(@Nullable String coverageFile) {
-    myCoverageFilePath = coverageFile;
-  }
-
   public void setFailedTests(@NotNull List<AbstractTestProxy> failedTests) {
     myFailedTestsPattern = "^" + StringUtil.join(failedTests, AbstractTestProxy::getName, "|") + "$";
+  }
+
+  public void setPatcher(ExecutorPatcher patcher) {
+    myPatcher = patcher;
   }
 }
