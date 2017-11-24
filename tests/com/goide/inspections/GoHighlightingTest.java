@@ -148,6 +148,7 @@ public class GoHighlightingTest extends GoCodeInsightFixtureTestCase {
   public void testPlaceholderCount()          { doTest(); }
   public void testPlaceholderCountVet()       { doTest(); }
   public void testTypeConversion()            { doTest(); }
+  public void testParameterCount()            { doTest(); }
   public void testInit()                      { doTest(); }
   public void testMainWithWrongSignature()    { doTest(); }
   public void testChan()                      { doTest(); }

@@ -144,7 +144,7 @@ func bar_m() (int, int) {
 }
 
 func <warning>main127</warning>() {
-	foo_m<error>(bar_m())</error>
+	<error descr="too many arguments in call to foo_m">foo_m</error>(bar_m())
 }
 
 type AnInterface interface {
@@ -166,7 +166,7 @@ func (x *mystruct) getAnInterface() AnInterface {
 var getAnInterface = (*mystruct).getAnInterface
 
 func _() {
-	fmt.Println(getAnInterface(&mystruct{}).MyMethod())
+	fmt.Println(<error descr="too many arguments in call to getAnInterface">getAnInterface</error>(&mystruct{}).MyMethod())
 }
 
 type (

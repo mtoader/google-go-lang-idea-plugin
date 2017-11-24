@@ -757,6 +757,16 @@ public class GoPsiImplUtil {
    * https://golang.org/ref/spec#RangeClause
    */
   @Nullable
+  public static GoFunctionType findFunctionType(GoType type) {
+    if (type instanceof GoFunctionType) return (GoFunctionType)type;
+    GoTypeReferenceExpression refExpr = getTypeReference(type);
+    if (refExpr == null) return null;
+    GoType base = refExpr.resolveType();
+    base = base instanceof GoSpecType ? base.getUnderlyingType() : base;
+    return base instanceof GoFunctionType ? (GoFunctionType)base : null;
+  }
+
+  @Nullable
   private static GoType processRangeClause(@NotNull GoVarDefinition o, @NotNull GoRangeClause parent, @Nullable ResolveState context) {
     GoExpression rangeExpression = parent.getRangeExpression();
     if (rangeExpression != null) {
