@@ -43,6 +43,11 @@ func _(fn func() (i int, e error)) {
 	print(e.Error())
 }
 
+func _(string) {
+	c := func(<warning descr="Unused parameter 'd'">d</warning> string) int { return 1; }()
+	_ = c
+}
+
 func main() {
 	demo("hello")
 	demo2("hello")

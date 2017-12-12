@@ -76,6 +76,6 @@ func main() {
 }
 
 func _() {
-	var x <error>IntegerType</error> = 3
+	var x <error descr="Unresolved type 'IntegerType'">IntegerType</error> = 3
 	println(x)
 }
